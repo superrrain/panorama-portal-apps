@@ -13851,7 +13851,7 @@
           <div class="form-group" style="flex: 1;">
             <label class="form-label">Tanggal Pelaporan</label>
             <input type="date" class="form-input" id="efisiensiInputTanggal"
-              onchange="setEfisiensiInputMode(window.PANORAMA_STATE.efisiensiInputMode || 'ADD')">
+              onchange="onEfisiensiDateChange()">
           </div>
         </div>
 
@@ -23138,7 +23138,12 @@ function setEfisiensiInputMode(mode) {
   const editingId = window.PANORAMA_STATE.editingEfisiensiId;
   let existingWeekEff = null;
   if (editingId) {
-    existingWeekEff = activeEffList.find(e => String(e.efisiensiId) === String(editingId)) || null;
+    const matched = activeEffList.find(e => String(e.efisiensiId) === String(editingId)) || null;
+    if (matched && getCalendarWeekInfo(matched.tanggal).weekNum === currentWeekInfo.weekNum) {
+      existingWeekEff = matched;
+    } else {
+      window.PANORAMA_STATE.editingEfisiensiId = '';
+    }
   }
   if (!existingWeekEff && selCbgId) {
     existingWeekEff = activeEffList.find(e => {
@@ -23467,6 +23472,36 @@ function openInputEfisiensiModal() {
 /**
  * Handler saat Cabang Binaan diubah pada modal Input Efisiensi (v5.8.0)
  */
+/**
+ * Handler saat Tanggal Pelaporan diubah pada modal Input Efisiensi (v5.8.1)
+ * Otomatis mendeteksi apakah minggu kalender terpilih sudah memiliki data atau belum
+ */
+function onEfisiensiDateChange() {
+  const d = window.PANORAMA_STATE.data;
+  if (!d) return;
+
+  const branchSelect = document.getElementById('efisiensiInputCabang');
+  const selCbgId = branchSelect ? branchSelect.value : '';
+  const tglInput = document.getElementById('efisiensiInputTanggal');
+  const selTanggal = (tglInput && tglInput.value) ? tglInput.value : new Date().toISOString().slice(0, 10);
+  const currentWeekInfo = getCalendarWeekInfo(selTanggal);
+
+  const selMonthPrefix = String(selTanggal).substring(0, 7);
+  const activeEffList = d.efisiensi ? filterEfisiensiByActiveMonth(d.efisiensi, selMonthPrefix) : [];
+  
+  // Cari apakah di minggu kalender yang baru ini cabang sudah pernah input
+  const existingWeekEff = activeEffList.find(e => {
+    if (String(e.cabangId) !== String(selCbgId)) return false;
+    const w = getCalendarWeekInfo(e.tanggal);
+    return w.weekNum === currentWeekInfo.weekNum;
+  }) || null;
+
+  // Jika minggu ini sudah ada, masuk mode CORRECT. Jika belum ada, masuk mode ADD (bersih)
+  window.PANORAMA_STATE.editingEfisiensiId = existingWeekEff ? (existingWeekEff.efisiensiId || '') : '';
+  setEfisiensiInputMode(existingWeekEff ? 'CORRECT' : 'ADD');
+  renderEfisiensiWeeklyBreakdown(selCbgId);
+}
+
 function onEfisiensiBranchChange() {
   const d = window.PANORAMA_STATE.data;
   if (!d) return;
@@ -23656,7 +23691,10 @@ function submitEfisiensiForm() {
   const editingId = window.PANORAMA_STATE.editingEfisiensiId;
   let existingWeekEff = null;
   if (editingId) {
-    existingWeekEff = activeEffList.find(e => String(e.efisiensiId) === String(editingId)) || null;
+    const matched = activeEffList.find(e => String(e.efisiensiId) === String(editingId)) || null;
+    if (matched && getCalendarWeekInfo(matched.tanggal).weekNum === currentWeekInfo.weekNum) {
+      existingWeekEff = matched;
+    }
   }
   if (!existingWeekEff) {
     existingWeekEff = activeEffList.find(e => {
