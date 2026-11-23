@@ -1458,8 +1458,22 @@
             <div class="metric-card card-incident" style="cursor: pointer;"
               onclick="if (!event.target.closest('button, select, input, a')) switchTab('insiden');">
               <div class="metric-card-header">
-                <span class="metric-card-title">2. Insiden & SLA</span>
-                <div class="metric-arrow-btn" onclick="switchTab('insiden')" title="Buka Detail Insiden">↗</div>
+                <div class="metric-card-title-group">
+                  <div class="metric-icon-box icon-box-incident">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                      <line x1="12" y1="9" x2="12" y2="13" />
+                      <line x1="12" y1="17" x2="12.01" y2="17" />
+                    </svg>
+                  </div>
+                  <span class="metric-card-title">2. Insiden & SLA</span>
+                </div>
+                <div class="metric-arrow-btn" onclick="switchTab('insiden')" title="Buka Detail Insiden">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 17L17 7"/>
+                    <path d="M7 7h10v10"/>
+                  </svg>
+                </div>
               </div>
               <div class="metric-card-value" id="metricOpenIncidents">0 Kasus</div>
               <div class="metric-card-sub">
@@ -1472,8 +1486,22 @@
             <div class="metric-card card-efficiency" id="dashCardEfficiency" style="cursor: pointer;"
               onclick="if (!event.target.closest('button, select, input, a')) switchTab('efisiensi');">
               <div class="metric-card-header">
-                <span class="metric-card-title">3. Efisiensi Biaya Toko</span>
-                <div class="metric-arrow-btn" onclick="switchTab('efisiensi')" title="Buka Detail Efisiensi">↗</div>
+                <div class="metric-card-title-group">
+                  <div class="metric-icon-box icon-box-efficiency">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                      <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                      <line x1="12" y1="22.08" x2="12" y2="12" />
+                    </svg>
+                  </div>
+                  <span class="metric-card-title">3. Efisiensi Biaya Toko</span>
+                </div>
+                <div class="metric-arrow-btn" onclick="switchTab('efisiensi')" title="Buka Detail Efisiensi">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 17L17 7"/>
+                    <path d="M7 7h10v10"/>
+                  </svg>
+                </div>
               </div>
               <div class="metric-card-value" id="metricHppWaste">HPP 0%</div>
               <div class="metric-card-sub">
@@ -1486,8 +1514,21 @@
             <div class="metric-card card-tasks" style="cursor: pointer;"
               onclick="if (!event.target.closest('button, select, input, a')) switchTab('tugas');">
               <div class="metric-card-header">
-                <span class="metric-card-title">4. Status Tugas Lapangan</span>
-                <div class="metric-arrow-btn" onclick="switchTab('tugas')" title="Buka Kanban Tugas">↗</div>
+                <div class="metric-card-title-group">
+                  <div class="metric-icon-box icon-box-tasks">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M9 11l3 3L22 4" />
+                      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                    </svg>
+                  </div>
+                  <span class="metric-card-title">4. Status Tugas Lapangan</span>
+                </div>
+                <div class="metric-arrow-btn" onclick="switchTab('tugas')" title="Buka Kanban Tugas">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 17L17 7"/>
+                    <path d="M7 7h10v10"/>
+                  </svg>
+                </div>
               </div>
               <div class="metric-card-value" id="metricTasksSummary">0 Aktif</div>
               <div class="metric-card-sub">

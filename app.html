@@ -1879,6 +1879,163 @@
     margin-top: 6px;
   }
 
+  /* ====================================================================
+     BENTO GLOW METRIC CARDS (VARIASI A - PANORAMA DESIGN SYSTEM)
+     ==================================================================== */
+  .metric-card-title-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .metric-icon-box {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+  }
+
+  .metric-card:hover .metric-icon-box {
+    transform: scale(1.1);
+  }
+
+  /* 1. Bento Card Incident */
+  .metric-card.card-incident {
+    background: linear-gradient(135deg, #FFFFFF 0%, #FFFFFF 65%, #FFE4E6 100%) !important;
+    border: 1.2px solid #FDA4AF !important;
+    box-shadow: 0 2px 10px rgba(225, 29, 72, 0.06);
+  }
+  .metric-card.card-incident:hover {
+    border-color: #FB7185 !important;
+    box-shadow: 0 6px 18px rgba(225, 29, 72, 0.14);
+    transform: translateY(-2px);
+  }
+  .icon-box-incident {
+    background-color: #FFF1F2;
+    border: 1px solid #FECDD3;
+    color: #E11D48;
+  }
+  .card-incident .metric-card-title {
+    color: #9F1239 !important;
+    font-weight: 700;
+  }
+  .card-incident .metric-card-value {
+    color: #BE123C !important;
+    font-weight: 900;
+  }
+  .card-incident .metric-arrow-btn {
+    background-color: #FFF1F2;
+    border-color: #FECDD3;
+    color: #E11D48;
+  }
+  .card-incident:hover .metric-arrow-btn {
+    background-color: #E11D48 !important;
+    border-color: #E11D48 !important;
+    color: #FFFFFF !important;
+  }
+  .card-incident .pill-badge-donezo {
+    background-color: #FFF1F2;
+    border: 1px solid #FECDD3;
+    color: #BE123C;
+  }
+  .card-incident .metric-meta-sub {
+    color: #9F1239;
+    opacity: 0.8;
+  }
+
+  /* 2. Bento Card Efficiency */
+  .metric-card.card-efficiency {
+    background: linear-gradient(135deg, #FFFFFF 0%, #FFFFFF 65%, #DCFCE7 100%) !important;
+    border: 1.2px solid #86EFAC !important;
+    box-shadow: 0 2px 10px rgba(5, 150, 105, 0.06);
+  }
+  .metric-card.card-efficiency:hover {
+    border-color: #4ADE80 !important;
+    box-shadow: 0 6px 18px rgba(5, 150, 105, 0.14);
+    transform: translateY(-2px);
+  }
+  .icon-box-efficiency {
+    background-color: #F0FDF4;
+    border: 1px solid #BBF7D0;
+    color: #059669;
+  }
+  .card-efficiency .metric-card-title {
+    color: #065F46 !important;
+    font-weight: 700;
+  }
+  .card-efficiency .metric-card-value {
+    color: #047857 !important;
+    font-weight: 900;
+  }
+  .card-efficiency .metric-arrow-btn {
+    background-color: #F0FDF4;
+    border-color: #BBF7D0;
+    color: #059669;
+  }
+  .card-efficiency:hover .metric-arrow-btn {
+    background-color: #059669 !important;
+    border-color: #059669 !important;
+    color: #FFFFFF !important;
+  }
+  .card-efficiency .pill-badge-donezo {
+    background-color: #F0FDF4;
+    border: 1px solid #BBF7D0;
+    color: #047857;
+  }
+  .card-efficiency .metric-meta-sub {
+    color: #065F46;
+    opacity: 0.8;
+  }
+
+  /* 3. Bento Card Tasks */
+  .metric-card.card-tasks {
+    background: linear-gradient(135deg, #FFFFFF 0%, #FFFFFF 65%, #E0F2FE 100%) !important;
+    border: 1.2px solid #7DD3FC !important;
+    box-shadow: 0 2px 10px rgba(2, 132, 199, 0.06);
+  }
+  .metric-card.card-tasks:hover {
+    border-color: #38BDF8 !important;
+    box-shadow: 0 6px 18px rgba(2, 132, 199, 0.14);
+    transform: translateY(-2px);
+  }
+  .icon-box-tasks {
+    background-color: #F0F9FF;
+    border: 1px solid #BAE6FD;
+    color: #0284C7;
+  }
+  .card-tasks .metric-card-title {
+    color: #075985 !important;
+    font-weight: 700;
+  }
+  .card-tasks .metric-card-value {
+    color: #0369A1 !important;
+    font-weight: 900;
+  }
+  .card-tasks .metric-arrow-btn {
+    background-color: #F0F9FF;
+    border-color: #BAE6FD;
+    color: #0284C7;
+  }
+  .card-tasks:hover .metric-arrow-btn {
+    background-color: #0284C7 !important;
+    border-color: #0284C7 !important;
+    color: #FFFFFF !important;
+  }
+  .card-tasks .pill-badge-donezo {
+    background-color: #F0F9FF;
+    border: 1px solid #BAE6FD;
+    color: #0369A1;
+  }
+  .card-tasks .metric-meta-sub {
+    color: #075985;
+    opacity: 0.8;
+  }
+
   /* ================================================================================
    PANELS & CARDS (Leaderboard, Insiden, Efisiensi, Tabel)
    ================================================================================ */
@@ -11344,8 +11501,22 @@
             <div class="metric-card card-incident" style="cursor: pointer;"
               onclick="if (!event.target.closest('button, select, input, a')) switchTab('insiden');">
               <div class="metric-card-header">
-                <span class="metric-card-title">2. Insiden & SLA</span>
-                <div class="metric-arrow-btn" onclick="switchTab('insiden')" title="Buka Detail Insiden">↗</div>
+                <div class="metric-card-title-group">
+                  <div class="metric-icon-box icon-box-incident">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                      <line x1="12" y1="9" x2="12" y2="13" />
+                      <line x1="12" y1="17" x2="12.01" y2="17" />
+                    </svg>
+                  </div>
+                  <span class="metric-card-title">2. Insiden & SLA</span>
+                </div>
+                <div class="metric-arrow-btn" onclick="switchTab('insiden')" title="Buka Detail Insiden">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 17L17 7"/>
+                    <path d="M7 7h10v10"/>
+                  </svg>
+                </div>
               </div>
               <div class="metric-card-value" id="metricOpenIncidents">0 Kasus</div>
               <div class="metric-card-sub">
@@ -11358,8 +11529,22 @@
             <div class="metric-card card-efficiency" id="dashCardEfficiency" style="cursor: pointer;"
               onclick="if (!event.target.closest('button, select, input, a')) switchTab('efisiensi');">
               <div class="metric-card-header">
-                <span class="metric-card-title">3. Efisiensi Biaya Toko</span>
-                <div class="metric-arrow-btn" onclick="switchTab('efisiensi')" title="Buka Detail Efisiensi">↗</div>
+                <div class="metric-card-title-group">
+                  <div class="metric-icon-box icon-box-efficiency">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                      <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                      <line x1="12" y1="22.08" x2="12" y2="12" />
+                    </svg>
+                  </div>
+                  <span class="metric-card-title">3. Efisiensi Biaya Toko</span>
+                </div>
+                <div class="metric-arrow-btn" onclick="switchTab('efisiensi')" title="Buka Detail Efisiensi">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 17L17 7"/>
+                    <path d="M7 7h10v10"/>
+                  </svg>
+                </div>
               </div>
               <div class="metric-card-value" id="metricHppWaste">HPP 0%</div>
               <div class="metric-card-sub">
@@ -11372,8 +11557,21 @@
             <div class="metric-card card-tasks" style="cursor: pointer;"
               onclick="if (!event.target.closest('button, select, input, a')) switchTab('tugas');">
               <div class="metric-card-header">
-                <span class="metric-card-title">4. Status Tugas Lapangan</span>
-                <div class="metric-arrow-btn" onclick="switchTab('tugas')" title="Buka Kanban Tugas">↗</div>
+                <div class="metric-card-title-group">
+                  <div class="metric-icon-box icon-box-tasks">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M9 11l3 3L22 4" />
+                      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                    </svg>
+                  </div>
+                  <span class="metric-card-title">4. Status Tugas Lapangan</span>
+                </div>
+                <div class="metric-arrow-btn" onclick="switchTab('tugas')" title="Buka Kanban Tugas">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 17L17 7"/>
+                    <path d="M7 7h10v10"/>
+                  </svg>
+                </div>
               </div>
               <div class="metric-card-value" id="metricTasksSummary">0 Aktif</div>
               <div class="metric-card-sub">
