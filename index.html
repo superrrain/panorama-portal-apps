@@ -1541,13 +1541,55 @@
     height: 100%;
     position: relative;
     cursor: pointer;
-    transition: transform 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.2s ease;
     z-index: 2;
     box-sizing: border-box;
+    user-select: none;
   }
 
-  .chart-bar-column:hover {
-    transform: translateY(-3px);
+  /* Efek Hidup & Bergerak Saat Disentuh / Hover / Active di Mobile & Desktop */
+  .chart-bar-column:hover,
+  .chart-bar-column.is-touched {
+    transform: translateY(-8px) scale(1.06);
+    z-index: 10;
+  }
+
+  .chart-bar-column:active {
+    transform: translateY(-4px) scale(1.02);
+    transition: transform 0.1s ease;
+  }
+
+  .chart-bar-column:hover .chart-bar-track,
+  .chart-bar-column:active .chart-bar-track,
+  .chart-bar-column.is-touched .chart-bar-track {
+    box-shadow: 0 10px 24px rgba(16, 185, 129, 0.35), 0 0 0 2.5px rgba(16, 185, 129, 0.45);
+    border-color: rgba(16, 185, 129, 0.6);
+    background-color: #FFFFFF;
+    transform: scale(1.04);
+  }
+
+  .chart-bar-column:hover .chart-bar-value-tag,
+  .chart-bar-column:active .chart-bar-value-tag,
+  .chart-bar-column.is-touched .chart-bar-value-tag {
+    transform: translateY(-4px) scale(1.12);
+  }
+
+  .chart-bar-column:hover .chart-area-badge,
+  .chart-bar-column:active .chart-area-badge,
+  .chart-bar-column.is-touched .chart-area-badge {
+    background-color: var(--forest-800);
+    color: #FFFFFF;
+    transform: scale(1.12);
+    box-shadow: 0 2px 8px rgba(10, 55, 40, 0.25);
+  }
+
+  .chart-bar-column:hover .chart-mgr-name,
+  .chart-bar-column:active .chart-mgr-name,
+  .chart-bar-column.is-touched .chart-mgr-name {
+    color: var(--forest-800);
+    font-weight: 800;
   }
 
   .chart-bar-value-tag {
@@ -1559,6 +1601,7 @@
     line-height: 1.15;
     position: relative;
     z-index: 3;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
   .bar-val-nominal {
@@ -1607,25 +1650,48 @@
     align-items: flex-end;
     overflow: hidden;
     position: relative;
-    border: 1px solid rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
   .chart-bar-fill {
     width: 100%;
     border-radius: var(--radius-pill);
-    transition: height 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: height 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Gelombang Kilau Hidup (Shimmer Light Wave) di dalam batang */
+  .chart-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.38) 50%, transparent 100%);
+    animation: barShimmer 3s infinite ease-in-out;
+    pointer-events: none;
+  }
+
+  @keyframes barShimmer {
+    0% { transform: translateY(100%); opacity: 0; }
+    30% { opacity: 0.7; }
+    70% { opacity: 0.7; }
+    100% { transform: translateY(-100%); opacity: 0; }
   }
 
   .chart-bar-fill.bar-success {
-    background: linear-gradient(180deg, #10B981 0%, #047857 100%);
+    background: linear-gradient(180deg, #34D399 0%, #059669 100%);
   }
 
   .chart-bar-fill.bar-warning {
-    background: linear-gradient(180deg, #F59E0B 0%, #D97706 100%);
+    background: linear-gradient(180deg, #FBBF24 0%, #D97706 100%);
   }
 
   .chart-bar-fill.bar-danger {
-    background: linear-gradient(180deg, #EF4444 0%, #B91C1C 100%);
+    background: linear-gradient(180deg, #F87171 0%, #DC2626 100%);
   }
 
   .chart-bar-label {
@@ -10196,6 +10262,102 @@
   body.role-guest-readonly button[onclick*="openInputTargetModal"],
   body.role-guest-readonly button[onclick*="submitCleanAllDummyTransactions"] {
     display: none !important;
+  }
+
+  /* ==========================================================================
+     GLOBAL TACTILE MICRO-ANIMATIONS & TOUCH FEEDBACK (LIVELY APP FEEL)
+     ========================================================================== */
+  /* 1. Global Buttons & Pills: Bounce feedback on touch/click */
+  .btn,
+  .pill-btn,
+  .metric-arrow-btn,
+  .btn-primary,
+  .btn-outline,
+  .btn-danger,
+  .btn-success {
+    transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease, background-color 0.15s ease !important;
+    -webkit-tap-highlight-color: transparent !important;
+    touch-action: manipulation;
+  }
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+  }
+  .btn:active,
+  .pill-btn:active {
+    transform: scale(0.94) !important;
+    transition: transform 0.08s ease !important;
+  }
+  .metric-arrow-btn:hover {
+    transform: scale(1.15) rotate(5deg) !important;
+  }
+  .metric-arrow-btn:active {
+    transform: scale(0.92) !important;
+  }
+
+  /* 2. Bento Metric Cards & Panels: Tactile lift on hover, compression on press */
+  .metric-card,
+  .card-panel,
+  .sales-hero-panel {
+    transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.2s ease !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+  .metric-card:hover {
+    transform: translateY(-4px) scale(1.008);
+  }
+  .metric-card:active {
+    transform: scale(0.985) !important;
+    transition: transform 0.09s ease !important;
+  }
+  .card-panel:hover {
+    transform: translateY(-2px);
+  }
+
+  /* 3. Interactive List Items & Ranking Rows: Tactile spring */
+  .leader-item,
+  .review-item-card,
+  .task-kanban-card {
+    transition: transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.15s ease !important;
+    -webkit-tap-highlight-color: transparent !important;
+    touch-action: manipulation;
+  }
+  .leader-item:hover,
+  .review-item-card:hover {
+    transform: translateY(-2px) scale(1.006);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+  }
+  .leader-item:active,
+  .review-item-card:active,
+  .task-kanban-card:active {
+    transform: scale(0.982) !important;
+    transition: transform 0.08s ease !important;
+  }
+
+  /* 4. Navigation Links: Subtle tactile pulse */
+  .mobile-nav-link,
+  .nav-link,
+  .bottom-nav-item {
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.15s ease, background-color 0.15s ease !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+  .mobile-nav-link:active,
+  .bottom-nav-item:active {
+    transform: scale(0.93) !important;
+  }
+
+  /* 5. Micro Badges & Chips: Interactive pop */
+  .pillar-micro-chip,
+  .rank-pill,
+  .badge {
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s ease;
+  }
+  .pillar-micro-chip:hover,
+  .rank-pill:hover {
+    transform: scale(1.08);
+  }
+  .pillar-micro-chip:active,
+  .rank-pill:active {
+    transform: scale(0.92);
   }
 </style>
 
@@ -20706,6 +20868,11 @@ function renderSalesAnalyticsChart() {
       const col = document.createElement('div');
       col.className = 'chart-bar-column';
       col.title = a.id + ' (' + a.mgr + ')\nRealisasi: Rp ' + formatRupiah(actualVal) + '\nTarget: Rp ' + formatRupiah(targetVal) + '\nCapaian: ' + pct + '%';
+      col.addEventListener('pointerdown', function() {
+        if (navigator.vibrate) try { navigator.vibrate(15); } catch(e) {}
+        col.classList.add('is-touched');
+        setTimeout(() => col.classList.remove('is-touched'), 650);
+      });
       col.onclick = function() {
         if (actualVal === 0) {
           showToast(a.id + ' (' + a.mgr + '): Belum ada input data penjualan (' + periodLabel + ')', 'info');
@@ -20846,6 +21013,11 @@ function renderSalesAnalyticsChart() {
       const col = document.createElement('div');
       col.className = 'chart-bar-column';
       col.title = c.namaCabang + ' (' + c.brand + ')\nRealisasi: Rp ' + formatRupiah(actualVal) + '\nTarget: Rp ' + formatRupiah(targetVal) + '\nCapaian: ' + pct + '%';
+      col.addEventListener('pointerdown', function() {
+        if (navigator.vibrate) try { navigator.vibrate(15); } catch(e) {}
+        col.classList.add('is-touched');
+        setTimeout(() => col.classList.remove('is-touched'), 650);
+      });
       col.onclick = function() {
         if (actualVal === 0) {
           showToast(c.namaCabang + ': Belum ada input data penjualan (' + periodLabel + ')', 'info');

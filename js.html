@@ -4120,6 +4120,11 @@ function renderSalesAnalyticsChart() {
       const col = document.createElement('div');
       col.className = 'chart-bar-column';
       col.title = a.id + ' (' + a.mgr + ')\nRealisasi: Rp ' + formatRupiah(actualVal) + '\nTarget: Rp ' + formatRupiah(targetVal) + '\nCapaian: ' + pct + '%';
+      col.addEventListener('pointerdown', function() {
+        if (navigator.vibrate) try { navigator.vibrate(15); } catch(e) {}
+        col.classList.add('is-touched');
+        setTimeout(() => col.classList.remove('is-touched'), 650);
+      });
       col.onclick = function() {
         if (actualVal === 0) {
           showToast(a.id + ' (' + a.mgr + '): Belum ada input data penjualan (' + periodLabel + ')', 'info');
@@ -4260,6 +4265,11 @@ function renderSalesAnalyticsChart() {
       const col = document.createElement('div');
       col.className = 'chart-bar-column';
       col.title = c.namaCabang + ' (' + c.brand + ')\nRealisasi: Rp ' + formatRupiah(actualVal) + '\nTarget: Rp ' + formatRupiah(targetVal) + '\nCapaian: ' + pct + '%';
+      col.addEventListener('pointerdown', function() {
+        if (navigator.vibrate) try { navigator.vibrate(15); } catch(e) {}
+        col.classList.add('is-touched');
+        setTimeout(() => col.classList.remove('is-touched'), 650);
+      });
       col.onclick = function() {
         if (actualVal === 0) {
           showToast(c.namaCabang + ': Belum ada input data penjualan (' + periodLabel + ')', 'info');
