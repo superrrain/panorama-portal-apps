@@ -1564,7 +1564,14 @@ function apiGetInitialData(userSession, fallbackUser) {
             aiTag: String(rv[COL_REVIEWS.AI_TAG] || '').trim(),
             aiUrgensi: String(rv[COL_REVIEWS.AI_URGENSI] || '').trim(),
             aiAction: String(rv[COL_REVIEWS.AI_ACTION] || '').trim(),
-            statusRespon: String(rv[COL_REVIEWS.STATUS_RESPON] || '').trim(),
+            statusRespon: (function() {
+              var sVal = String(rv[COL_REVIEWS.STATUS_RESPON] || '').trim();
+              var rVal = Number(rv[COL_REVIEWS.RATING] || 0);
+              if (rVal >= 4 && (!sVal || sVal === 'MENUNGGU_RESPON' || sVal === 'MENUNGGU RESPON')) {
+                return 'SELESAI';
+              }
+              return sVal;
+            })(),
             mapsUrl: String(rv[COL_REVIEWS.MAPS_URL] || '').trim()
           });
         }
@@ -1573,6 +1580,7 @@ function apiGetInitialData(userSession, fallbackUser) {
       Logger.log('Reviews read notice: ' + eRev.message);
     }
 
+    if (typeof autoResolvePositiveReviewsInSheet === 'function') autoResolvePositiveReviewsInSheet();
     var returnPayload = {
       success: true,
       data: {

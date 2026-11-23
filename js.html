@@ -10815,6 +10815,7 @@ function renderJadwalDeadlineCard() {
 
   container.className = cardClass;
   container.innerHTML = html;
+  updateCustomerReviewNavBadge();
 }
 
 function broadcastPengingatJadwalWa() {
@@ -21572,6 +21573,33 @@ function triggerAiMapsScan() {
   }
 }
 
+
+/**
+ * Perbarui Badge Alert Menu Customer Review di Sidebar
+ * Hanya menampilkan alert jika ada komplain (bintang 1 s/d 3) yang belum selesai ditangani
+ */
+function updateCustomerReviewNavBadge() {
+  const badgeEl = document.getElementById('navBadgeBadReviews');
+  if (!badgeEl) return;
+  const d = window.PANORAMA_STATE.data;
+  if (!d || !Array.isArray(d.reviews)) {
+    badgeEl.style.display = 'none';
+    return;
+  }
+  const unresolvedBadReviews = d.reviews.filter(r => {
+    const star = Number(r.rating || 0);
+    if (star >= 4) return false; // Pujian / Positif otomatis selesai, BUKAN komplain!
+    return !isCustomerReviewResolved(r, d.insiden);
+  });
+
+  if (unresolvedBadReviews.length > 0) {
+    badgeEl.style.display = 'inline-block';
+    badgeEl.textContent = unresolvedBadReviews.length > 99 ? '99+' : (unresolvedBadReviews.length + ' Alert');
+  } else {
+    badgeEl.style.display = 'none';
+  }
+}
+
 function renderMapsAiView() {
   const d = window.PANORAMA_STATE.data || {};
   let list = filterReviewsByActiveMonth(Array.isArray(d.reviews) ? d.reviews : [], d.insiden);
@@ -21775,13 +21803,14 @@ function renderMapsAiView() {
       urgBg = '#FFFBEB';
     }
 
-    const statusUpper = (r.statusRespon || 'MENUNGGU_RESPON').toUpperCase();
+    const isPositive = (star >= 4);
+    const statusUpper = (r.statusRespon || (isPositive ? 'SELESAI' : 'MENUNGGU_RESPON')).toUpperCase();
     let statusLabel = '<svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> MENUNGGU RESPON';
     let statusBg = '#FEF2F2';
     let statusColor = '#DC2626';
 
-    if (statusUpper.includes('TERJAWAB') || statusUpper.includes('RESOLVED')) {
-      statusLabel = '<svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> TERJAWAB & SELESAI';
+    if (isPositive || statusUpper.includes('TERJAWAB') || statusUpper.includes('RESOLVED') || statusUpper.includes('SELESAI')) {
+      statusLabel = '<svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> ' + (isPositive ? 'SELESAI (PUJIAN KONSUMEN)' : 'TERJAWAB & SELESAI');
       statusBg = '#ECFDF5';
       statusColor = '#059669';
     } else if (statusUpper.includes('ESCALATED')) {
@@ -21793,7 +21822,7 @@ function renderMapsAiView() {
     const tagLabel = issueLabels[r.aiTag] || ('<svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg> ' + (r.aiTag || 'Isu Operasional'));
     const safeReviewId = r.id;
     const isEscalated = statusUpper.includes('ESCALATED');
-    const isResolved = statusUpper.includes('TERJAWAB') || statusUpper.includes('RESOLVED');
+    const isResolved = isPositive || statusUpper.includes('TERJAWAB') || statusUpper.includes('RESOLVED') || statusUpper.includes('SELESAI');
 
     // FITUR 2: Cek apakah tiket insiden untuk ulasan ini sudah ada / pernah dikirim
     const existingInc = (d.insiden || []).find(inc => {
@@ -21881,9 +21910,17 @@ function renderMapsAiView() {
                 '<svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6"/><path d="M9 16h6"/></svg> Salin Draf Balasan' +
               '</button>' +
             '</div>' +
-            '<div style="font-size:11px; color:var(--text-muted); line-height:1.45;" id="draftText_' + safeReviewId + '">' +
-              '"' + (r.aiResponseDraft || 'Terima kasih atas ulasannya. Kami mohon maaf atas ketidaknyamanan ini dan segera melakukan evaluasi menyeluruh.') + '"' +
-            '</div>' +
+            (function() {
+              let dTxt = r.aiResponseDraft || '';
+              if (!dTxt || (isPositive && dTxt.toLowerCase().includes('mohon maaf'))) {
+                dTxt = isPositive 
+                  ? ('Terima kasih banyak atas ulasan bintang ' + star + ' dan apresiasinya untuk gerai ' + (r.namaCabang || 'kami') + '! Senang sekali bisa melayani Anda dengan baik, sampai jumpa kembali di gerai kami!')
+                  : 'Terima kasih atas ulasannya. Kami mohon maaf atas ketidaknyamanan ini dan segera melakukan evaluasi menyeluruh.';
+              }
+              return '<div style="font-size:11px; color:var(--text-muted); line-height:1.45;" id="draftText_' + safeReviewId + '">' +
+                '"' + dTxt + '"' +
+              '</div>';
+            })() +
           '</div>' +
         '</div>' +
 
@@ -21916,19 +21953,21 @@ function renderMapsAiView() {
           ) : '') +
 
           // FITUR 2: Apabila tiket insiden sudah dikirim, tidak perlu ada lagi tombolnya supaya tidak dobel!
-          (hasTicketSent ? (
-            '<span class="badge" style="background:#EFF6FF; color:#2563EB; border:1px solid #BFDBFE; font-size:11px; padding:6px 10px; border-radius:6px; font-weight:700; display:inline-flex; align-items:center; gap:4px;" title="Tiket insiden sudah dikirim dan aktif">' +
-              '<span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span> Tiket Terkirim ' + (linkedTicketId ? '(' + linkedTicketId + ')' : '') +
-            '</span>'
-          ) : (
-            (!isResolved ? (
-              '<button type="button" class="btn btn-primary maps-action-btn" onclick="escalateReviewToIncident(\'' + safeReviewId + '\')" title="Jadikan Tiket Insiden Resmi (SLA)">' +
-                '<span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span> Tiket Insiden' +
-              '</button>'
-            ) : '')
-          )) +
+          (!isPositive ? (
+            hasTicketSent ? (
+              '<span class="badge" style="background:#EFF6FF; color:#2563EB; border:1px solid #BFDBFE; font-size:11px; padding:6px 10px; border-radius:6px; font-weight:700; display:inline-flex; align-items:center; gap:4px;" title="Tiket insiden sudah dikirim dan aktif">' +
+                '<span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span> Tiket Terkirim ' + (linkedTicketId ? '(' + linkedTicketId + ')' : '') +
+              '</span>'
+            ) : (
+              (!isResolved ? (
+                '<button type="button" class="btn btn-primary maps-action-btn" onclick="escalateReviewToIncident(\'' + safeReviewId + '\')" title="Jadikan Tiket Insiden Resmi (SLA)">' +
+                  '<span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span> Tiket Insiden' +
+                '</button>'
+              ) : '')
+            )
+          ) : '') +
 
-          (!isResolved ? (
+          (!isPositive && !isResolved ? (
             '<button type="button" class="btn btn-outline maps-action-btn" title="Tandai Selesai Ditangani" onclick="markReviewResolved(\'' + safeReviewId + '\')">' +
               '<span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> Selesai' +
             '</button>'
@@ -22021,7 +22060,25 @@ function sendReviewWaToAM(reviewId) {
     amPhone = clean;
   }
 
-  const msg = [
+  const isPos = Number(rev.rating || 0) >= 4;
+  const msg = isPos ? [
+    '🌟 *APRESIASI KONSUMEN: ULASAN ' + rev.rating + ' BINTANG*',
+    '------------------------------------------------',
+    '🏢 *Cabang:* ' + rev.namaCabang + ' (' + (rev.kota || '-') + ')',
+    '📍 *Wilayah:* ' + rev.areaId + ' (AM: ' + amName + ')',
+    '⭐ *Rating Bintang:* ' + rev.rating + ' / 5 Bintang (Pujian Pelanggan)',
+    '👤 *Konsumen:* ' + rev.reviewer + ' (' + rev.tanggal + ')',
+    '',
+    '💬 *Isi Apresiasi / Pujian Konsumen:*',
+    '"' + rev.komentar + '"',
+    '',
+    '🤖 *Rekomendasi AI:*',
+    '👉 ' + (rev.aiAction || 'Teruskan pujian kepada SPV & seluruh kru gerai atas pelayanan yang prima!'),
+    '',
+    '👏 *APRESIASI OPERASIONAL:*',
+    'Terima kasih atas dedikasi dan kerja keras seluruh tim gerai ' + rev.namaCabang + '. Pertahankan standar mutu layanan ini!',
+    '🔗 Link Ulasan: ' + (rev.mapsUrl || '-')
+  ].join('\n') : [
     '🚨 *ALERT AI SENTINEL: KOMPLAIN GOOGLE MAPS PELANGGAN*',
     '------------------------------------------------',
     '🏢 *Cabang:* ' + rev.namaCabang + ' (' + (rev.kota || '-') + ')',

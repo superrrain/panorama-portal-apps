@@ -96,7 +96,7 @@ function apiBatchSaveReviews(payload) {
         r.aiTag || '',
         r.aiUrgensi || '',
         r.aiAction || '',
-        r.statusRespon || 'MENUNGGU_RESPON',
+        (Number(r.rating || 5) >= 4) ? 'SELESAI' : (r.statusRespon || 'MENUNGGU_RESPON'),
         r.mapsUrl || ''
       ]);
       existingIds[rId] = true;
@@ -267,7 +267,7 @@ function apiSubmitCustomerReview(payload) {
       aiTag,
       aiUrgensi,
       aiAction,
-      'MENUNGGU_RESPON',
+      (rating >= 4 ? 'SELESAI' : 'MENUNGGU_RESPON'),
       mapsUrl
     ];
     sRev.appendRow(newRow);
@@ -511,4 +511,25 @@ function renderCustomerReviewPage(params) {
     .setTitle('Survei Kepuasan Pelanggan - ' + namaCabang)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+/**
+ * Self-Healing: Otomatis tandai seluruh ulasan rating 4 & 5 di DataReviews menjadi SELESAI
+ * Karena ulasan positif adalah pujian/apresiasi konsumen dan BUKAN komplain.
+ */
+function autoResolvePositiveReviewsInSheet() {
+  try {
+    var sheet = getSheet(TAB.REVIEWS);
+    if (!sheet) return;
+    var data = sheet.getDataRange().getValues();
+    for (var i = 1; i < data.length; i++) {
+      var rRating = Number(data[i][COL_REVIEWS.RATING] || 0);
+      var rStatus = String(data[i][COL_REVIEWS.STATUS_RESPON] || '').trim().toUpperCase();
+      if (rRating >= 4 && (rStatus === 'MENUNGGU_RESPON' || rStatus === 'MENUNGGU RESPON' || !rStatus)) {
+        sheet.getRange(i + 1, COL_REVIEWS.STATUS_RESPON + 1).setValue('SELESAI');
+      }
+    }
+  } catch (eAutoRev) {
+    Logger.log('Auto resolve positive reviews notice: ' + eAutoRev.message);
+  }
 }
