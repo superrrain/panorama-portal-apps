@@ -131,18 +131,19 @@ function handleApiRequest(action, params) {
   var result = { success: false, message: 'Aksi API tidak dikenali: ' + action };
   try {
     params = params || {};
-    if (typeof params.payload === 'string' && params.payload.trim() !== '') {
+    var pPayload = params.payload;
+    if (typeof pPayload === 'string' && pPayload.trim() !== '') {
       try {
-        var parsedPayload = JSON.parse(params.payload);
-        if (parsedPayload && typeof parsedPayload === 'object') {
-          params.payload = parsedPayload;
-          for (var pk in parsedPayload) {
-            if (Object.prototype.hasOwnProperty.call(parsedPayload, pk) && params[pk] === undefined) {
-              params[pk] = parsedPayload[pk];
-            }
-          }
-        }
+        pPayload = JSON.parse(pPayload);
       } catch (eParseP) {}
+    }
+    if (pPayload && typeof pPayload === 'object') {
+      params.payload = pPayload;
+      for (var pk in pPayload) {
+        if (Object.prototype.hasOwnProperty.call(pPayload, pk) && params[pk] === undefined) {
+          params[pk] = pPayload[pk];
+        }
+      }
     }
     var user = params.user;
     if (typeof user === 'string') {
@@ -201,7 +202,8 @@ function handleApiRequest(action, params) {
 
       case 'saveEfisiensi':
       case 'apiSaveEfisiensi':
-        result = apiSaveEfisiensi(params.efisiensiData || params, user);
+        var effPayload = (params.payload && typeof params.payload === 'object') ? params.payload : (params.efisiensiData || params);
+        result = apiSaveEfisiensi(effPayload, user);
         break;
 
       case 'saveTugas':

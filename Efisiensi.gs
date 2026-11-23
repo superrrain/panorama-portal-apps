@@ -27,11 +27,24 @@ function reimburseKas(payload) { return apiReimburseKas(payload); }
  */
 function apiSaveEfisiensi(payload) {
   try {
+    if (!payload) return { success: false, message: 'Payload data efisiensi kosong.' };
+    var targetCabangId = String(payload.cabangId || '').trim();
+    if (!targetCabangId) {
+      return { success: false, message: 'Gagal simpan: ID Cabang tidak boleh kosong.' };
+    }
     var sheet = getSheet(TAB.EFISIENSI);
     var data = sheet.getDataRange().getValues();
+
+    // Self-healing: bersihkan baris tanpa CabangID jika ada
+    for (var cln = data.length - 1; cln >= 1; cln--) {
+      var cIdCheck = String(data[cln][COL_EFISIENSI.CABANG_ID] || '').trim();
+      if (!cIdCheck) {
+        try { sheet.deleteRow(cln + 1); data.splice(cln, 1); } catch (eCln) {}
+      }
+    }
+
     var matchingRowIndices = [];
     var targetDate = normalizeDateStr(payload.tanggal) || Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyyy-MM-dd');
-    var targetCabangId = String(payload.cabangId || '').trim();
     var targetEffId = String(payload.efisiensiId || '').trim();
 
     // Baca parameter operasional dari MasterConfig untuk fallback dinamis
