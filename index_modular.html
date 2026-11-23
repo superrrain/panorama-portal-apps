@@ -2281,122 +2281,79 @@
              SECTION 8: AI GOOGLE MAPS REPUTATION & COMPLAINT INTELLIGENCE
              ======================================================================== -->
         <section id="section-maps-ai" class="view-section" style="display: none;">
-          <div class="view-header-strip"
-            style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
-            <div>
+          <div class="card-panel">
+            <div class="panel-header"
+              style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+              <div class="panel-title">
+                <div class="metric-icon-box icon-box-review">
+                  <svg class="p-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 style="font-size:16px; font-weight:800; color:var(--text-main); margin:0;">Customer Review & AI Intelligence</h3>
+                  <p style="font-size:11px; color:var(--text-muted); margin:2px 0 0 0;">
+                    Monitoring kepuasan pelanggan realtime, evaluasi keluhan &le; 3 bintang, dan eskalasi instan WhatsApp.
+                  </p>
+                </div>
+              </div>
               <div style="display:flex; align-items:center; gap:8px;">
-                <span class="ai-pulse-dot"></span>
-                <span
-                  style="font-size:11px; font-weight:800; color:var(--forest-800); text-transform:uppercase; letter-spacing:0.5px;">AI
-                  Autonomous Monitoring Agent</span>
-              </div>
-              <h2 style="font-size:18px; font-weight:800; color:var(--text-main); margin:4px 0 2px 0;">Customer Review &
-                Complaint Intelligence</h2>
-              <p style="font-size:12px; color:var(--text-muted); margin:0;">
-                Monitoring kepuasan pelanggan realtime dari form ulasan meja gerai, filter keluhan bintang &le; 3, dan
-                eskalasi instan ke Area Manager & COO via WhatsApp.
-              </p>
-            </div>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <button type="button" class="btn btn-primary" onclick="openModalQrUlasan()"
-                style="display:inline-flex; align-items:center; gap:6px; font-size:11.5px; padding:7px 14px;">
-                <span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
-                    <line x1="12" y1="18" x2="12.01" y2="18" />
-                  </svg></span> Buat QR Code Meja
-              </button>
-              <button type="button" class="btn btn-outline" id="btnScanAiReviews"
-                style="display:inline-flex; align-items:center; gap:6px; font-size:11.5px; padding:7px 14px;"
-                onclick="triggerAiMapsScan()">
-                <span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="23 4 23 10 17 10" />
-                    <polyline points="1 20 1 14 7 14" />
-                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
-                  </svg></span> Sinkronkan Ulasan
-              </button>
-              <button type="button" class="btn btn-outline" id="btnExportNegativeReviews"
-                style="display:inline-flex; align-items:center; gap:6px; font-size:11.5px; padding:7px 14px; color:#065F46; border-color:#6EE7B7; background:#F0FDF4; font-weight:700;"
-                onclick="exportNegativeReviewsToExcel()"
-                title="Unduh Rekap Laporan Review Negatif (≤ 3 Bintang) per Area ke Berkas Excel">
-                <span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="18" y1="20" x2="18" y2="10" />
-                    <line x1="12" y1="20" x2="12" y2="4" />
-                    <line x1="6" y1="20" x2="6" y2="14" />
-                  </svg></span> Collect Review Negatif (Excel)
-              </button>
-            </div>
-          </div>
-
-          <!-- KPI Metric Cards: Rating & Complaint Overview -->
-          <div class="metrics-grid"
-            style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px; margin-bottom:16px;">
-            <div class="metric-card" style="padding:14px 16px;">
-              <div class="metric-header">
-                <span class="metric-label">RATING RATA-RATA NASIONAL</span>
-                <div class="metric-badge-status"
-                  style="background:#ECFDF5; color:#059669; font-weight:800; font-size:10px;">REAL-TIME</div>
-              </div>
-              <div style="display:flex; align-items:baseline; gap:8px; margin:4px 0 6px 0;">
-                <span style="font-size:26px; font-weight:800; color:var(--text-main);" id="mapsKpiAvgRating">0.0</span>
-                <span style="color:#F59E0B; font-size:18px;">★★★★★</span>
-                <span style="font-size:11px; color:var(--text-muted);">(Real-time)</span>
-              </div>
-              <div style="font-size:11px; color:var(--text-muted);">
-                Ulasan Terverifikasi: <b id="mapsKpiTotalReviews">0 Ulasan</b>
+                <button type="button" class="btn btn-primary" onclick="openModalQrUlasan()"
+                  style="display:inline-flex; align-items:center; gap:6px; font-size:11.5px; padding:7px 14px;">
+                  <span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+                      <line x1="12" y1="18" x2="12.01" y2="18" />
+                    </svg></span> Buat QR Code Meja
+                </button>
+                <button type="button" class="btn btn-outline" id="btnScanAiReviews"
+                  style="display:inline-flex; align-items:center; gap:6px; font-size:11.5px; padding:7px 14px;"
+                  onclick="triggerAiMapsScan()">
+                  <span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="23 4 23 10 17 10" />
+                      <polyline points="23 4 23 10 17 10" />
+                      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+                    </svg></span> Sinkronkan Ulasan
+                </button>
+                <button type="button" class="btn btn-outline" id="btnExportNegativeReviews"
+                  style="display:inline-flex; align-items:center; gap:6px; font-size:11.5px; padding:7px 14px; color:#065F46; border-color:#6EE7B7; background:#F0FDF4; font-weight:700;"
+                  onclick="exportNegativeReviewsToExcel()"
+                  title="Unduh Rekap Laporan Review Negatif (≤ 3 Bintang) per Area ke Berkas Excel">
+                  <span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="18" y1="20" x2="18" y2="10" />
+                      <line x1="12" y1="20" x2="12" y2="4" />
+                      <line x1="6" y1="20" x2="6" y2="14" />
+                    </svg></span> Collect Review Negatif (Excel)
+                </button>
               </div>
             </div>
 
-            <div class="metric-card" style="padding:14px 16px; border-left:4px solid #EF4444;">
-              <div class="metric-header">
-                <span class="metric-label" style="color:#DC2626;">KOMPLAIN KRITIS (&le; 3 BINTANG)</span>
-                <div class="metric-badge-status"
-                  style="background:#FEF2F2; color:#DC2626; font-weight:800; font-size:10px;">PERLU RESPON</div>
+            <!-- Strip Ringkasan KPI Customer Review Eksekutif (Bento Glow Konsisten dengan Sales & Efisiensi) -->
+            <div class="sales-kpi-summary-grid" id="mapsKpiSummaryGrid">
+              <div class="sales-kpi-card maps-kpi-card-rating">
+                <span class="sales-kpi-label">Rating Rata-rata</span>
+                <span class="sales-kpi-value"><span id="mapsKpiAvgRating">0.0</span> <span style="color:#F59E0B; font-size:12px;">★★★★★</span></span>
+                <span class="sales-kpi-sub" style="color:var(--text-muted);"><span id="mapsKpiTotalReviews">0 Ulasan</span> • Real-Time</span>
               </div>
-              <div style="display:flex; align-items:baseline; gap:8px; margin:4px 0 6px 0;">
-                <span style="font-size:26px; font-weight:800; color:#DC2626;" id="mapsKpiBadCount">14</span>
-                <span style="font-size:12px; font-weight:700; color:var(--text-muted);">Ulasan Kritis</span>
+              <div class="sales-kpi-card maps-kpi-card-critical">
+                <span class="sales-kpi-label">Komplain Kritis (&le; 3★)</span>
+                <span class="sales-kpi-value" style="color:#BE123C;"><span id="mapsKpiBadCount">0</span> Ulasan</span>
+                <span class="sales-kpi-sub" style="color:#BE123C;">100% Teranalisis AI</span>
               </div>
-              <div style="font-size:11px; color:var(--text-muted);">
-                Telah Dievaluasi AI: <b style="color:#059669;">100% Teranalisis</b>
+              <div class="sales-kpi-card maps-kpi-card-sentiment">
+                <span class="sales-kpi-label">Isu Utama AI (NLP)</span>
+                <span class="sales-kpi-value" style="font-size:13px; font-weight:800;" id="mapsKpiTopIssue">Pelayanan & Antrean</span>
+                <span class="sales-kpi-sub" style="color:var(--text-muted);">Sentimen Pelanggan</span>
               </div>
-            </div>
-
-            <div class="metric-card" style="padding:14px 16px;">
-              <div class="metric-header">
-                <span class="metric-label">ISU UTAMA TERDETEKSI AI</span>
-                <div class="metric-badge-status"
-                  style="background:#F0F9FF; color:#0284C7; font-weight:800; font-size:10px;">NLP SENTIMEN</div>
-              </div>
-              <div style="font-size:13px; font-weight:800; color:var(--text-main); margin:4px 0 2px 0;"
-                id="mapsKpiTopIssue">
-                <svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
-                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-                </svg> Pelayanan & Antrean (38%)
-              </div>
-              <div style="font-size:11px; color:var(--text-muted);">
-                Isu sekunder: Kebersihan meja & mesin (26%)
+              <div class="sales-kpi-card maps-kpi-card-resolution">
+                <span class="sales-kpi-label">Response Rate</span>
+                <span class="sales-kpi-value" style="color:#0284C7;" id="mapsKpiResponseRate">0%</span>
+                <span class="sales-kpi-sub" style="color:var(--text-muted);">Target: Min. 90%</span>
               </div>
             </div>
-
-            <div class="metric-card" style="padding:14px 16px;">
-              <div class="metric-header">
-                <span class="metric-label">RESOLUSI & RESPONSE RATE</span>
-                <div class="metric-badge-status"
-                  style="background:#ECFDF5; color:#059669; font-weight:800; font-size:10px;">TARGET 90%</div>
-              </div>
-              <div style="display:flex; align-items:baseline; gap:8px; margin:4px 0 6px 0;">
-                <span style="font-size:26px; font-weight:800; color:#059669;" id="mapsKpiResponseRate">88.6%</span>
-                <span style="font-size:11.5px; color:var(--text-muted);">Telah Ditindaklanjuti</span>
-              </div>
-              <div style="font-size:11px; color:var(--text-muted);">
-                Rata-rata Waktu Tanggap: <b>1.4 Jam</b>
-              </div>
-            </div>
-          </div>
 
           <!-- Rating Breakdown Distribution & Live Filter Toolbar -->
           <div
@@ -2543,7 +2500,8 @@
           <div id="mapsReviewsContainer">
             <!-- Injected dynamically via JS -->
           </div>
-        </section>
+        </div>
+      </section>
 
         <!-- ========================================================================
              SECTION 9: PERPUSTAKAAN DIGITAL SOP & REGULASI PERUSAHAAN
