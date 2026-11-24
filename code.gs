@@ -803,6 +803,40 @@ function sanitizeGasPayloadUrl(rawUrl) {
 }
 
 /**
+ * Helper Deteksi Tingkat Peran Pengguna di Server Google Apps Script
+ */
+function getUserRoleInfo(user) {
+  user = user || {};
+  var r = String(user.role || '').toUpperCase().trim();
+  var uname = String(user.username || '').toLowerCase().trim();
+  var isGuest = (r === 'TAMU' || r === 'GUEST' || r === 'AUDITOR' || r === 'VIEWER' || r === 'OBSERVER');
+  var isMaster = !isGuest && (
+    r === 'MASTER' || 
+    r === 'COO' || 
+    r === 'ADMIN' || 
+    r === 'MASTER_ADMIN' || 
+    r.indexOf('COO') !== -1 || 
+    r.indexOf('MASTER') !== -1 || 
+    user.areaId === 'ALL' || 
+    uname === 'admin' || 
+    uname === 'coo_master' ||
+    uname === 'risman'
+  );
+  var isSPV = (!isMaster && !isGuest && (r === 'SPV' || r === 'SPV_TOKO' || r === 'CAPTAIN' || r.indexOf('SPV') !== -1));
+  var isManager = (!isMaster && !isSPV && !isGuest && (r === 'AREA_MANAGER' || r === 'MANAGER' || r === 'MA' || r.indexOf('MANAGER') !== -1));
+  return {
+    isMaster: isMaster,
+    isManager: isManager,
+    isSPV: isSPV,
+    isGuest: isGuest,
+    isReadOnly: isGuest,
+    isCOO: isMaster,
+    canViewAll: (isMaster || isGuest || user.areaId === 'ALL'),
+    role: isGuest ? 'TAMU' : (isMaster ? 'MASTER' : (isManager ? 'MANAGER' : (isSPV ? 'SPV' : (r || 'STAFF'))))
+  };
+}
+
+/**
  * Alias Baku untuk google.script.run Client Bridge
  */
 function getInitialData(userSession, fallbackUser) {

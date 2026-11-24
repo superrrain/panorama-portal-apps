@@ -407,8 +407,14 @@ function apiApproveInsiden(payload, user) {
     var insidenId = String(payload.insidenId || payload.id || '').trim();
     if (!insidenId) return { success: false, message: 'ID Insiden tidak valid.' };
 
-    var roleInfo = getUserRoleInfo(user);
-    var approverLevel = String(payload.approverLevel || (roleInfo.isMaster ? 'COO' : 'MANAGER')).toUpperCase();
+    var roleInfo = (typeof getUserRoleInfo === 'function') ? getUserRoleInfo(user) : {};
+    var approverLevel = String(payload.approverLevel || '').toUpperCase().trim();
+    if (approverLevel !== 'COO' && approverLevel !== 'MANAGER') {
+      var uRole = String(user.role || '').toUpperCase().trim();
+      var uName = String(user.username || '').toLowerCase().trim();
+      var isCOO = (roleInfo.isMaster || roleInfo.isCOO || uRole === 'COO' || uRole === 'MASTER' || user.areaId === 'ALL' || uName === 'coo_master' || uName === 'admin' || uName === 'risman');
+      approverLevel = isCOO ? 'COO' : 'MANAGER';
+    }
     var approvalAction = String(payload.action || 'APPROVED').toUpperCase(); // APPROVED | REJECTED
     var catatan = String(payload.catatan || '').trim();
     var approverName = String(user.namaLengkap || user.username || (approverLevel === 'COO' ? 'Head Operasional' : 'Area Manager')).trim();
