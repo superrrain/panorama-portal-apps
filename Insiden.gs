@@ -14,12 +14,13 @@
  */
 
 // Konstanta Pemetaan Kolom Baku DataInsiden
-var COL_INSIDEN = { ID: 0, TANGGAL: 1, AREA_ID: 2, CABANG_ID: 3, KATEGORI: 4, URGENSI: 5, DESK: 6, DRIVE_URL: 7, STATUS: 8, SELESAI: 9, SLA_JAM: 10, AKSI: 11, REPORTER: 12, BUKTI_PENANGANAN: 13 };
+var COL_INSIDEN = { ID: 0, TANGGAL: 1, AREA_ID: 2, CABANG_ID: 3, KATEGORI: 4, URGENSI: 5, DESK: 6, DRIVE_URL: 7, STATUS: 8, SELESAI: 9, SLA_JAM: 10, AKSI: 11, REPORTER: 12, BUKTI_PENANGANAN: 13, OTORISASI: 14 };
 
 // Global Aliases untuk Dukungan Pemanggilan google.script.run
 function saveInsiden(payload) { return apiSaveInsiden(payload); }
 function deleteInsiden(insidenId) { return apiDeleteInsiden(insidenId); }
 function escalateReview(payload) { return apiEscalateReviewToIncident(payload); }
+function approveInsiden(payload, user) { return apiApproveInsiden(payload, user); }
 
 // ================================================================================
 // BAGIAN 1: PELAPORAN INSIDEN, PENANGANAN SLA & PENGHAPUSAN
@@ -369,5 +370,116 @@ function addBuktiPenangananColumnToDataInsiden() {
   var s = ss.getSheetByName(TAB.INSIDEN);
   if (!s) return { success: false, message: 'Sheet DataInsiden belum ada' };
   ensureInsidenColumnN(s);
-  return { success: true, message: 'Kolom BuktiPenangananUrl (Kolom N) berhasil diverifikasi dan ditambahkan ke DataInsiden!' };
+  ensureInsidenColumnO(s);
+  return { success: true, message: 'Kolom BuktiPenangananUrl (Kolom N) dan OtorisasiEskalasi (Kolom O) berhasil diverifikasi dan ditambahkan ke DataInsiden!' };
+}
+
+/**
+ * Utility: Pastikan Kolom O (OtorisasiEskalasi) ada di DataInsiden
+ */
+function ensureInsidenColumnO(sheet) {
+  try {
+    if (!sheet) return;
+    ensureInsidenColumnN(sheet);
+    var lastCol = sheet.getLastColumn();
+    if (lastCol < 15 || String(sheet.getRange(1, 15).getValue() || '').trim() === '') {
+      var headerCell = sheet.getRange(1, 15);
+      headerCell.setValue('OtorisasiEskalasi');
+      headerCell.setBackground('#144A32').setFontColor('#FFFFFF').setFontWeight('bold');
+      headerCell.setHorizontalAlignment('center');
+      try { sheet.autoResizeColumn(15); } catch (eR) {}
+      Logger.log('✅ Kolom OtorisasiEskalasi (Kolom O) berhasil ditambahkan ke DataInsiden!');
+    }
+  } catch (eCol) {
+    Logger.log('ensureInsidenColumnO notice: ' + eCol.message);
+  }
+}
+
+/**
+ * API: Otorisasi & Disposisi Atasan pada Tiket Insiden (Multi-Tier Approval)
+ * Level 1: Area Manager (AM)
+ * Level 2: Head Operasional (COO)
+ */
+function apiApproveInsiden(payload, user) {
+  try {
+    payload = payload || {};
+    user = user || {};
+    var insidenId = String(payload.insidenId || payload.id || '').trim();
+    if (!insidenId) return { success: false, message: 'ID Insiden tidak valid.' };
+
+    var roleInfo = getUserRoleInfo(user);
+    var approverLevel = String(payload.approverLevel || (roleInfo.isMaster ? 'COO' : 'MANAGER')).toUpperCase();
+    var approvalAction = String(payload.action || 'APPROVED').toUpperCase(); // APPROVED | REJECTED
+    var catatan = String(payload.catatan || '').trim();
+    var approverName = String(user.namaLengkap || user.username || (approverLevel === 'COO' ? 'Head Operasional' : 'Area Manager')).trim();
+    var nowStr = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm');
+
+    var sheet = getSheet(TAB.INSIDEN);
+    if (!sheet) return { success: false, message: 'Sheet DataInsiden tidak ditemukan.' };
+    ensureInsidenColumnO(sheet);
+
+    var data = sheet.getDataRange().getValues();
+    var rowIdx = -1;
+    var targetRow = null;
+
+    for (var i = 1; i < data.length; i++) {
+      if (String(data[i][COL_INSIDEN.ID]).trim() === insidenId) {
+        rowIdx = i + 1;
+        targetRow = data[i];
+        break;
+      }
+    }
+
+    if (rowIdx === -1) {
+      return { success: false, message: 'Tiket insiden ' + insidenId + ' tidak ditemukan.' };
+    }
+
+    var rawOtorisasi = (targetRow.length > 14) ? String(targetRow[14] || '').trim() : '';
+    var otorisasiObj = {};
+    try {
+      if (rawOtorisasi) otorisasiObj = JSON.parse(rawOtorisasi);
+    } catch (eJson) {
+      otorisasiObj = {};
+    }
+
+    if (approverLevel === 'COO') {
+      otorisasiObj.coo = {
+        status: approvalAction,
+        by: approverName,
+        at: nowStr,
+        catatan: catatan
+      };
+    } else {
+      otorisasiObj.manager = {
+        status: approvalAction,
+        by: approverName,
+        at: nowStr,
+        catatan: catatan
+      };
+    }
+
+    var updatedOtorisasiStr = JSON.stringify(otorisasiObj);
+    sheet.getRange(rowIdx, 15).setValue(updatedOtorisasiStr);
+
+    // Push Notifikasi Luar Aplikasi ke bawahan / gerai terkait
+    try {
+      var notifActionText = (approvalAction === 'APPROVED') ? 'telah di-ACC' : 'ditolak/revisi';
+      var title = (approvalAction === 'APPROVED') ? ('✅ INSIDEN DI-ACC ' + approverLevel) : ('⚠️ DISPOSISI INSIDEN ' + approverLevel);
+      var body = 'Tiket ' + insidenId + ' ' + notifActionText + ' oleh ' + approverName + '.' + (catatan ? ' Catatan: "' + catatan + '"' : '');
+      var incArea = targetRow[COL_INSIDEN.AREA_ID] || '';
+      var incTargets = (incArea && String(incArea).toUpperCase() !== 'ALL') ? ['COO', incArea] : 'ALL';
+      triggerOperationalPushAlert('INSIDEN', title, body, incTargets);
+    } catch (ePush) {
+      Logger.log('Push approve insiden notice: ' + ePush.message);
+    }
+
+    return {
+      success: true,
+      message: 'Otorisasi ' + approverLevel + ' untuk insiden ' + insidenId + ' berhasil disimpan.',
+      otorisasi: updatedOtorisasiStr
+    };
+  } catch (err) {
+    Logger.log('apiApproveInsiden error: ' + err.message);
+    return { success: false, message: 'Gagal memproses otorisasi: ' + err.message };
+  }
 }

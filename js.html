@@ -6047,6 +6047,25 @@ function renderInsidenView() {
     else if (item.status === 'ESKALASI_COO') stBadge = '<span class="badge badge-danger"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> ESKALASI COO</span>';
     else if (item.status === 'INVESTIGASI') stBadge = '<span class="badge badge-warning"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> INVESTIGASI</span>';
 
+    // Approval Stamp Badge (Multi-Tier Otorisasi Atasan)
+    let otorisasiObj = null;
+    try {
+      if (item.otorisasi) {
+        otorisasiObj = (typeof item.otorisasi === 'string') ? JSON.parse(item.otorisasi) : item.otorisasi;
+      }
+    } catch(e) { otorisasiObj = null; }
+
+    let approvalBadge = '';
+    if (otorisasiObj) {
+      if (otorisasiObj.coo && otorisasiObj.coo.status === 'APPROVED') {
+        approvalBadge = '<span class="badge" style="background:#047857; color:#FFFFFF; font-size:10px; font-weight:700;" title="Disetujui Head Operasional (' + escapeHtml(otorisasiObj.coo.by || 'COO') + ')"><svg class="p-ico" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> ACC COO</span>';
+      } else if (otorisasiObj.manager && otorisasiObj.manager.status === 'APPROVED') {
+        approvalBadge = '<span class="badge" style="background:#0D9488; color:#FFFFFF; font-size:10px; font-weight:700;" title="Disetujui Area Manager (' + escapeHtml(otorisasiObj.manager.by || 'AM') + ')"><svg class="p-ico" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> ACC AM</span>';
+      } else if ((otorisasiObj.coo && otorisasiObj.coo.status === 'REJECTED') || (otorisasiObj.manager && otorisasiObj.manager.status === 'REJECTED')) {
+        approvalBadge = '<span class="badge badge-danger" style="font-size:10px;" title="Catatan revisi atasan"><svg class="p-ico" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> REVISI</span>';
+      }
+    }
+
     // SLA Badge
     let slaBadge = '-';
     if (item.status === 'RESOLVED') {
@@ -6092,7 +6111,7 @@ function renderInsidenView() {
         '<td class="col-deskripsi">' + descFormatted + '</td>' +
         '<td style="text-align:center;">' + slaBadge + '</td>' +
         '<td style="text-align:center;">' + driveLink + '</td>' +
-        '<td style="text-align:center;">' + stBadge + '</td>' +
+        '<td style="text-align:center;">' + stBadge + (approvalBadge ? '<div style="margin-top:3px;">' + approvalBadge + '</div>' : '') + '</td>' +
         '<td style="text-align:center;"><button class="btn btn-outline" style="padding: 4px 8px; font-size: 11px; white-space:nowrap;" onclick="openDetailInsidenById(\'' + incId + '\')">Aksi / Detail</button></td>';
       tbody.appendChild(tr);
     }
@@ -6112,7 +6131,10 @@ function renderInsidenView() {
               ${item.tanggalLapor || '-'} • ${item.areaId || '-'} • ${item.cabangId || '-'}
             </div>
           </div>
-          <div>${stBadge}</div>
+          <div style="text-align:right;">
+            <div>${stBadge}</div>
+            ${approvalBadge ? `<div style="margin-top:3px;">${approvalBadge}</div>` : ''}
+          </div>
         </div>
 
         <div style="margin-bottom:6px;">
@@ -9859,7 +9881,201 @@ function openDetailInsidenModal(item) {
     }
   }
 
+  // Render Stempel Disposisi & Otorisasi Atasan
+  renderDetailIncApprovalCard(item);
+
   openModal('modalDetailInsiden');
+}
+
+/**
+ * ================================================================================
+ * MULTI-TIER APPROVAL & DISPOSISI ATASAN (AM & COO) PADA TIKET INSIDEN
+ * ================================================================================
+ */
+function renderDetailIncApprovalCard(item) {
+  const container = document.getElementById('detailIncApprovalCard');
+  if (!container) return;
+  if (!item) {
+    container.innerHTML = '';
+    return;
+  }
+
+  const u = window.PANORAMA_STATE.user || {};
+  const roleInfo = getUserRoleInfo(u);
+  const isCOO = (roleInfo.isMaster || roleInfo.isCOO || u.role === 'COO' || (u && u.areaId === 'ALL'));
+  const isManager = (roleInfo.isManager || u.role === 'AREA_MANAGER' || u.role === 'MANAGER');
+
+  let otorisasi = {};
+  try {
+    if (item.otorisasi) {
+      otorisasi = (typeof item.otorisasi === 'string') ? JSON.parse(item.otorisasi) : item.otorisasi;
+    }
+  } catch(e) { otorisasi = {}; }
+
+  const mgr = otorisasi.manager || null;
+  const coo = otorisasi.coo || null;
+
+  // 1. Stempel Manager Area (AM)
+  let mgrHtml = '';
+  if (mgr && mgr.status === 'APPROVED') {
+    mgrHtml = `
+      <div class="inc-stamp-card approved">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <strong style="font-size:11px; color:#166534;">1. Otorisasi Area Manager</strong>
+          <span class="inc-stamp-badge approved"><svg class="p-ico" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> ACC AM</span>
+        </div>
+        <div class="inc-stamp-meta">
+          Oleh: <strong>${escapeHtml(mgr.by || 'Area Manager')}</strong><br>
+          Waktu: ${escapeHtml(mgr.at || '-')}
+        </div>
+        ${mgr.catatan ? `<div class="inc-stamp-note">"${escapeHtml(mgr.catatan)}"</div>` : ''}
+      </div>
+    `;
+  } else if (mgr && mgr.status === 'REJECTED') {
+    mgrHtml = `
+      <div class="inc-stamp-card rejected">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <strong style="font-size:11px; color:#991B1B;">1. Otorisasi Area Manager</strong>
+          <span class="inc-stamp-badge rejected"><svg class="p-ico" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Revisi</span>
+        </div>
+        <div class="inc-stamp-meta">
+          Oleh: <strong>${escapeHtml(mgr.by || 'Area Manager')}</strong> • ${escapeHtml(mgr.at || '-')}
+        </div>
+        ${mgr.catatan ? `<div class="inc-stamp-note" style="border-left-color:#EF4444; color:#991B1B;">"${escapeHtml(mgr.catatan)}"</div>` : ''}
+      </div>
+    `;
+  } else {
+    mgrHtml = `
+      <div class="inc-stamp-card pending">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <strong style="font-size:11px; color:var(--text-muted);">1. Otorisasi Area Manager</strong>
+          <span class="inc-stamp-badge pending">Menunggu Disposisi</span>
+        </div>
+        <div class="inc-stamp-meta" style="font-style:italic;">Belum ada disposisi Area Manager</div>
+        ${(isManager || isCOO) ? `
+          <div class="inc-stamp-actions">
+            <button type="button" class="btn-inc-approve" onclick="promptApproveInsiden('MANAGER', 'APPROVED')">
+              <svg class="p-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> ACC AM
+            </button>
+            <button type="button" class="btn-inc-reject" onclick="promptApproveInsiden('MANAGER', 'REJECTED')">
+              <svg class="p-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Tolak
+            </button>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }
+
+  // 2. Stempel COO / Head Operasional
+  let cooHtml = '';
+  if (coo && coo.status === 'APPROVED') {
+    cooHtml = `
+      <div class="inc-stamp-card approved">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <strong style="font-size:11px; color:#166534;">2. Otorisasi Head Ops (COO)</strong>
+          <span class="inc-stamp-badge approved" style="background:#047857; color:#FFFFFF;"><svg class="p-ico" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> ACC COO</span>
+        </div>
+        <div class="inc-stamp-meta">
+          Oleh: <strong>${escapeHtml(coo.by || 'Head Operasional')}</strong><br>
+          Waktu: ${escapeHtml(coo.at || '-')}
+        </div>
+        ${coo.catatan ? `<div class="inc-stamp-note">"${escapeHtml(coo.catatan)}"</div>` : ''}
+      </div>
+    `;
+  } else if (coo && coo.status === 'REJECTED') {
+    cooHtml = `
+      <div class="inc-stamp-card rejected">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <strong style="font-size:11px; color:#991B1B;">2. Otorisasi Head Ops (COO)</strong>
+          <span class="inc-stamp-badge rejected"><svg class="p-ico" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Revisi</span>
+        </div>
+        <div class="inc-stamp-meta">
+          Oleh: <strong>${escapeHtml(coo.by || 'Head Operasional')}</strong> • ${escapeHtml(coo.at || '-')}
+        </div>
+        ${coo.catatan ? `<div class="inc-stamp-note" style="border-left-color:#EF4444; color:#991B1B;">"${escapeHtml(coo.catatan)}"</div>` : ''}
+      </div>
+    `;
+  } else {
+    cooHtml = `
+      <div class="inc-stamp-card pending">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <strong style="font-size:11px; color:var(--text-muted);">2. Otorisasi Head Ops (COO)</strong>
+          <span class="inc-stamp-badge pending">Menunggu Disposisi</span>
+        </div>
+        <div class="inc-stamp-meta" style="font-style:italic;">${item.status === 'ESKALASI_COO' ? 'Tiket butuh persetujuan biaya/pusat COO' : 'Belum dieskalasi ke COO'}</div>
+        ${isCOO ? `
+          <div class="inc-stamp-actions">
+            <button type="button" class="btn-inc-approve" style="background:#047857;" onclick="promptApproveInsiden('COO', 'APPROVED')">
+              <svg class="p-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> ACC COO
+            </button>
+            <button type="button" class="btn-inc-reject" onclick="promptApproveInsiden('COO', 'REJECTED')">
+              <svg class="p-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Tolak
+            </button>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }
+
+  container.innerHTML = `
+    <div class="inc-approval-box">
+      <div class="inc-approval-header">
+        <span>Stempel Disposisi & Otorisasi Atasan</span>
+        <span style="font-size:10px; font-weight:600; text-transform:none; color:var(--forest-700);">Multi-Tier Approval</span>
+      </div>
+      <div class="inc-approval-grid">
+        ${mgrHtml}
+        ${cooHtml}
+      </div>
+    </div>
+  `;
+}
+
+function promptApproveInsiden(level, action) {
+  const item = window.PANORAMA_SELECTED_INCIDENT;
+  if (!item) return;
+
+  const levelLabel = (level === 'COO') ? 'Head Operasional (COO)' : 'Area Manager (AM)';
+  const actionLabel = (action === 'APPROVED') ? 'MENYETUJUI (ACC)' : 'MENOLAK / REVISI';
+
+  const defaultNote = (action === 'APPROVED') ? 'Disetujui untuk dilaksanakan sesuai SOP.' : '';
+  const note = window.prompt(
+    `Konfirmasi Otorisasi Tiket ${item.insidenId}:\n` +
+    `Tindakan: ${actionLabel}\n` +
+    `Sebagai: ${levelLabel}\n\n` +
+    `Masukkan catatan disposisi / instruksi lapangan:`,
+    defaultNote
+  );
+
+  if (note === null) return; // Dibatalkan pengguna
+
+  showGlobalLoader(true, 10000, `Memproses otorisasi ${level}...`);
+
+  const payload = {
+    insidenId: item.insidenId,
+    approverLevel: level,
+    action: action,
+    catatan: note.trim()
+  };
+
+  callPanoramaApi('apiApproveInsiden', payload, function(res) {
+    showGlobalLoader(false);
+    if (res && res.success) {
+      showToast(res.message || `Otorisasi ${level} berhasil disimpan!`, 'success');
+      item.otorisasi = res.otorisasi;
+
+      // Update di memori state
+      if (window.PANORAMA_STATE.data && window.PANORAMA_STATE.data.insiden) {
+        const found = window.PANORAMA_STATE.data.insiden.find(i => (i.insidenId === item.insidenId || i.insidenID === item.insidenId));
+        if (found) found.otorisasi = res.otorisasi;
+      }
+
+      renderDetailIncApprovalCard(item);
+      renderInsidenView();
+    } else {
+      showToast(res && res.message ? res.message : 'Gagal menyimpan otorisasi.', 'danger');
+    }
+  });
 }
 
 // Simpan Update Insiden

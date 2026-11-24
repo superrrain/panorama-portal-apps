@@ -32,7 +32,7 @@ var TAB = {
 var COL_USER = { ID: 0, USERNAME: 1, PASSWORD: 2, NAMA: 3, ROLE: 4, AREA_ID: 5, WA: 6, STATUS: 7, CABANG_ID: 8 };
 var COL_CABANG = { ID: 0, AREA_ID: 1, MANAGER: 2, BRAND: 3, NAMA: 4, KOTA: 5, TARGET: 6, STATUS: 7, MAPS_URL: 8 };
 var COL_SALES = { ID: 0, TANGGAL: 1, AREA_ID: 2, CABANG_ID: 3, NAMA: 4, TARGET: 5, ACTUAL: 6, PERSEN: 7, TRX: 8, CREATED_BY: 9, CREATED_AT: 10 };
-var COL_INSIDEN = { ID: 0, TANGGAL: 1, AREA_ID: 2, CABANG_ID: 3, KATEGORI: 4, URGENSI: 5, DESK: 6, DRIVE_URL: 7, STATUS: 8, SELESAI: 9, SLA_JAM: 10, AKSI: 11, REPORTER: 12, BUKTI_PENANGANAN: 13 };
+var COL_INSIDEN = { ID: 0, TANGGAL: 1, AREA_ID: 2, CABANG_ID: 3, KATEGORI: 4, URGENSI: 5, DESK: 6, DRIVE_URL: 7, STATUS: 8, SELESAI: 9, SLA_JAM: 10, AKSI: 11, REPORTER: 12, BUKTI_PENANGANAN: 13, OTORISASI: 14 };
 var COL_EFISIENSI = { ID: 0, TANGGAL: 1, AREA_ID: 2, CABANG_ID: 3, HPP: 4, TARGET_HPP: 5, WASTE: 6, TARGET_WASTE: 7, PLAFON_CASH: 8, TERPAKAI_CASH: 9, NOTA_URL: 10, CATATAN: 11, UPDATED_BY: 12 };
 var COL_TUGAS = { ID: 0, JUDUL: 1, AREA_ID: 2, ASSIGNED_TO: 3, DEADLINE: 4, PRIORITAS: 5, STATUS: 6, CATATAN: 7, BUKTI_URL: 8, FEEDBACK: 9, CREATED_AT: 10, SIKLUS: 11, ACTION_LINK: 12 };
 var COL_JADWAL = { ID: 0, TIPE: 1, LEVEL: 2, AREA_ID: 3, CABANG_ID: 4, NAMA_CABANG: 5, PENGAJU: 6, PERIODE: 7, TOTAL_KRU: 8, TOTAL_SHIFT: 9, STATUS: 10, CATATAN: 11, APPROVER: 12, FEEDBACK: 13, CREATED_AT: 14, FILE_URL: 15, DETAIL_JSON: 16 };
@@ -198,6 +198,12 @@ function handleApiRequest(action, params) {
       case 'deleteInsiden':
       case 'apiDeleteInsiden':
         result = apiDeleteInsiden(params.insidenId, user);
+        break;
+
+      case 'approveInsiden':
+      case 'apiApproveInsiden':
+        var apPayload = params.payload || params;
+        result = apiApproveInsiden(apPayload, user);
         break;
 
       case 'saveEfisiensi':
@@ -1021,7 +1027,8 @@ function apiGetInitialData(userSession, fallbackUser) {
             slaJam: Number(ri[COL_INSIDEN.SLA_JAM] || 0),
             tindakan: String(ri[COL_INSIDEN.AKSI] || '').trim(),
             reporter: String(ri[COL_INSIDEN.REPORTER] || '').trim(),
-            buktiPenangananUrl: (ri.length > 13) ? sanitizeGasPayloadUrl(ri[COL_INSIDEN.BUKTI_PENANGANAN]) : ''
+            buktiPenangananUrl: (ri.length > 13) ? sanitizeGasPayloadUrl(ri[COL_INSIDEN.BUKTI_PENANGANAN]) : '',
+            otorisasi: (ri.length > 14) ? String(ri[COL_INSIDEN.OTORISASI] || '').trim() : ''
           });
         }
       }

@@ -2159,39 +2159,51 @@
               </div>
             </div>
 
-            <!-- Sub-Tab Switcher: Rencana Jadwal Bulanan vs Laporan Sakit & Dispensasi Darurat -->
-            <div class="setting-tab-nav" style="margin-bottom: 16px;">
-              <button type="button" class="setting-tab-btn active" id="tabBtnJadwalRoster"
+            <!-- Sub-Tab Switcher: Rencana Jadwal Bulanan vs Laporan Sakit vs Perubahan Jadwal (Zero Scroll Mobile) -->
+            <div class="jadwal-subtab-nav" style="margin-bottom: 16px;">
+              <button type="button" class="jadwal-subtab-btn active" id="tabBtnJadwalRoster"
                 onclick="switchJadwalSubTab('roster')">
-                <svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                <svg class="p-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                   stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
                   <rect width="18" height="18" x="3" y="4" rx="2" />
                   <line x1="16" x2="16" y1="2" y2="6" />
                   <line x1="8" x2="8" y1="2" y2="6" />
                   <line x1="3" x2="21" y1="10" y2="10" />
-                </svg> Rencana Jadwal Bulanan
+                </svg>
+                <span>
+                  <span class="hide-mobile">Rencana Jadwal Bulanan</span>
+                  <span class="show-mobile">Roster</span>
+                </span>
               </button>
-              <button type="button" class="setting-tab-btn" id="tabBtnJadwalKendala"
+              <button type="button" class="jadwal-subtab-btn" id="tabBtnJadwalKendala"
                 onclick="switchJadwalSubTab('kendala')">
-                <svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                <svg class="p-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                   stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
                   <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
                   <line x1="12" y1="9" x2="12" y2="13" />
                   <line x1="12" y1="17" x2="12.01" y2="17" />
-                </svg> Laporan Sakit & Dispensasi Darurat
+                </svg>
+                <span>
+                  <span class="hide-mobile">Laporan Sakit & Dispensasi Darurat</span>
+                  <span class="show-mobile">Sakit/Izin</span>
+                </span>
                 <span id="badgeCountKendala" class="badge badge-danger"
-                  style="margin-left: 6px; font-size: 10px; display: none;">0</span>
+                  style="margin-left: 4px; font-size: 10px; display: none;">0</span>
               </button>
-              <button type="button" class="setting-tab-btn" id="tabBtnJadwalPerubahan"
+              <button type="button" class="jadwal-subtab-btn" id="tabBtnJadwalPerubahan"
                 onclick="switchJadwalSubTab('perubahan')">
-                <svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                <svg class="p-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                   stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="23 4 23 10 17 10" />
                   <polyline points="1 20 1 14 7 14" />
                   <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
-                </svg> Perubahan Jadwal
+                </svg>
+                <span>
+                  <span class="hide-mobile">Perubahan Jadwal</span>
+                  <span class="show-mobile">Tukar Shift</span>
+                </span>
                 <span id="badgeCountPerubahan" class="badge badge-warning"
-                  style="margin-left: 6px; font-size: 10px; display: none;">0</span>
+                  style="margin-left: 4px; font-size: 10px; display: none;">0</span>
               </button>
             </div>
 
@@ -4364,6 +4376,9 @@
             <option value="RESOLVED">RESOLVED (Kasus Selesai & Ditutup)</option>
           </select>
         </div>
+
+        <!-- Kartu Otorisasi & Stempel Disposisi Atasan (Multi-Tier Approval) -->
+        <div id="detailIncApprovalCard" style="margin-top:10px;"></div>
 
         <div class="form-group">
           <label class="form-label">Tindakan Perbaikan / Solusi</label>
