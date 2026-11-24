@@ -4069,20 +4069,77 @@
     transform: scale(0.965) !important;
   }
 
-  /* Toast Notifications (PANORAMA Executive Glassmorphism Floating Card v5.6.4) */
+  /* Toast Notifications (PANORAMA Executive Glassmorphism Floating Card v5.7.2 - Bottom Repositioned) */
   .toast-container {
     position: fixed;
-    top: 14px;
-    left: 50%;
-    transform: translateX(-50%);
+    bottom: 24px;
+    right: 24px;
+    left: auto;
+    top: auto;
+    transform: none;
     z-index: 100060;
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
+    flex-direction: column-reverse;
+    align-items: flex-end;
+    gap: 10px;
     pointer-events: none;
-    width: calc(100% - 28px);
+    width: auto;
     max-width: 400px;
+  }
+
+  @media (max-width: 768px) {
+    .toast-container {
+      bottom: 75px;
+      left: 50%;
+      right: auto;
+      transform: translateX(-50%);
+      align-items: center;
+      width: calc(100% - 28px);
+      max-width: 380px;
+    }
+  }
+
+  /* Interactive Chart Bar Tooltip (Option 3: In-Chart Floating Badge) */
+  .chart-bar-column {
+    position: relative;
+    cursor: pointer;
+  }
+  .chart-bar-column.is-selected .chart-bar-capsule {
+    box-shadow: 0 0 0 2px #22C55E, 0 0 16px rgba(34, 197, 94, 0.45) !important;
+  }
+  .chart-bar-tooltip {
+    position: absolute;
+    top: -46px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #05190F;
+    border: 1px solid #22C55E;
+    color: #FFFFFF;
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-size: 10.5px;
+    font-weight: 700;
+    white-space: nowrap;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), 0 0 12px rgba(34, 197, 94, 0.35);
+    z-index: 120;
+    pointer-events: none;
+    animation: tooltipBounce 0.28s cubic-bezier(0.34, 1.4, 0.64, 1);
+  }
+  .chart-bar-tooltip::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px 5px 0;
+    border-style: solid;
+    border-color: #22C55E transparent;
+    display: block;
+    width: 0;
+  }
+  @keyframes tooltipBounce {
+    0% { opacity: 0; transform: translateX(-50%) translateY(8px) scale(0.9); }
+    100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
   }
 
   .toast {
@@ -4239,7 +4296,7 @@
   @keyframes appleIslandDrop {
     0% {
       opacity: 0;
-      transform: translateY(-24px) scale(0.93);
+      transform: translateY(20px) scale(0.95);
     }
 
     100% {
@@ -12774,6 +12831,20 @@
      - Distinct Semantic Color Coding (Red/Green/Amber/Blue/Purple)
      - Tactile Surface Elevation & Bento Glow Boundaries
      ========================================================================== */
+
+  /* Interactive Chart Tooltip Dark Mode (Option 3) */
+  :is(html[data-theme="dark"], html.theme-dark) .chart-bar-tooltip {
+    background: #05190F !important;
+    border: 1px solid #22C55E !important;
+    color: #FFFFFF !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7), 0 0 14px rgba(34, 197, 94, 0.35) !important;
+  }
+  :is(html[data-theme="dark"], html.theme-dark) .toast {
+    background: #151E1A !important;
+    border-color: #2C3A33 !important;
+    color: #E8EFEB !important;
+    box-shadow: 0 14px 34px -6px rgba(0, 0, 0, 0.7) !important;
+  }
 
   /* App Canvas & Global Typography */
   :is(html[data-theme="dark"], html.theme-dark) body {
