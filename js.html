@@ -3978,7 +3978,7 @@ function renderSalesAnalyticsChart() {
         const barOpacity = item.isToday ? '1' : '0.92';
 
         barsSvg += 
-          '<g class="pipedrive-bar-group" onclick="showToast(\'' + item.label + ' (' + item.dateStr + ')' + (item.isToday ? ' (Hari Ini)' : '') + ': Realisasi Rp ' + formatRupiah(item.actualVal) + ' / Target Rp ' + formatRupiah(item.targetVal) + ' (' + item.pct + '% Capaian)\', \'' + (item.pct >= 100 ? 'success' : 'warning') + '\')">' +
+          '<g class="pipedrive-bar-group">' +
             '<rect class="pipedrive-bar-rect" x="' + barX + '" y="' + barY + '" width="' + barWidth + '" height="' + barH + '" rx="4" ry="4" fill="' + barColor + '" ' + barFilter + ' opacity="' + barOpacity + '">' +
               '<title>' + item.label + ' (' + item.dateStr + ')' + (item.isToday ? ' (Hari Ini)' : '') + '&#10;Realisasi: Rp ' + formatRupiah(item.actualVal) + '&#10;Target: Rp ' + formatRupiah(item.targetVal) + '&#10;Capaian: ' + item.pct + '%</title>' +
             '</rect>' +
@@ -4005,7 +4005,7 @@ function renderSalesAnalyticsChart() {
       } else {
         // HARI BELUM ADA INPUT: Tidak ada batang yang dirender (kosong bersih)
         barsSvg += 
-          '<g class="pipedrive-bar-group" onclick="showToast(\'' + item.label + ' (' + item.dateStr + ')' + (item.isToday ? ' (Hari Ini)' : '') + ': Belum ada input data penjualan\', \'info\')">' +
+          '<g class="pipedrive-bar-group">' +
             '<rect x="' + (colCenterX - barWidth / 2) + '" y="' + padTop + '" width="' + barWidth + '" height="' + plotH + '" fill="transparent">' +
               '<title>' + item.label + ' (' + item.dateStr + ')' + (item.isToday ? ' (Hari Ini)' : '') + '&#10;Status: Belum ada input data penjualan&#10;Target: Rp ' + formatRupiah(item.targetVal) + '</title>' +
             '</rect>' +
@@ -4140,11 +4140,10 @@ function renderSalesAnalyticsChart() {
       });
       col.onclick = function(e) {
         if (e && e.stopPropagation) e.stopPropagation();
-        if (actualVal === 0) {
-          showToast(a.id + ' (' + a.mgr + '): Belum ada input data penjualan (' + periodLabel + ')', 'info');
-        } else {
-          showToast(a.id + ' (' + a.mgr + '): Realisasi Rp ' + formatRupiah(actualVal) + ' / Target Rp ' + formatRupiah(targetVal) + ' (' + pct + '% Capaian)', pct >= 100 ? 'success' : 'warning');
-        }
+        // Bebas Hambatan: Cukup efek haptic & animasi naik tanpa memunculkan pop-up melayang
+        if (navigator.vibrate) try { navigator.vibrate(15); } catch(err) {}
+        col.classList.add('is-touched');
+        setTimeout(() => col.classList.remove('is-touched'), 650);
       };
 
       // Header Tag Di Atas Batang Sesuai Mode
@@ -4286,11 +4285,10 @@ function renderSalesAnalyticsChart() {
       });
       col.onclick = function(e) {
         if (e && e.stopPropagation) e.stopPropagation();
-        if (actualVal === 0) {
-          showToast(c.namaCabang + ': Belum ada input data penjualan (' + periodLabel + ')', 'info');
-        } else {
-          showToast(c.namaCabang + ': Realisasi Rp ' + formatRupiah(actualVal) + ' / Target Rp ' + formatRupiah(targetVal) + ' (' + pct + '% Capaian)', pct >= 100 ? 'success' : 'warning');
-        }
+        // Bebas Hambatan: Cukup efek haptic & animasi naik tanpa memunculkan pop-up melayang
+        if (navigator.vibrate) try { navigator.vibrate(15); } catch(err) {}
+        col.classList.add('is-touched');
+        setTimeout(() => col.classList.remove('is-touched'), 650);
       };
 
       let valTagHtml = '';
@@ -15989,8 +15987,9 @@ function showToast(msg, type) {
   }
   window._LAST_TOAST_CACHE = { msg: cleanMsg, time: now };
 
-  // Batasi maksimal 2 pop-up aktif agar tidak menumpuk dan menghalangi layar
-  while (container.children.length >= 2) {
+  // Kebijakan Anti-Menumpuk: MAKSIMAL 1 KARTU SAJA (Single Toast Policy)
+  // Notifikasi baru otomatis menggantikan notifikasi lama seketika tanpa menumpuk di layar
+  while (container.children.length >= 1) {
     const oldest = container.firstElementChild;
     if (oldest) oldest.remove();
     else break;
