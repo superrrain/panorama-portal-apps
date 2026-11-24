@@ -3399,7 +3399,8 @@ function renderDashboardJadwalAlert() {
     container.style.display = 'block';
     const alertClass = isPastDeadline ? 'smart-ops-alert-banner alert-danger' : 'smart-ops-alert-banner';
     const badgeText = isPastDeadline ? ('Melewati Batas Tgl ' + deadlineTgl) : ('Batas Waktu Tgl ' + deadlineTgl);
-    const badgeColor = isPastDeadline ? '#DC2626' : '#D97706';
+    const badgeClass = isPastDeadline ? 'kinetic-shimmer-badge' : 'kinetic-shimmer-badge badge-warning';
+    const beaconHtml = isPastDeadline ? '<span class="radar-beacon"></span>' : '';
 
     container.innerHTML = 
       '<div class="' + alertClass + '">' +
@@ -3407,8 +3408,9 @@ function renderDashboardJadwalAlert() {
           '<div class="smart-ops-alert-icon"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg></div>' +
           '<div>' +
             '<div class="smart-ops-alert-title">' +
+              beaconHtml +
               'Target Pengumpulan Jadwal ' + escapeHtml(nextMonthName) + ' ' + nextYear + ' ' +
-              '<span style="font-size:11px; font-weight:800; background:rgba(255,255,255,0.75); padding:2px 8px; border-radius:6px; color:' + badgeColor + '; margin-left:6px;">' + badgeText + '</span>' +
+              '<span class="' + badgeClass + '">' + (isPastDeadline ? '⚡ ' : '⏱ ') + badgeText + '</span>' +
             '</div>' +
             '<div class="smart-ops-alert-desc">' +
               'SOP Operasional Nasional: Seluruh Area Manager wajib menyerahkan rencana kerja bulan depan <strong>maksimal setiap tanggal ' + deadlineTgl + ' ' + escapeHtml(currentMonthName) + '</strong>. ' +
@@ -3555,10 +3557,22 @@ function renderDashboardView() {
   const completedTasks = filteredTugas.filter(t => t.status === 'Completed').length;
 
   // Update Nilai ke Kartu Metrik Grid
-  document.getElementById('metricSalesActual').textContent = 'Rp ' + formatRupiah(totalActual);
-  document.getElementById('metricSalesTarget').textContent = 'Target (' + periodLabel + '): Rp ' + formatRupiah(totalTarget);
-  document.getElementById('metricSalesPersen').textContent = salesPersen + '% Capaian';
-  document.getElementById('metricSalesBar').style.width = Math.min(Number(salesPersen), 100) + '%';
+  const elActual = document.getElementById('metricSalesActual');
+  if (elActual) {
+    elActual.innerHTML = '<span class="metric-curr-prefix">Rp</span><span class="metric-big-num">' + formatRupiah(totalActual) + '</span>';
+  }
+  const elTarget = document.getElementById('metricSalesTarget');
+  if (elTarget) {
+    elTarget.innerHTML = 'Target (' + periodLabel + '): <strong style="color:#FFFFFF; font-weight:800;">Rp ' + formatRupiah(totalTarget) + '</strong>';
+  }
+  const elPersen = document.getElementById('metricSalesPersen');
+  if (elPersen) {
+    elPersen.textContent = salesPersen + '% Capaian';
+  }
+  const elSalesBar = document.getElementById('metricSalesBar');
+  if (elSalesBar) {
+    elSalesBar.style.width = Math.min(Number(salesPersen), 100) + '%';
+  }
 
   // Sub-stats di Hero Sales Panel
   const elTrx = document.getElementById('metricSalesTrx');
