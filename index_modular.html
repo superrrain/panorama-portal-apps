@@ -22,6 +22,8 @@
   <!-- PWA & Mobile Web App Meta Tags -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#144A32">
+  <!-- Declares native light+dark support: stops mobile browsers from force-darkening (inverting) the UI -->
+  <meta name="color-scheme" content="light dark">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -58,6 +60,36 @@
           document.documentElement.classList.add('panorama-review-mode');
         }
       } catch (eReviewMode) {}
+    })();
+
+    // Early Theme Resolver (0-Flicker Dark/Light Mode v5.7.0)
+    // PANORAMA_THEME: 'light' | 'dark' | (empty = ikuti pengaturan sistem HP/PC)
+    (function () {
+      var docEl = document.documentElement;
+      var mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+      function getPref() { try { return localStorage.getItem('PANORAMA_THEME') || ''; } catch (e) { return ''; } }
+      function apply(theme) {
+        docEl.setAttribute('data-theme', theme);
+        var tc = document.querySelector('meta[name="theme-color"]');
+        if (tc) tc.setAttribute('content', theme === 'dark' ? '#0E1512' : '#144A32');
+      }
+      function resolve() {
+        var p = getPref();
+        return (p === 'dark' || p === 'light') ? p : ((mq && mq.matches) ? 'dark' : 'light');
+      }
+      apply(resolve());
+      if (mq) {
+        var onChange = function () { if (!getPref()) apply(resolve()); };
+        if (mq.addEventListener) mq.addEventListener('change', onChange); else if (mq.addListener) mq.addListener(onChange);
+      }
+      window.togglePanoramaTheme = function () {
+        var next = docEl.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        try { localStorage.setItem('PANORAMA_THEME', next); } catch (e) {}
+        docEl.classList.add('theme-switching');
+        apply(next);
+        setTimeout(function () { docEl.classList.remove('theme-switching'); }, 400);
+        if (typeof window.showToast === 'function') window.showToast(next === 'dark' ? 'Mode Gelap diaktifkan' : 'Mode Terang diaktifkan', 'info');
+      };
     })();
 
     // Early Session Guard (0-Flicker 30-Hari Session Persistence v5.6.50)
@@ -1159,6 +1191,20 @@
             <span id="currentAreaScopeTitle"
               style="font-size: 10px; color: var(--text-muted); font-weight: 600;">Seluruh Wilayah Operasional</span>
           </div>
+
+          <!-- Theme Toggle: Mode Terang / Mode Gelap -->
+          <button type="button" class="btn-icon-circle theme-toggle-btn" title="Ganti Mode Terang / Gelap"
+            aria-label="Ganti mode terang atau gelap" onclick="togglePanoramaTheme()">
+            <svg class="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
+            <svg class="theme-icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+            </svg>
+          </button>
 
           <!-- Quick Action Buttons: Refresh Data -->
           <button class="btn-icon-circle" title="Segarkan Data" onclick="fetchOperationalData(true)">
