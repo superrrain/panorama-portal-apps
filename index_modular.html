@@ -62,33 +62,101 @@
       } catch (eReviewMode) {}
     })();
 
-    // Early Theme Resolver (0-Flicker Dark/Light Mode v5.7.0)
-    // PANORAMA_THEME: 'light' | 'dark' | (empty = ikuti pengaturan sistem HP/PC)
+    // Early Theme Resolver & Android Force-Dark Adapter (0-Flicker v5.7.1)
+    // Otomatis sinkron 100% dengan mode Dark HP (W3C prefers-color-scheme + Android Inversion Probe)
     (function () {
       var docEl = document.documentElement;
       var mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
-      function getPref() { try { return localStorage.getItem('PANORAMA_THEME') || ''; } catch (e) { return ''; } }
+
+      function detectSystemDark() {
+        // 1. Standard W3C media query
+        try {
+          if (mq && mq.matches) return true;
+        } catch (eMq) {}
+
+        // 2. Android Force-Dark / OS-level Inversion Probe (ColorOS / MIUI / HyperOS)
+        try {
+          var probe = document.createElement('div');
+          probe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:2px;height:2px;background:#ffffff!important;color:#000000!important;opacity:0.01;pointer-events:none;';
+          (document.head || docEl).appendChild(probe);
+          var cs = window.getComputedStyle(probe);
+          var bg = cs.backgroundColor || '';
+          if (probe.parentNode) probe.parentNode.removeChild(probe);
+          var m = bg.match(/rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+          if (m) {
+            var r = parseInt(m[1], 10), g = parseInt(m[2], 10), b = parseInt(m[3], 10);
+            var brightness = (r * 299 + g * 587 + b * 114) / 1000;
+            if (brightness < 160) return true;
+          }
+        } catch (eProbe) {}
+
+        return false;
+      }
+
+      function getManualPref() {
+        try {
+          var v = localStorage.getItem('PANORAMA_THEME_V2');
+          return (v === 'dark' || v === 'light') ? v : '';
+        } catch (ePref) {
+          return '';
+        }
+      }
+
+      function resolve() {
+        var pref = getManualPref();
+        // Jika ada pilihan manual dari tombol, ikuti pilihan manual
+        if (pref) return pref;
+        // Default: OTOMATIS IKUTI HP (Dark Mode Sistem HP)
+        return detectSystemDark() ? 'dark' : 'light';
+      }
+
       function apply(theme) {
         docEl.setAttribute('data-theme', theme);
+        if (theme === 'dark') {
+          docEl.classList.add('theme-dark');
+          docEl.classList.remove('theme-light');
+          docEl.style.colorScheme = 'dark';
+        } else {
+          docEl.classList.add('theme-light');
+          docEl.classList.remove('theme-dark');
+          docEl.style.colorScheme = 'light';
+        }
         var tc = document.querySelector('meta[name="theme-color"]');
         if (tc) tc.setAttribute('content', theme === 'dark' ? '#0E1512' : '#144A32');
       }
-      function resolve() {
-        var p = getPref();
-        return (p === 'dark' || p === 'light') ? p : ((mq && mq.matches) ? 'dark' : 'light');
-      }
+
+      // Terapkan SEGERA saat parsing <head> (0-Flicker)
       apply(resolve());
+
+      // Realtime listener jika user mengubah mode Dark/Light di HP
       if (mq) {
-        var onChange = function () { if (!getPref()) apply(resolve()); };
-        if (mq.addEventListener) mq.addEventListener('change', onChange); else if (mq.addListener) mq.addListener(onChange);
+        var onChange = function () {
+          if (!getManualPref()) apply(resolve());
+        };
+        if (mq.addEventListener) mq.addEventListener('change', onChange);
+        else if (mq.addListener) mq.addListener(onChange);
       }
+
+      // Check ulang saat DOM siap (bila Android Force-Dark aktif bertahap)
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () {
+          if (!getManualPref() && docEl.getAttribute('data-theme') !== 'dark' && detectSystemDark()) {
+            apply('dark');
+          }
+        });
+      }
+
+      // Toggle Manual (Tombol Matahari / Bulan)
       window.togglePanoramaTheme = function () {
-        var next = docEl.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-        try { localStorage.setItem('PANORAMA_THEME', next); } catch (e) {}
+        var current = docEl.getAttribute('data-theme') || (detectSystemDark() ? 'dark' : 'light');
+        var next = current === 'dark' ? 'light' : 'dark';
+        try { localStorage.setItem('PANORAMA_THEME_V2', next); } catch (e) {}
         docEl.classList.add('theme-switching');
         apply(next);
         setTimeout(function () { docEl.classList.remove('theme-switching'); }, 400);
-        if (typeof window.showToast === 'function') window.showToast(next === 'dark' ? 'Mode Gelap diaktifkan' : 'Mode Terang diaktifkan', 'info');
+        if (typeof window.showToast === 'function') {
+          window.showToast(next === 'dark' ? 'Mode Gelap diaktifkan' : 'Mode Terang diaktifkan', 'info');
+        }
       };
     })();
 
