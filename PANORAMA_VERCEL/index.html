@@ -1776,10 +1776,23 @@
   }
 
   @keyframes barShimmer {
-    0% { transform: translateY(100%); opacity: 0; }
-    30% { opacity: 0.7; }
-    70% { opacity: 0.7; }
-    100% { transform: translateY(-100%); opacity: 0; }
+    0% {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+
+    30% {
+      opacity: 0.7;
+    }
+
+    70% {
+      opacity: 0.7;
+    }
+
+    100% {
+      transform: translateY(-100%);
+      opacity: 0;
+    }
   }
 
   .chart-bar-fill.bar-success {
@@ -2076,39 +2089,47 @@
     border: 1.2px solid #FDA4AF !important;
     box-shadow: 0 2px 10px rgba(225, 29, 72, 0.06);
   }
+
   .metric-card.card-incident:hover {
     border-color: #FB7185 !important;
     box-shadow: 0 6px 18px rgba(225, 29, 72, 0.14);
     transform: translateY(-2px);
   }
+
   .icon-box-incident {
     background-color: #FFF1F2;
     border: 1px solid #FECDD3;
     color: #E11D48;
   }
+
   .card-incident .metric-card-title {
     color: #9F1239 !important;
     font-weight: 700;
   }
+
   .card-incident .metric-card-value {
     color: #BE123C !important;
     font-weight: 900;
   }
+
   .card-incident .metric-arrow-btn {
     background-color: #FFF1F2;
     border-color: #FECDD3;
     color: #E11D48;
   }
+
   .card-incident:hover .metric-arrow-btn {
     background-color: #E11D48 !important;
     border-color: #E11D48 !important;
     color: #FFFFFF !important;
   }
+
   .card-incident .pill-badge-donezo {
     background-color: #FFF1F2;
     border: 1px solid #FECDD3;
     color: #BE123C;
   }
+
   .card-incident .metric-meta-sub {
     color: #9F1239;
     opacity: 0.8;
@@ -2120,39 +2141,47 @@
     border: 1.2px solid #86EFAC !important;
     box-shadow: 0 2px 10px rgba(5, 150, 105, 0.06);
   }
+
   .metric-card.card-efficiency:hover {
     border-color: #4ADE80 !important;
     box-shadow: 0 6px 18px rgba(5, 150, 105, 0.14);
     transform: translateY(-2px);
   }
+
   .icon-box-efficiency {
     background-color: #F0FDF4;
     border: 1px solid #BBF7D0;
     color: #059669;
   }
+
   .card-efficiency .metric-card-title {
     color: #065F46 !important;
     font-weight: 700;
   }
+
   .card-efficiency .metric-card-value {
     color: #047857 !important;
     font-weight: 900;
   }
+
   .card-efficiency .metric-arrow-btn {
     background-color: #F0FDF4;
     border-color: #BBF7D0;
     color: #059669;
   }
+
   .card-efficiency:hover .metric-arrow-btn {
     background-color: #059669 !important;
     border-color: #059669 !important;
     color: #FFFFFF !important;
   }
+
   .card-efficiency .pill-badge-donezo {
     background-color: #F0FDF4;
     border: 1px solid #BBF7D0;
     color: #047857;
   }
+
   .card-efficiency .metric-meta-sub {
     color: #065F46;
     opacity: 0.8;
@@ -2164,39 +2193,47 @@
     border: 1.2px solid #7DD3FC !important;
     box-shadow: 0 2px 10px rgba(2, 132, 199, 0.06);
   }
+
   .metric-card.card-tasks:hover {
     border-color: #38BDF8 !important;
     box-shadow: 0 6px 18px rgba(2, 132, 199, 0.14);
     transform: translateY(-2px);
   }
+
   .icon-box-tasks {
     background-color: #F0F9FF;
     border: 1px solid #BAE6FD;
     color: #0284C7;
   }
+
   .card-tasks .metric-card-title {
     color: #075985 !important;
     font-weight: 700;
   }
+
   .card-tasks .metric-card-value {
     color: #0369A1 !important;
     font-weight: 900;
   }
+
   .card-tasks .metric-arrow-btn {
     background-color: #F0F9FF;
     border-color: #BAE6FD;
     color: #0284C7;
   }
+
   .card-tasks:hover .metric-arrow-btn {
     background-color: #0284C7 !important;
     border-color: #0284C7 !important;
     color: #FFFFFF !important;
   }
+
   .card-tasks .pill-badge-donezo {
     background-color: #F0F9FF;
     border: 1px solid #BAE6FD;
     color: #0369A1;
   }
+
   .card-tasks .metric-meta-sub {
     color: #075985;
     opacity: 0.8;
@@ -2211,11 +2248,13 @@
     border: 1.2px solid #A7F3D0 !important;
     box-shadow: 0 4px 16px rgba(10, 55, 40, 0.05);
   }
+
   .icon-box-sales {
     background-color: #ECFDF5;
     border: 1px solid #A7F3D0;
     color: #059669;
   }
+
   .sales-chart-header-left h3 {
     color: #0A3728 !important;
   }
@@ -2226,23 +2265,28 @@
     border: 1.2px solid #FDE68A !important;
     box-shadow: 0 4px 16px rgba(217, 119, 6, 0.06);
   }
+
   .card-panel.panel-leaderboard:hover {
     border-color: #FCD34D !important;
     box-shadow: 0 6px 20px rgba(217, 119, 6, 0.12);
   }
+
   .icon-box-leaderboard {
     background-color: #FEF3C7;
     border: 1px solid #FDE68A;
     color: #D97706;
   }
+
   .panel-leaderboard #dashLeaderboardTitle {
     color: #78350F !important;
     font-weight: 800;
   }
+
   .panel-leaderboard .leader-item {
     background-color: #FFFFFF;
     border-color: #FEF3C7;
   }
+
   .panel-leaderboard .leader-item:hover {
     border-color: #FDE68A;
     box-shadow: 0 2px 8px rgba(217, 119, 6, 0.08);
@@ -2254,18 +2298,22 @@
     border: 1.2px solid #FECDD3 !important;
     box-shadow: 0 4px 16px rgba(225, 29, 72, 0.06);
   }
+
   .card-panel.panel-quick-incidents:hover {
     border-color: #FDA4AF !important;
     box-shadow: 0 6px 20px rgba(225, 29, 72, 0.12);
   }
+
   .panel-quick-incidents h3 {
     color: #9F1239 !important;
     font-weight: 800;
   }
+
   .panel-quick-incidents .leader-item {
     background-color: #FFFFFF;
     border-color: #FFE4E6;
   }
+
   .panel-quick-incidents .leader-item:hover {
     border-color: #FECDD3;
     box-shadow: 0 2px 8px rgba(225, 29, 72, 0.08);
@@ -2276,6 +2324,7 @@
     border: 1px solid #C7D2FE;
     color: #4F46E5;
   }
+
   .icon-box-review {
     background-color: #ECFDF5;
     border: 1px solid #A7F3D0;
@@ -2300,62 +2349,68 @@
   }
 
   /* Module Bento Glow Panel Accents */
-  #section-sales > .card-panel {
+  #section-sales>.card-panel {
     background: linear-gradient(180deg, #FFFFFF 0%, #FFFFFF 85%, #F0FDF4 100%) !important;
     border: 1.2px solid #A7F3D0 !important;
     box-shadow: 0 6px 20px rgba(5, 150, 105, 0.05) !important;
   }
-  #section-sales > .card-panel:hover {
+
+  #section-sales>.card-panel:hover {
     border-color: #6EE7B7 !important;
     box-shadow: 0 8px 24px rgba(5, 150, 105, 0.09) !important;
   }
 
-  #section-leaderboard > .card-panel {
+  #section-leaderboard>.card-panel {
     background: linear-gradient(180deg, #FFFFFF 0%, #FFFFFF 85%, #FFFDF0 100%) !important;
     border: 1.2px solid #FDE68A !important;
     box-shadow: 0 6px 20px rgba(217, 119, 6, 0.06) !important;
   }
-  #section-leaderboard > .card-panel:hover {
+
+  #section-leaderboard>.card-panel:hover {
     border-color: #FCD34D !important;
     box-shadow: 0 8px 24px rgba(217, 119, 6, 0.11) !important;
   }
 
-  #section-insiden > .card-panel {
+  #section-insiden>.card-panel {
     background: linear-gradient(180deg, #FFFFFF 0%, #FFFFFF 85%, #FFF5F5 100%) !important;
     border: 1.2px solid #FECDD3 !important;
     box-shadow: 0 6px 20px rgba(225, 29, 72, 0.06) !important;
   }
-  #section-insiden > .card-panel:hover {
+
+  #section-insiden>.card-panel:hover {
     border-color: #FDA4AF !important;
     box-shadow: 0 8px 24px rgba(225, 29, 72, 0.11) !important;
   }
 
-  #section-efisiensi > .card-panel {
+  #section-efisiensi>.card-panel {
     background: linear-gradient(180deg, #FFFFFF 0%, #FFFFFF 85%, #F0FDF4 100%) !important;
     border: 1.2px solid #86EFAC !important;
     box-shadow: 0 6px 20px rgba(5, 150, 105, 0.06) !important;
   }
-  #section-efisiensi > .card-panel:hover {
+
+  #section-efisiensi>.card-panel:hover {
     border-color: #4ADE80 !important;
     box-shadow: 0 8px 24px rgba(5, 150, 105, 0.11) !important;
   }
 
-  #section-tugas > .card-panel {
+  #section-tugas>.card-panel {
     background: linear-gradient(180deg, #FFFFFF 0%, #FFFFFF 85%, #F0F9FF 100%) !important;
     border: 1.2px solid #BAE6FD !important;
     box-shadow: 0 6px 20px rgba(2, 132, 199, 0.05) !important;
   }
-  #section-tugas > .card-panel:hover {
+
+  #section-tugas>.card-panel:hover {
     border-color: #7DD3FC !important;
     box-shadow: 0 8px 24px rgba(2, 132, 199, 0.10) !important;
   }
 
-  #section-jadwal > .card-panel {
+  #section-jadwal>.card-panel {
     background: linear-gradient(180deg, #FFFFFF 0%, #FFFFFF 85%, #EEF2FF 100%) !important;
     border: 1.2px solid #C7D2FE !important;
     box-shadow: 0 6px 20px rgba(99, 102, 241, 0.05) !important;
   }
-  #section-jadwal > .card-panel:hover {
+
+  #section-jadwal>.card-panel:hover {
     border-color: #A5B4FC !important;
     box-shadow: 0 8px 24px rgba(99, 102, 241, 0.10) !important;
   }
@@ -2366,13 +2421,16 @@
     border: 1.2px solid #86EFAC !important;
     box-shadow: 0 3px 12px rgba(5, 150, 105, 0.06) !important;
   }
+
   #salesKpiSummaryGrid .sales-kpi-card:nth-child(1):hover {
     border-color: #34D399 !important;
     transform: translateY(-2px);
   }
+
   #salesKpiSummaryGrid .sales-kpi-card:nth-child(1) .sales-kpi-label {
     color: #047857 !important;
   }
+
   #salesKpiSummaryGrid .sales-kpi-card:nth-child(1) .sales-kpi-value {
     color: #065F46 !important;
   }
@@ -2382,13 +2440,16 @@
     border: 1.2px solid #99F6E4 !important;
     box-shadow: 0 3px 12px rgba(15, 118, 110, 0.06) !important;
   }
+
   #salesKpiSummaryGrid .sales-kpi-card:nth-child(2):hover {
     border-color: #5EEAD4 !important;
     transform: translateY(-2px);
   }
+
   #salesKpiSummaryGrid .sales-kpi-card:nth-child(2) .sales-kpi-label {
     color: #0F766E !important;
   }
+
   #salesKpiSummaryGrid .sales-kpi-card:nth-child(2) .sales-kpi-value {
     color: #115E59 !important;
   }
@@ -2398,10 +2459,12 @@
     border: 1.2px solid #FDE68A !important;
     box-shadow: 0 3px 12px rgba(217, 119, 6, 0.06) !important;
   }
+
   #salesKpiSummaryGrid .sales-kpi-card:nth-child(3):hover {
     border-color: #FCD34D !important;
     transform: translateY(-2px);
   }
+
   #salesKpiSummaryGrid .sales-kpi-card:nth-child(3) .sales-kpi-label {
     color: #B45309 !important;
   }
@@ -2411,13 +2474,16 @@
     border: 1.2px solid #BAE6FD !important;
     box-shadow: 0 3px 12px rgba(2, 132, 199, 0.06) !important;
   }
+
   #salesKpiSummaryGrid .sales-kpi-card:nth-child(4):hover {
     border-color: #7DD3FC !important;
     transform: translateY(-2px);
   }
+
   #salesKpiSummaryGrid .sales-kpi-card:nth-child(4) .sales-kpi-label {
     color: #0369A1 !important;
   }
+
   #salesKpiSummaryGrid .sales-kpi-card:nth-child(4) .sales-kpi-value {
     color: #0284C7 !important;
   }
@@ -2428,10 +2494,12 @@
     border: 1.2px solid #86EFAC !important;
     box-shadow: 0 3px 12px rgba(5, 150, 105, 0.06) !important;
   }
+
   #efisiensiKpiSummaryGrid .sales-kpi-card:nth-child(1):hover {
     border-color: #34D399 !important;
     transform: translateY(-2px);
   }
+
   #efisiensiKpiSummaryGrid .sales-kpi-card:nth-child(1) .sales-kpi-label {
     color: #047857 !important;
   }
@@ -2441,10 +2509,12 @@
     border: 1.2px solid #FDE68A !important;
     box-shadow: 0 3px 12px rgba(217, 119, 6, 0.06) !important;
   }
+
   #efisiensiKpiSummaryGrid .sales-kpi-card:nth-child(2):hover {
     border-color: #FCD34D !important;
     transform: translateY(-2px);
   }
+
   #efisiensiKpiSummaryGrid .sales-kpi-card:nth-child(2) .sales-kpi-label {
     color: #B45309 !important;
   }
@@ -2454,10 +2524,12 @@
     border: 1.2px solid #99F6E4 !important;
     box-shadow: 0 3px 12px rgba(15, 118, 110, 0.06) !important;
   }
+
   #efisiensiKpiSummaryGrid .sales-kpi-card:nth-child(3):hover {
     border-color: #5EEAD4 !important;
     transform: translateY(-2px);
   }
+
   #efisiensiKpiSummaryGrid .sales-kpi-card:nth-child(3) .sales-kpi-label {
     color: #0F766E !important;
   }
@@ -2467,10 +2539,12 @@
     border: 1.2px solid #BAE6FD !important;
     box-shadow: 0 3px 12px rgba(2, 132, 199, 0.06) !important;
   }
+
   #efisiensiKpiSummaryGrid .sales-kpi-card:nth-child(4):hover {
     border-color: #7DD3FC !important;
     transform: translateY(-2px);
   }
+
   #efisiensiKpiSummaryGrid .sales-kpi-card:nth-child(4) .sales-kpi-label {
     color: #0369A1 !important;
   }
@@ -2482,13 +2556,16 @@
     border: 1.2px solid #86EFAC !important;
     box-shadow: 0 3px 12px rgba(5, 150, 105, 0.06) !important;
   }
+
   #mapsKpiSummaryGrid .sales-kpi-card:nth-child(1):hover {
     border-color: #34D399 !important;
     transform: translateY(-2px);
   }
+
   #mapsKpiSummaryGrid .sales-kpi-card:nth-child(1) .sales-kpi-label {
     color: #047857 !important;
   }
+
   #mapsKpiSummaryGrid .sales-kpi-card:nth-child(1) .sales-kpi-value {
     color: #065F46 !important;
   }
@@ -2499,13 +2576,16 @@
     border: 1.2px solid #FDA4AF !important;
     box-shadow: 0 3px 12px rgba(225, 29, 72, 0.06) !important;
   }
+
   #mapsKpiSummaryGrid .sales-kpi-card:nth-child(2):hover {
     border-color: #FB7185 !important;
     transform: translateY(-2px);
   }
+
   #mapsKpiSummaryGrid .sales-kpi-card:nth-child(2) .sales-kpi-label {
     color: #9F1239 !important;
   }
+
   #mapsKpiSummaryGrid .sales-kpi-card:nth-child(2) .sales-kpi-value {
     color: #BE123C !important;
   }
@@ -2516,13 +2596,16 @@
     border: 1.2px solid #FDE68A !important;
     box-shadow: 0 3px 12px rgba(217, 119, 6, 0.06) !important;
   }
+
   #mapsKpiSummaryGrid .sales-kpi-card:nth-child(3):hover {
     border-color: #FCD34D !important;
     transform: translateY(-2px);
   }
+
   #mapsKpiSummaryGrid .sales-kpi-card:nth-child(3) .sales-kpi-label {
     color: #B45309 !important;
   }
+
   #mapsKpiSummaryGrid .sales-kpi-card:nth-child(3) .sales-kpi-value {
     color: #92400E !important;
   }
@@ -2533,13 +2616,16 @@
     border: 1.2px solid #BAE6FD !important;
     box-shadow: 0 3px 12px rgba(2, 132, 199, 0.06) !important;
   }
+
   #mapsKpiSummaryGrid .sales-kpi-card:nth-child(4):hover {
     border-color: #7DD3FC !important;
     transform: translateY(-2px);
   }
+
   #mapsKpiSummaryGrid .sales-kpi-card:nth-child(4) .sales-kpi-label {
     color: #0369A1 !important;
   }
+
   #mapsKpiSummaryGrid .sales-kpi-card:nth-child(4) .sales-kpi-value {
     color: #0284C7 !important;
   }
@@ -2560,14 +2646,17 @@
   .table-responsive-container::-webkit-scrollbar {
     height: 7px !important;
   }
+
   .table-responsive-container::-webkit-scrollbar-track {
     background: #F8FAFC !important;
     border-radius: 8px !important;
   }
+
   .table-responsive-container::-webkit-scrollbar-thumb {
     background: #CBD5E1 !important;
     border-radius: 8px !important;
   }
+
   .table-responsive-container::-webkit-scrollbar-thumb:hover {
     background: #94A3B8 !important;
   }
@@ -2584,6 +2673,7 @@
     min-width: 860px !important;
     width: 100% !important;
   }
+
   #section-leaderboard .ops-table th {
     padding: 9px 8px !important;
     font-size: 10.5px !important;
@@ -2591,22 +2681,27 @@
     text-align: center !important;
     white-space: nowrap !important;
   }
+
   #section-leaderboard .ops-table th:nth-child(2) {
     text-align: left !important;
   }
+
   #section-leaderboard .ops-table td {
     padding: 8px 8px !important;
     font-size: 11.5px !important;
     text-align: center !important;
     vertical-align: middle !important;
   }
+
   #section-leaderboard .ops-table td:nth-child(2) {
     text-align: left !important;
   }
+
   #section-leaderboard .ops-table .badge {
     padding: 2px 7px !important;
     font-size: 10px !important;
   }
+
   #section-leaderboard .ops-table .btn {
     padding: 4px 8px !important;
     font-size: 10.5px !important;
@@ -2616,6 +2711,7 @@
     min-width: 880px !important;
     width: 100% !important;
   }
+
   #section-sales .sales-desktop-table-container .ops-table th,
   #section-sales .sales-desktop-table-container .ops-table td {
     padding: 8px 10px !important;
@@ -2626,6 +2722,7 @@
     min-width: 880px !important;
     width: 100% !important;
   }
+
   #section-efisiensi .sales-desktop-table-container .ops-table th,
   #section-efisiensi .sales-desktop-table-container .ops-table td {
     padding: 8px 10px !important;
@@ -2639,18 +2736,21 @@
     border-radius: 14px !important;
     box-shadow: 0 3px 12px rgba(5, 150, 105, 0.05) !important;
   }
+
   .insiden-mobile-card {
     background: #FFFFFF !important;
     border: 1.2px solid #FECDD3 !important;
     border-radius: 14px !important;
     box-shadow: 0 3px 12px rgba(225, 29, 72, 0.05) !important;
   }
+
   .jadwal-deadline-card {
     background: linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%) !important;
     border: 1.2px solid #FDA4AF !important;
     border-radius: 14px !important;
     box-shadow: 0 4px 14px rgba(225, 29, 72, 0.08) !important;
   }
+
   #section-maps-ai .maps-ai-card {
     background: linear-gradient(135deg, #FFFFFF 0%, #FFFFFF 80%, #F8FAFC 100%) !important;
     border: 1.2px solid #CBD5E1 !important;
@@ -2658,6 +2758,7 @@
     box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05) !important;
     transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, border-color 0.2s ease !important;
   }
+
   #section-maps-ai .maps-ai-card:hover {
     transform: translateY(-2px);
     border-color: #94A3B8 !important;
@@ -3644,12 +3745,15 @@
     border: 1.2px solid #CBD5E1 !important;
     box-shadow: 0 4px 14px rgba(100, 116, 139, 0.05);
   }
+
   .kanban-col[data-stage="Waiting"] .kanban-col-header {
     border-bottom: 1.5px solid #E2E8F0 !important;
   }
+
   .kanban-col[data-stage="Waiting"] .kanban-col-title {
     color: #475569 !important;
   }
+
   .kanban-col[data-stage="Waiting"] .kanban-count {
     background: #E2E8F0 !important;
     color: #334155 !important;
@@ -3661,12 +3765,15 @@
     border: 1.2px solid #7DD3FC !important;
     box-shadow: 0 4px 14px rgba(2, 132, 199, 0.06);
   }
+
   .kanban-col[data-stage="In Progress"] .kanban-col-header {
     border-bottom: 1.5px solid #BAE6FD !important;
   }
+
   .kanban-col[data-stage="In Progress"] .kanban-col-title {
     color: #0284C7 !important;
   }
+
   .kanban-col[data-stage="In Progress"] .kanban-count {
     background: #BAE6FD !important;
     color: #0369A1 !important;
@@ -3678,12 +3785,15 @@
     border: 1.2px solid #D8B4FE !important;
     box-shadow: 0 4px 14px rgba(168, 85, 247, 0.06);
   }
+
   .kanban-col[data-stage="Review"] .kanban-col-header {
     border-bottom: 1.5px solid #E9D5FF !important;
   }
+
   .kanban-col[data-stage="Review"] .kanban-col-title {
     color: #9333EA !important;
   }
+
   .kanban-col[data-stage="Review"] .kanban-count {
     background: #E9D5FF !important;
     color: #7E22CE !important;
@@ -3695,12 +3805,15 @@
     border: 1.2px solid #86EFAC !important;
     box-shadow: 0 4px 14px rgba(22, 163, 74, 0.06);
   }
+
   .kanban-col[data-stage="Completed"] .kanban-col-header {
     border-bottom: 1.5px solid #BBF7D0 !important;
   }
+
   .kanban-col[data-stage="Completed"] .kanban-col-title {
     color: #16A34A !important;
   }
+
   .kanban-col[data-stage="Completed"] .kanban-count {
     background: #BBF7D0 !important;
     color: #15803D !important;
@@ -4291,9 +4404,11 @@
     position: relative;
     cursor: pointer;
   }
+
   .chart-bar-column.is-selected .chart-bar-capsule {
     box-shadow: 0 0 0 2px #22C55E, 0 0 16px rgba(34, 197, 94, 0.45) !important;
   }
+
   .chart-bar-tooltip {
     position: absolute;
     top: -46px;
@@ -4312,6 +4427,7 @@
     pointer-events: none;
     animation: tooltipBounce 0.28s cubic-bezier(0.34, 1.4, 0.64, 1);
   }
+
   .chart-bar-tooltip::after {
     content: '';
     position: absolute;
@@ -4324,9 +4440,17 @@
     display: block;
     width: 0;
   }
+
   @keyframes tooltipBounce {
-    0% { opacity: 0; transform: translateX(-50%) translateY(8px) scale(0.9); }
-    100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+    0% {
+      opacity: 0;
+      transform: translateX(-50%) translateY(8px) scale(0.9);
+    }
+
+    100% {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0) scale(1);
+    }
   }
 
   .toast {
@@ -5708,21 +5832,48 @@
   }
 
   @keyframes orbDrift1 {
-    0% { transform: translate(0, 0) scale(1); }
-    50% { transform: translate(50px, 40px) scale(1.12); }
-    100% { transform: translate(-30px, 60px) scale(0.96); }
+    0% {
+      transform: translate(0, 0) scale(1);
+    }
+
+    50% {
+      transform: translate(50px, 40px) scale(1.12);
+    }
+
+    100% {
+      transform: translate(-30px, 60px) scale(0.96);
+    }
   }
 
   @keyframes orbDrift2 {
-    0% { transform: translate(0, 0) scale(1); }
-    50% { transform: translate(-45px, -40px) scale(1.14); }
-    100% { transform: translate(35px, -25px) scale(0.92); }
+    0% {
+      transform: translate(0, 0) scale(1);
+    }
+
+    50% {
+      transform: translate(-45px, -40px) scale(1.14);
+    }
+
+    100% {
+      transform: translate(35px, -25px) scale(0.92);
+    }
   }
 
   @keyframes orbDrift3 {
-    0% { transform: translate(0, 0) scale(0.92); opacity: 0.35; }
-    50% { transform: translate(-35px, 25px) scale(1.1); opacity: 0.65; }
-    100% { transform: translate(45px, -35px) scale(1); opacity: 0.4; }
+    0% {
+      transform: translate(0, 0) scale(0.92);
+      opacity: 0.35;
+    }
+
+    50% {
+      transform: translate(-35px, 25px) scale(1.1);
+      opacity: 0.65;
+    }
+
+    100% {
+      transform: translate(45px, -35px) scale(1);
+      opacity: 0.4;
+    }
   }
 
   .ambient-grid-pattern {
@@ -5755,6 +5906,7 @@
       opacity: 0;
       transform: translateY(18px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
@@ -5785,6 +5937,7 @@
       opacity: 0;
       transform: translateY(28px) scale(0.95);
     }
+
     100% {
       opacity: 1;
       transform: translateY(0) scale(1);
@@ -5810,6 +5963,7 @@
       opacity: 0;
       transform: translateY(-24px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
@@ -5856,6 +6010,7 @@
       transform: translateY(0) scale(1);
       box-shadow: 0 0 22px rgba(34, 197, 94, 0.25);
     }
+
     100% {
       transform: translateY(-4px) scale(1.04);
       box-shadow: 0 0 38px rgba(34, 197, 94, 0.52);
@@ -5892,9 +6047,12 @@
   }
 
   @keyframes titleSheen {
-    0%, 65% {
+
+    0%,
+    65% {
       background-position: 200% 0;
     }
+
     100% {
       background-position: -200% 0;
     }
@@ -5928,8 +6086,15 @@
   }
 
   @keyframes dotPulse {
-    0% { transform: scale(0.85); opacity: 0.7; }
-    100% { transform: scale(1.2); opacity: 1; }
+    0% {
+      transform: scale(0.85);
+      opacity: 0.7;
+    }
+
+    100% {
+      transform: scale(1.2);
+      opacity: 1;
+    }
   }
 
   /* Organic Concave Divider Arc (Separates Header & Form Sheet) */
@@ -5967,6 +6132,7 @@
       opacity: 0;
       transform: translateY(36px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
@@ -6062,28 +6228,47 @@
       opacity: 0;
       transform: translateY(12px) scale(0.99);
     }
+
     100% {
       opacity: 1;
       transform: translateY(0) scale(1);
     }
   }
 
-  .login-form-card.slate-fade-in > * {
+  .login-form-card.slate-fade-in>* {
     animation: slateItemStagger 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
-  .login-form-card.slate-fade-in > *:nth-child(1) { animation-delay: 0.02s; }
-  .login-form-card.slate-fade-in > *:nth-child(2) { animation-delay: 0.07s; }
-  .login-form-card.slate-fade-in > *:nth-child(3) { animation-delay: 0.12s; }
-  .login-form-card.slate-fade-in > *:nth-child(4) { animation-delay: 0.17s; }
-  .login-form-card.slate-fade-in > *:nth-child(5) { animation-delay: 0.22s; }
-  .login-form-card.slate-fade-in > *:nth-child(6) { animation-delay: 0.27s; }
+  .login-form-card.slate-fade-in>*:nth-child(1) {
+    animation-delay: 0.02s;
+  }
+
+  .login-form-card.slate-fade-in>*:nth-child(2) {
+    animation-delay: 0.07s;
+  }
+
+  .login-form-card.slate-fade-in>*:nth-child(3) {
+    animation-delay: 0.12s;
+  }
+
+  .login-form-card.slate-fade-in>*:nth-child(4) {
+    animation-delay: 0.17s;
+  }
+
+  .login-form-card.slate-fade-in>*:nth-child(5) {
+    animation-delay: 0.22s;
+  }
+
+  .login-form-card.slate-fade-in>*:nth-child(6) {
+    animation-delay: 0.27s;
+  }
 
   @keyframes slateItemStagger {
     0% {
       opacity: 0;
       transform: translateY(8px);
     }
+
     100% {
       opacity: 1;
       transform: translateY(0);
@@ -6253,9 +6438,12 @@
   }
 
   @keyframes btnSweepShimmer {
-    0%, 60% {
+
+    0%,
+    60% {
       left: -120%;
     }
+
     100% {
       left: 220%;
     }
@@ -11094,18 +11282,22 @@
     -webkit-tap-highlight-color: transparent !important;
     touch-action: manipulation;
   }
+
   .btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
   }
+
   .btn:active,
   .pill-btn:active {
     transform: scale(0.94) !important;
     transition: transform 0.08s ease !important;
   }
+
   .metric-arrow-btn:hover {
     transform: scale(1.15) rotate(5deg) !important;
   }
+
   .metric-arrow-btn:active {
     transform: scale(0.92) !important;
   }
@@ -11117,13 +11309,16 @@
     transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.2s ease !important;
     -webkit-tap-highlight-color: transparent !important;
   }
+
   .metric-card:hover {
     transform: translateY(-4px) scale(1.008);
   }
+
   .metric-card:active {
     transform: scale(0.985) !important;
     transition: transform 0.09s ease !important;
   }
+
   .card-panel:hover {
     transform: translateY(-2px);
   }
@@ -11136,11 +11331,13 @@
     -webkit-tap-highlight-color: transparent !important;
     touch-action: manipulation;
   }
+
   .leader-item:hover,
   .review-item-card:hover {
     transform: translateY(-2px) scale(1.006);
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
   }
+
   .leader-item:active,
   .review-item-card:active,
   .task-kanban-card:active {
@@ -11155,6 +11352,7 @@
     transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.15s ease, background-color 0.15s ease !important;
     -webkit-tap-highlight-color: transparent !important;
   }
+
   .mobile-nav-link:active,
   .bottom-nav-item:active {
     transform: scale(0.93) !important;
@@ -11166,10 +11364,12 @@
   .badge {
     transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s ease;
   }
+
   .pillar-micro-chip:hover,
   .rank-pill:hover {
     transform: scale(1.08);
   }
+
   .pillar-micro-chip:active,
   .rank-pill:active {
     transform: scale(0.92);
@@ -11354,15 +11554,15 @@
   :is(html[data-theme="dark"], html.theme-dark) .panel-quick-incidents .leader-item:hover { border-color: rgba(251,113,133,0.36); }
   :is(html[data-theme="dark"], html.theme-dark) .icon-box-jadwal { background-color: rgba(99,102,241,0.14); border: 1px solid rgba(129,140,248,0.38); }
   :is(html[data-theme="dark"], html.theme-dark) .icon-box-review { background-color: rgba(16,185,129,0.10); border: 1px solid rgba(52,211,153,0.32); color: #34D399; }
-  :is(html[data-theme="dark"], html.theme-dark) #section-sales > .card-panel { background: linear-gradient(180deg, #151E1A 0%, #151E1A 85%, rgba(34,197,94,0.10) 100%) !important; border: 1.2px solid rgba(52,211,153,0.32) !important; }
-  :is(html[data-theme="dark"], html.theme-dark) #section-sales > .card-panel:hover { border-color: rgba(52,211,153,0.42) !important; }
-  :is(html[data-theme="dark"], html.theme-dark) #section-leaderboard > .card-panel { background: linear-gradient(180deg, #151E1A 0%, #151E1A 85%, #FFFDF0 100%) !important; border: 1.2px solid rgba(251,191,36,0.36) !important; }
-  :is(html[data-theme="dark"], html.theme-dark) #section-leaderboard > .card-panel:hover { border-color: rgba(251,191,36,0.45) !important; }
-  :is(html[data-theme="dark"], html.theme-dark) #section-insiden > .card-panel { background: linear-gradient(180deg, #151E1A 0%, #151E1A 85%, rgba(239,68,68,0.10) 100%) !important; border: 1.2px solid rgba(251,113,133,0.36) !important; }
-  :is(html[data-theme="dark"], html.theme-dark) #section-efisiensi > .card-panel { background: linear-gradient(180deg, #151E1A 0%, #151E1A 85%, rgba(34,197,94,0.10) 100%) !important; border: 1.2px solid rgba(74,222,128,0.40) !important; }
-  :is(html[data-theme="dark"], html.theme-dark) #section-tugas > .card-panel { background: linear-gradient(180deg, #151E1A 0%, #151E1A 85%, rgba(56,189,248,0.12) 100%) !important; border: 1.2px solid rgba(56,189,248,0.36) !important; }
-  :is(html[data-theme="dark"], html.theme-dark) #section-tugas > .card-panel:hover { border-color: rgba(56,189,248,0.42) !important; }
-  :is(html[data-theme="dark"], html.theme-dark) #section-jadwal > .card-panel { background: linear-gradient(180deg, #151E1A 0%, #151E1A 85%, rgba(99,102,241,0.14) 100%) !important; border: 1.2px solid rgba(129,140,248,0.38) !important; }
+  :is(html[data-theme="dark"], html.theme-dark) #section-sales>.card-panel { background: linear-gradient(180deg, #151E1A 0%, #151E1A 85%, rgba(34,197,94,0.10) 100%) !important; border: 1.2px solid rgba(52,211,153,0.32) !important; }
+  :is(html[data-theme="dark"], html.theme-dark) #section-sales>.card-panel:hover { border-color: rgba(52,211,153,0.42) !important; }
+  :is(html[data-theme="dark"], html.theme-dark) #section-leaderboard>.card-panel { background: linear-gradient(180deg, #151E1A 0%, #151E1A 85%, #FFFDF0 100%) !important; border: 1.2px solid rgba(251,191,36,0.36) !important; }
+  :is(html[data-theme="dark"], html.theme-dark) #section-leaderboard>.card-panel:hover { border-color: rgba(251,191,36,0.45) !important; }
+  :is(html[data-theme="dark"], html.theme-dark) #section-insiden>.card-panel { background: linear-gradient(180deg, #151E1A 0%, #151E1A 85%, rgba(239,68,68,0.10) 100%) !important; border: 1.2px solid rgba(251,113,133,0.36) !important; }
+  :is(html[data-theme="dark"], html.theme-dark) #section-efisiensi>.card-panel { background: linear-gradient(180deg, #151E1A 0%, #151E1A 85%, rgba(34,197,94,0.10) 100%) !important; border: 1.2px solid rgba(74,222,128,0.40) !important; }
+  :is(html[data-theme="dark"], html.theme-dark) #section-tugas>.card-panel { background: linear-gradient(180deg, #151E1A 0%, #151E1A 85%, rgba(56,189,248,0.12) 100%) !important; border: 1.2px solid rgba(56,189,248,0.36) !important; }
+  :is(html[data-theme="dark"], html.theme-dark) #section-tugas>.card-panel:hover { border-color: rgba(56,189,248,0.42) !important; }
+  :is(html[data-theme="dark"], html.theme-dark) #section-jadwal>.card-panel { background: linear-gradient(180deg, #151E1A 0%, #151E1A 85%, rgba(99,102,241,0.14) 100%) !important; border: 1.2px solid rgba(129,140,248,0.38) !important; }
   :is(html[data-theme="dark"], html.theme-dark) #salesKpiSummaryGrid .sales-kpi-card:nth-child(1) { background: linear-gradient(135deg, #151E1A 0%, rgba(16,185,129,0.10) 100%) !important; border: 1.2px solid rgba(74,222,128,0.40) !important; }
   :is(html[data-theme="dark"], html.theme-dark) #salesKpiSummaryGrid .sales-kpi-card:nth-child(1) .sales-kpi-label { color: #34D399 !important; }
   :is(html[data-theme="dark"], html.theme-dark) #salesKpiSummaryGrid .sales-kpi-card:nth-child(1) .sales-kpi-value { color: #6EE7B7 !important; }
@@ -13019,13 +13219,6 @@
      - Tactile Surface Elevation & Bento Glow Boundaries
      ========================================================================== */
 
-  /* Interactive Chart Tooltip Dark Mode (Option 3) */
-  :is(html[data-theme="dark"], html.theme-dark) .chart-bar-tooltip {
-    background: #05190F !important;
-    border: 1px solid #22C55E !important;
-    color: #FFFFFF !important;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7), 0 0 14px rgba(34, 197, 94, 0.35) !important;
-  }
   :is(html[data-theme="dark"], html.theme-dark) .toast {
     background: #151E1A !important;
     border-color: #2C3A33 !important;
@@ -23824,53 +24017,6 @@ function setChartMetricMode(mode) {
   renderSalesAnalyticsChart();
 }
 
-// Interactive In-Chart Tooltip for Bar Columns (Option 3: No global toast interruption)
-function showChartBarTooltip(col, title, subtitle, actualVal, targetVal, pct, periodLabel) {
-  if (!col) return;
-
-  // 1. Bersihkan tooltip aktif sebelumnya
-  const existingTooltips = document.querySelectorAll('.chart-bar-tooltip');
-  existingTooltips.forEach(t => t.remove());
-  document.querySelectorAll('.chart-bar-column.is-selected').forEach(c => c.classList.remove('is-selected'));
-
-  col.classList.add('is-selected');
-
-  // 2. Buat balon tooltip melayang tepat di atas batang yang disentuh
-  const tip = document.createElement('div');
-  tip.className = 'chart-bar-tooltip';
-  const badgeColor = pct >= 100 ? '#22C55E' : (pct >= 85 ? '#FBBF24' : '#F87171');
-  const nominalText = actualVal === 0 ? 'Rp 0' : ('Rp ' + formatCompactRupiah(actualVal));
-  const targetText = targetVal > 0 ? (' / ' + formatCompactRupiah(targetVal)) : '';
-
-  tip.innerHTML = 
-    '<div style="display:flex; align-items:center; gap:6px;">' +
-      '<span style="font-weight:800; color:#FFFFFF;">' + escapeHtml(title) + '</span>' +
-      '<span style="color:' + badgeColor + '; font-weight:800;">' + pct + '%</span>' +
-    '</div>' +
-    '<div style="font-size:9.5px; color:#C3CEC8; margin-top:2px;">' + nominalText + targetText + '</div>';
-
-  col.appendChild(tip);
-
-  // 3. Perbarui subtitle chart secara langsung agar detail lengkap terbaca di panel
-  const subEl = document.getElementById('salesChartSubtitle');
-  if (subEl) {
-    if (actualVal === 0) {
-      subEl.innerHTML = '<span style="color:#FBBF24; font-weight:700;">⚡ ' + escapeHtml(title) + ' (' + escapeHtml(subtitle) + '):</span> <span style="color:var(--text-muted);">Belum ada input penjualan (' + escapeHtml(periodLabel) + ')</span>';
-    } else {
-      const gapVal = targetVal - actualVal;
-      const gapText = gapVal > 0 ? ('Selisih: Rp ' + formatRupiah(gapVal)) : 'Melampaui Target!';
-      subEl.innerHTML = '<span style="color:#22C55E; font-weight:800;">⚡ ' + escapeHtml(title) + ' (' + escapeHtml(subtitle) + '):</span> <span style="color:var(--text-main); font-weight:700;">Rp ' + formatRupiah(actualVal) + '</span> / Target Rp ' + formatRupiah(targetVal) + ' (' + pct + '% Capaian • ' + gapText + ')';
-    }
-  }
-
-  // 4. Auto-remove tooltip setelah 4 detik
-  clearTimeout(col._tooltipTimer);
-  col._tooltipTimer = setTimeout(() => {
-    if (tip.parentNode) tip.parentNode.removeChild(tip);
-    col.classList.remove('is-selected');
-  }, 4000);
-}
-
 /**
  * Render Grafik Analitik Sales Interaktif (Donezo Modern Capsule Bar Chart)
  * Mendukung Tampilan Nilai Nominal (Rp) & Persentase (%) Secara Nyata
@@ -24313,7 +24459,11 @@ function renderSalesAnalyticsChart() {
       });
       col.onclick = function(e) {
         if (e && e.stopPropagation) e.stopPropagation();
-        showChartBarTooltip(col, a.id, a.mgr, actualVal, targetVal, pct, periodLabel);
+        if (actualVal === 0) {
+          showToast(a.id + ' (' + a.mgr + '): Belum ada input data penjualan (' + periodLabel + ')', 'info');
+        } else {
+          showToast(a.id + ' (' + a.mgr + '): Realisasi Rp ' + formatRupiah(actualVal) + ' / Target Rp ' + formatRupiah(targetVal) + ' (' + pct + '% Capaian)', pct >= 100 ? 'success' : 'warning');
+        }
       };
 
       // Header Tag Di Atas Batang Sesuai Mode
@@ -24455,7 +24605,11 @@ function renderSalesAnalyticsChart() {
       });
       col.onclick = function(e) {
         if (e && e.stopPropagation) e.stopPropagation();
-        showChartBarTooltip(col, c.namaCabang, c.brand, actualVal, targetVal, pct, periodLabel);
+        if (actualVal === 0) {
+          showToast(c.namaCabang + ': Belum ada input data penjualan (' + periodLabel + ')', 'info');
+        } else {
+          showToast(c.namaCabang + ': Realisasi Rp ' + formatRupiah(actualVal) + ' / Target Rp ' + formatRupiah(targetVal) + ' (' + pct + '% Capaian)', pct >= 100 ? 'success' : 'warning');
+        }
       };
 
       let valTagHtml = '';

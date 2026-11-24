@@ -3698,53 +3698,6 @@ function setChartMetricMode(mode) {
   renderSalesAnalyticsChart();
 }
 
-// Interactive In-Chart Tooltip for Bar Columns (Option 3: No global toast interruption)
-function showChartBarTooltip(col, title, subtitle, actualVal, targetVal, pct, periodLabel) {
-  if (!col) return;
-
-  // 1. Bersihkan tooltip aktif sebelumnya
-  const existingTooltips = document.querySelectorAll('.chart-bar-tooltip');
-  existingTooltips.forEach(t => t.remove());
-  document.querySelectorAll('.chart-bar-column.is-selected').forEach(c => c.classList.remove('is-selected'));
-
-  col.classList.add('is-selected');
-
-  // 2. Buat balon tooltip melayang tepat di atas batang yang disentuh
-  const tip = document.createElement('div');
-  tip.className = 'chart-bar-tooltip';
-  const badgeColor = pct >= 100 ? '#22C55E' : (pct >= 85 ? '#FBBF24' : '#F87171');
-  const nominalText = actualVal === 0 ? 'Rp 0' : ('Rp ' + formatCompactRupiah(actualVal));
-  const targetText = targetVal > 0 ? (' / ' + formatCompactRupiah(targetVal)) : '';
-
-  tip.innerHTML = 
-    '<div style="display:flex; align-items:center; gap:6px;">' +
-      '<span style="font-weight:800; color:#FFFFFF;">' + escapeHtml(title) + '</span>' +
-      '<span style="color:' + badgeColor + '; font-weight:800;">' + pct + '%</span>' +
-    '</div>' +
-    '<div style="font-size:9.5px; color:#C3CEC8; margin-top:2px;">' + nominalText + targetText + '</div>';
-
-  col.appendChild(tip);
-
-  // 3. Perbarui subtitle chart secara langsung agar detail lengkap terbaca di panel
-  const subEl = document.getElementById('salesChartSubtitle');
-  if (subEl) {
-    if (actualVal === 0) {
-      subEl.innerHTML = '<span style="color:#FBBF24; font-weight:700;">⚡ ' + escapeHtml(title) + ' (' + escapeHtml(subtitle) + '):</span> <span style="color:var(--text-muted);">Belum ada input penjualan (' + escapeHtml(periodLabel) + ')</span>';
-    } else {
-      const gapVal = targetVal - actualVal;
-      const gapText = gapVal > 0 ? ('Selisih: Rp ' + formatRupiah(gapVal)) : 'Melampaui Target!';
-      subEl.innerHTML = '<span style="color:#22C55E; font-weight:800;">⚡ ' + escapeHtml(title) + ' (' + escapeHtml(subtitle) + '):</span> <span style="color:var(--text-main); font-weight:700;">Rp ' + formatRupiah(actualVal) + '</span> / Target Rp ' + formatRupiah(targetVal) + ' (' + pct + '% Capaian • ' + gapText + ')';
-    }
-  }
-
-  // 4. Auto-remove tooltip setelah 4 detik
-  clearTimeout(col._tooltipTimer);
-  col._tooltipTimer = setTimeout(() => {
-    if (tip.parentNode) tip.parentNode.removeChild(tip);
-    col.classList.remove('is-selected');
-  }, 4000);
-}
-
 /**
  * Render Grafik Analitik Sales Interaktif (Donezo Modern Capsule Bar Chart)
  * Mendukung Tampilan Nilai Nominal (Rp) & Persentase (%) Secara Nyata
@@ -4187,7 +4140,11 @@ function renderSalesAnalyticsChart() {
       });
       col.onclick = function(e) {
         if (e && e.stopPropagation) e.stopPropagation();
-        showChartBarTooltip(col, a.id, a.mgr, actualVal, targetVal, pct, periodLabel);
+        if (actualVal === 0) {
+          showToast(a.id + ' (' + a.mgr + '): Belum ada input data penjualan (' + periodLabel + ')', 'info');
+        } else {
+          showToast(a.id + ' (' + a.mgr + '): Realisasi Rp ' + formatRupiah(actualVal) + ' / Target Rp ' + formatRupiah(targetVal) + ' (' + pct + '% Capaian)', pct >= 100 ? 'success' : 'warning');
+        }
       };
 
       // Header Tag Di Atas Batang Sesuai Mode
@@ -4329,7 +4286,11 @@ function renderSalesAnalyticsChart() {
       });
       col.onclick = function(e) {
         if (e && e.stopPropagation) e.stopPropagation();
-        showChartBarTooltip(col, c.namaCabang, c.brand, actualVal, targetVal, pct, periodLabel);
+        if (actualVal === 0) {
+          showToast(c.namaCabang + ': Belum ada input data penjualan (' + periodLabel + ')', 'info');
+        } else {
+          showToast(c.namaCabang + ': Realisasi Rp ' + formatRupiah(actualVal) + ' / Target Rp ' + formatRupiah(targetVal) + ' (' + pct + '% Capaian)', pct >= 100 ? 'success' : 'warning');
+        }
       };
 
       let valTagHtml = '';
