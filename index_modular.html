@@ -227,6 +227,14 @@
        ENTRANCE LOGIN SCREEN (Official PANORAMA Portal Entrance - Slate Flutter Style v4.5.0)
        ============================================================================ -->
   <div id="loginEntranceOverlay" class="login-entrance-overlay">
+    <!-- Animated Cinematic Ambient Backdrop (Glow Orbs & Aurora Mesh) -->
+    <div class="login-ambient-backdrop" aria-hidden="true">
+      <div class="ambient-orb ambient-orb-1"></div>
+      <div class="ambient-orb ambient-orb-2"></div>
+      <div class="ambient-orb ambient-orb-3"></div>
+      <div class="ambient-grid-pattern"></div>
+    </div>
+
     <div class="slate-entrance-wrapper">
 
       <!-- TOP SECTION: CURVED FOREST GREEN HEADER WITH OFFICIAL PANORAMA TREE LOGO -->
@@ -258,7 +266,10 @@
           </svg>
         </div>
         <h1 class="slate-title">PANORAMA</h1>
-        <p class="slate-subtitle">Executive Operations Portal</p>
+        <div class="slate-subtitle">
+          <span class="slate-subtitle-dot" aria-hidden="true"></span>
+          <span>Executive Operations Portal</span>
+        </div>
 
         <!-- Elegant Concave Organic Curve Divider -->
         <div class="slate-curve-divider">
@@ -272,7 +283,8 @@
       <div class="slate-sheet-card">
 
         <!-- Interactive Pill Switcher: Masuk vs Daftar Akun -->
-        <div class="slate-tab-pills">
+        <div class="slate-tab-pills" id="slateTabPills" data-active="auth">
+          <div class="slate-tab-slider" id="slateTabSlider" aria-hidden="true"></div>
           <button type="button" class="slate-tab-btn active" id="tabBtnAuth" onclick="switchLoginView('auth')">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
               <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />

@@ -1364,7 +1364,11 @@ function switchLoginView(mode) {
     }
   });
 
-  // Sinkronisasi status tombol tab pills (v4.5.0 Slate Style)
+  // Sinkronisasi status tombol tab pills & sliding spring indicator (v5.0.0)
+  const tabPills = document.getElementById('slateTabPills');
+  if (tabPills) {
+    tabPills.setAttribute('data-active', mode);
+  }
   const tabAuth = document.getElementById('tabBtnAuth');
   const tabReg = document.getElementById('tabBtnRegister');
   if (tabAuth && tabReg) {
@@ -1791,7 +1795,16 @@ function authenticateUserSuccess(user) {
   if (typeof document !== 'undefined' && document.documentElement) {
     document.documentElement.classList.add('panorama-logged-in');
   }
-  hideLoginEntrance();
+  const overlay = document.getElementById('loginEntranceOverlay');
+  if (overlay) {
+    overlay.classList.add('logging-in');
+    setTimeout(function() {
+      hideLoginEntrance();
+      overlay.classList.remove('logging-in');
+    }, 420);
+  } else {
+    hideLoginEntrance();
+  }
   safeSetStorage('PANORAMA_SESSION', user);
   touchUserActivity();
 
