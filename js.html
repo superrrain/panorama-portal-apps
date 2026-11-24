@@ -16911,14 +16911,39 @@ function formatNotifDisplayTime(timeStr) {
   const s = String(timeStr).trim();
   if (s.toLowerCase() === 'hari ini' || s.toLowerCase() === 'kemarin') return s;
 
-  // Bersihkan timezone panjang bawaan Date.toString() (misal: "Wed Nov 25 2026 00:00:00 GMT+0700...")
-  const d = new Date(s.replace(' ', 'T'));
-  if (isNaN(d.getTime())) {
-    const m = s.match(/(\d{4})-(\d{2})-(\d{2})/);
-    if (m) {
-      return `${m[3]}/${m[2]}`;
+  let d = null;
+  if (timeStr instanceof Date && !isNaN(timeStr.getTime())) {
+    d = timeStr;
+  } else if (typeof timeStr === 'number') {
+    const nd = new Date(timeStr);
+    if (!isNaN(nd.getTime())) d = nd;
+  }
+
+  if (!d) {
+    let parsed = new Date(s);
+    if (!isNaN(parsed.getTime())) {
+      d = parsed;
+    } else {
+      const cleanTz = s.replace(/\s*\([^)]*\)$/, '').trim();
+      parsed = new Date(cleanTz);
+      if (!isNaN(parsed.getTime())) {
+        d = parsed;
+      } else {
+        parsed = new Date(s.replace(' ', 'T'));
+        if (!isNaN(parsed.getTime())) {
+          d = parsed;
+        } else {
+          const m = s.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+          if (m) {
+            d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+          }
+        }
+      }
     }
-    return s.slice(0, 10);
+  }
+
+  if (!d || isNaN(d.getTime())) {
+    return s.slice(0, 12);
   }
 
   const now = new Date();
@@ -16941,8 +16966,12 @@ function formatNotifDisplayTime(timeStr) {
   const day = d.getDate();
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
   const monthName = months[d.getMonth()] || '';
-  return `${day} ${monthName}`;
+  if (d.getFullYear() === now.getFullYear()) {
+    return `${day} ${monthName}`;
+  }
+  return `${day} ${monthName} ${d.getFullYear()}`;
 }
+
 
 function renderNotificationItems(items) {
   const container = document.getElementById('notificationListContainer');
