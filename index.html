@@ -6831,6 +6831,8 @@
     position: relative;
     box-sizing: border-box;
     width: 100%;
+    max-width: 100%;
+    overflow: hidden;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
   }
 
@@ -6872,7 +6874,8 @@
     justify-content: space-between;
     gap: 8px;
     width: 100%;
-    flex-shrink: 0 !important;
+    min-width: 0;
+    box-sizing: border-box;
   }
 
   .notif-card-badge-wrap {
@@ -6880,7 +6883,7 @@
     align-items: center;
     gap: 6px;
     min-width: 0;
-    flex-shrink: 0 !important;
+    flex-shrink: 0;
   }
 
   .notif-badge-pill {
@@ -6939,7 +6942,11 @@
     color: var(--text-muted);
     font-weight: 600;
     white-space: nowrap;
-    flex-shrink: 0 !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 130px;
+    text-align: right;
+    display: inline-block;
   }
 
   .notif-dismiss-btn {
@@ -7081,6 +7088,8 @@
       border-radius: 22px 22px 0 0 !important;
       margin: 0 !important;
       border: none !important;
+      overflow-x: hidden !important;
+      box-sizing: border-box !important;
     }
 
     .notif-modal-header {
@@ -37523,7 +37532,7 @@ function initNotifications() {
         severity: (cat === 'incident') ? 'danger' : ((cat === 'schedule') ? 'warning' : 'info'),
         title: sn.title || ('PANORAMA ' + cUpper),
         message: sn.message || '',
-        time: sn.tanggal || 'Hari ini',
+        time: formatNotifDisplayTime(sn.tanggal || sn.createdAt),
         createdAt: sn.createdAt || '',
         areaId: sn.targetUser || 'ALL',
         scopeText: (sn.targetUser === 'ALL' || !sn.targetUser) ? 'Seluruh Wilayah' : sn.targetUser,
@@ -37883,6 +37892,47 @@ function filterNotificationTab(category) {
   renderNotificationItems(filtered);
 }
 
+/**
+ * Helper: Memformat waktu notifikasi agar ringkas, bersih, dan tidak meluap (Anti-Overflow)
+ */
+function formatNotifDisplayTime(timeStr) {
+  if (!timeStr) return 'Hari ini';
+  const s = String(timeStr).trim();
+  if (s.toLowerCase() === 'hari ini' || s.toLowerCase() === 'kemarin') return s;
+
+  // Bersihkan timezone panjang bawaan Date.toString() (misal: "Wed Nov 25 2026 00:00:00 GMT+0700...")
+  const d = new Date(s.replace(' ', 'T'));
+  if (isNaN(d.getTime())) {
+    const m = s.match(/(\d{4})-(\d{2})-(\d{2})/);
+    if (m) {
+      return `${m[3]}/${m[2]}`;
+    }
+    return s.slice(0, 10);
+  }
+
+  const now = new Date();
+  const isToday = (d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate());
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+
+  if (isToday) {
+    if (hours === '00' && minutes === '00') return 'Hari ini';
+    return `${hours}:${minutes}`;
+  }
+
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const isYesterday = (d.getFullYear() === yesterday.getFullYear() && d.getMonth() === yesterday.getMonth() && d.getDate() === yesterday.getDate());
+  if (isYesterday) {
+    return 'Kemarin';
+  }
+
+  const day = d.getDate();
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+  const monthName = months[d.getMonth()] || '';
+  return `${day} ${monthName}`;
+}
+
 function renderNotificationItems(items) {
   const container = document.getElementById('notificationListContainer');
   if (!container) return;
@@ -37933,7 +37983,7 @@ function renderNotificationItems(items) {
             ${categoryBadge}
           </div>
           <div style="display:inline-flex; align-items:center; gap:8px;">
-            <span class="notif-card-time">${escapeHtml(item.time)}</span>
+            <span class="notif-card-time">${escapeHtml(formatNotifDisplayTime(item.time || item.createdAt))}</span>
             <button type="button" class="notif-dismiss-btn" title="Tandai Dibaca & Hapus" onclick="event.stopPropagation(); dismissSingleNotification('${escapeHtml(item.id)}')">✕</button>
           </div>
         </div>

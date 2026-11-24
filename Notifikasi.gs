@@ -423,7 +423,7 @@ function apiGetNotifikasi(userSession) {
 
         notifs.push({
           id: String(row[COL_NOTIFIKASI.ID]),
-          tanggal: String(row[COL_NOTIFIKASI.TANGGAL]),
+          tanggal: sanitizeGasVal(row[COL_NOTIFIKASI.TANGGAL]),
           kategori: String(row[COL_NOTIFIKASI.KATEGORI]).toLowerCase(),
           targetUser: targetStr,
           title: String(row[COL_NOTIFIKASI.JUDUL]),
@@ -431,7 +431,7 @@ function apiGetNotifikasi(userSession) {
           status: status,
           isUnread: isUnread,
           actionUrl: String(row[COL_NOTIFIKASI.ACTION_URL] || ''),
-          createdAt: String(row[COL_NOTIFIKASI.CREATED_AT])
+          createdAt: sanitizeGasVal(row[COL_NOTIFIKASI.CREATED_AT])
         });
       }
     }
