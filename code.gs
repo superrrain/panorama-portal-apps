@@ -1622,6 +1622,16 @@ function apiGetInitialData(userSession, fallbackUser) {
     }
 
     if (typeof autoResolvePositiveReviewsInSheet === 'function') autoResolvePositiveReviewsInSheet();
+
+    // Urutkan data operasional agar baris terbaru selalu berada di paling atas
+    try {
+      listInsiden.reverse();
+      listJadwal.reverse();
+      listKendala.reverse();
+      listPerubahanJadwal.reverse();
+      listReviews.reverse();
+    } catch (eRevSort) {}
+
     var returnPayload = {
       success: true,
       data: {

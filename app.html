@@ -23165,7 +23165,63 @@ function ensureDataStructure(data) {
 
   // Virgin Clean State: Tidak ada injeksi mock cabang tiruan.
 
+  // Urutkan seluruh data operasional agar baris terbaru selalu berada di paling atas (Descending)
+  data.insiden = sortItemsByNewestDesc(data.insiden, 'tanggalLapor', 'waktuSelesai', 'insidenId');
+  data.jadwal = sortItemsByNewestDesc(data.jadwal, 'createdAt', 'tanggalPengajuan', 'jadwalId');
+  data.kendala = sortItemsByNewestDesc(data.kendala, 'createdAt', 'tanggal', 'kendalaId');
+  data.perubahanJadwal = sortItemsByNewestDesc(data.perubahanJadwal, 'createdAt', 'tanggalPengajuan', 'changeId');
+  data.reviews = sortItemsByNewestDesc(data.reviews, 'tanggal', '', 'id');
+  if (Array.isArray(data.notifications)) {
+    data.notifications = sortItemsByNewestDesc(data.notifications, 'createdAt', 'time', 'id');
+  }
+
   return data;
+}
+
+/**
+ * Helper Universal: Mengurutkan array data agar data paling baru selalu di urutan paling atas (Descending)
+ */
+function sortItemsByNewestDesc(arr, primaryDateField, secondaryDateField, idField) {
+  if (!Array.isArray(arr) || arr.length <= 1) return arr || [];
+  return arr.slice().sort(function(a, b) {
+    if (!a && !b) return 0;
+    if (!a) return 1;
+    if (!b) return -1;
+
+    var rawDateA = (primaryDateField && a[primaryDateField]) || (secondaryDateField ? a[secondaryDateField] : '') || '';
+    var rawDateB = (primaryDateField && b[primaryDateField]) || (secondaryDateField ? b[secondaryDateField] : '') || '';
+
+    var tA = 0;
+    var tB = 0;
+
+    if (rawDateA) {
+      var dA = new Date(String(rawDateA).replace(' ', 'T')).getTime();
+      if (!isNaN(dA) && dA > 0) tA = dA;
+    }
+    if (rawDateB) {
+      var dB = new Date(String(rawDateB).replace(' ', 'T')).getTime();
+      if (!isNaN(dB) && dB > 0) tB = dB;
+    }
+
+    if (tB !== tA && tA > 0 && tB > 0) {
+      return tB - tA; // Lebih baru (timestamp lebih besar) di atas
+    }
+
+    // Ekstrak digit angka dari ID unik secara descending (misal KND-202611-002 vs KND-202611-001)
+    var idA = String((idField && a[idField]) || a.id || '').trim();
+    var idB = String((idField && b[idField]) || b.id || '').trim();
+    var numA = idA.replace(/\D/g, '');
+    var numB = idB.replace(/\D/g, '');
+    if (numA && numB && numA !== numB) {
+      var nA = Number(numA);
+      var nB = Number(numB);
+      if (!isNaN(nA) && !isNaN(nB)) {
+        return nB - nA;
+      }
+    }
+
+    return idB.localeCompare(idA);
+  });
 }
 
 /**
@@ -27026,7 +27082,8 @@ function renderInsidenView() {
   if (cardsContainer) cardsContainer.innerHTML = '';
 
   const activeInsidenList = filterInsidenByActiveMonth(d.insiden);
-  const filteredList = (areaFilter !== 'ALL') ? activeInsidenList.filter(i => i.areaId === areaFilter) : activeInsidenList;
+  let filteredList = (areaFilter !== 'ALL') ? activeInsidenList.filter(i => i.areaId === areaFilter) : activeInsidenList;
+  filteredList = sortItemsByNewestDesc(filteredList, 'tanggalLapor', 'waktuSelesai', 'insidenId');
 
   if (filteredList.length === 0) {
     if (tbody) {
@@ -32311,6 +32368,9 @@ function renderJadwalView() {
     });
   }
 
+  // Urutkan rencana jadwal terbaru selalu di paling atas (Descending)
+  filtered = sortItemsByNewestDesc(filtered, 'createdAt', 'tanggalPengajuan', 'jadwalId');
+
   // Render Desktop Table (#jadwalTableBody) - 7 Kolom Persis Gambar 1
   const tbody = document.getElementById('jadwalTableBody');
   if (tbody) {
@@ -33765,6 +33825,9 @@ function renderKendalaTable() {
     });
   }
 
+  // Urutkan laporan sakit & kendala darurat terbaru selalu di paling atas (Descending)
+  filtered = sortItemsByNewestDesc(filtered, 'createdAt', 'tanggal', 'kendalaId');
+
   // Desktop Table
   const tbody = document.getElementById('kendalaTableBody');
   if (tbody) {
@@ -34490,6 +34553,9 @@ function renderPerubahanJadwalTable() {
       return id.includes(q) || pengaju.includes(q) || a.includes(q) || c.includes(q) || als.includes(q) || t1.includes(q) || t2.includes(q);
     });
   }
+
+  // Urutkan permohonan perubahan jadwal terbaru selalu di paling atas (Descending)
+  filtered = sortItemsByNewestDesc(filtered, 'createdAt', 'tanggalPengajuan', 'changeId');
 
   // Desktop Table
   const tbody = document.getElementById('perubahanJadwalTableBody');
@@ -37467,11 +37533,11 @@ function initNotifications() {
       };
     });
 
-    window.PANORAMA_STATE.notifications = serverItems;
+    window.PANORAMA_STATE.notifications = sortItemsByNewestDesc(serverItems, 'createdAt', 'time', 'id');
   } else {
     // Fallback darurat (offline/cache lama): batasi pemindaian lokal maksimal 5 item aktif
     const localNotifs = generateSmartNotifications(data, user);
-    window.PANORAMA_STATE.notifications = localNotifs.slice(0, 5);
+    window.PANORAMA_STATE.notifications = sortItemsByNewestDesc(localNotifs.slice(0, 5), 'createdAt', 'time', 'id');
   }
 
   updateNotificationBadge();
@@ -37822,7 +37888,8 @@ function renderNotificationItems(items) {
   if (!container) return;
 
   const readIds = window.PANORAMA_STATE.readNotificationIds || new Set();
-  const unreadItems = (items || []).filter(item => !readIds.has(item.id));
+  let unreadItems = (items || []).filter(item => !readIds.has(item.id));
+  unreadItems = sortItemsByNewestDesc(unreadItems, 'createdAt', 'time', 'id');
 
   if (!unreadItems || unreadItems.length === 0) {
     container.innerHTML = `
@@ -43065,6 +43132,9 @@ function renderMapsAiView() {
 
     return true;
   });
+
+  // Urutkan ulasan pelanggan terbaru selalu di paling atas (Descending)
+  filtered = sortItemsByNewestDesc(filtered, 'tanggal', '', 'id');
 
   const countBadge = document.getElementById('mapsReviewCountBadge');
   if (countBadge) {
