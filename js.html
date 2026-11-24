@@ -3586,16 +3586,22 @@ function renderDashboardView() {
   // Render Grafik Analitik Sales Dominan (Donezo Capsule Bar Chart)
   renderSalesAnalyticsChart();
 
-  document.getElementById('metricOpenIncidents').textContent = openIncidents.length + ' Kasus Aktif';
-  document.getElementById('metricAvgSla').textContent = 'Rata-rata SLA: ' + avgSla + ' Jam';
+  const elOpenInc = document.getElementById('metricOpenIncidents');
+  if (elOpenInc) elOpenInc.textContent = openIncidents.length + ' Kasus Aktif';
+  const elAvgSla = document.getElementById('metricAvgSla');
+  if (elAvgSla) elAvgSla.innerHTML = '<span class="live-dot-rose"></span> Rata-rata SLA: ' + avgSla + ' Jam';
 
-  document.getElementById('metricHppWaste').textContent = 'HPP: ' + avgHpp + '% | Waste: ' + avgWaste + '%';
-  document.getElementById('metricPettyCash').textContent = 'Petty Cash: Rp ' + formatRupiah(totalPettyCash);
+  const elHpp = document.getElementById('metricHppWaste');
+  if (elHpp) elHpp.textContent = 'HPP: ' + avgHpp + '% | Waste: ' + avgWaste + '%';
+  const elPetty = document.getElementById('metricPettyCash');
+  if (elPetty) elPetty.innerHTML = '<span class="live-dot-green"></span> Petty Cash: Rp ' + formatRupiah(totalPettyCash);
 
   applyOperationalConfigToDOM();
 
-  document.getElementById('metricTasksSummary').textContent = progressTasks + ' In Progress / ' + reviewTasks + ' Review';
-  document.getElementById('metricTasksSub').textContent = completedTasks + ' Selesai | ' + waitingTasks + ' Menunggu';
+  const elTasks = document.getElementById('metricTasksSummary');
+  if (elTasks) elTasks.textContent = progressTasks + ' In Progress / ' + reviewTasks + ' Review';
+  const elTasksSub = document.getElementById('metricTasksSub');
+  if (elTasksSub) elTasksSub.innerHTML = '<span class="live-dot-sky"></span> ' + completedTasks + ' Selesai | ' + waitingTasks + ' Menunggu';
 
   // Render Mini Leaderboard Podium (3 Teratas & 3 Terbawah)
   renderMiniLeaderboards(d.leaderboard);

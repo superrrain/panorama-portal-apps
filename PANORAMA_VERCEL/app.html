@@ -1090,6 +1090,237 @@
     animation: metricPop 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
+  /* ==========================================================================
+     GLOBAL ANTI-AI EDITORIAL SYSTEM: TABULAR NUMBERS, SCALE CONTRAST & DEPTH
+     ========================================================================== */
+
+  /* 1. Universal Tabular Figures Across All App Metrics (Anti-Jitter) */
+  .metric-card-value,
+  .sales-hero-stat-val,
+  .chart-summary-val,
+  .rank-fig-rp,
+  .rank-fig-pct,
+  .leader-val,
+  .jadwal-card-id,
+  .insiden-card-id,
+  .notif-tab-count,
+  .notification-counter,
+  .app-header-notif-count,
+  .stat-value,
+  .kpi-num,
+  .counter-pill,
+  .table td.num,
+  .table td.number,
+  .metric-big-num {
+    font-variant-numeric: tabular-nums !important;
+    font-feature-settings: 'tnum', 'zero' !important;
+  }
+
+  /* 2. Kinetic Status Dots for Secondary Metrics & Tasks */
+  .live-dot-rose {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #F43F5E;
+    box-shadow: 0 0 6px #F43F5E;
+    animation: liveDotPulse 1.8s infinite ease-in-out;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+
+  .live-dot-sky {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #38BDF8;
+    box-shadow: 0 0 6px #38BDF8;
+    animation: liveDotPulse 1.8s infinite ease-in-out;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+
+  .live-dot-amber {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #F59E0B;
+    box-shadow: 0 0 6px #F59E0B;
+    animation: liveDotPulse 1.8s infinite ease-in-out;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+
+  /* 3. Universal Anti-AI High-Craft Status Badges */
+  .badge,
+  .status-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    padding: 3px 9px !important;
+    border-radius: 999px !important;
+    font-size: 10.5px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.03em !important;
+    line-height: 1.25 !important;
+    white-space: nowrap !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+
+  .badge-success,
+  .badge-approved {
+    background: linear-gradient(135deg, #DCFCE7 0%, #F0FDF4 100%) !important;
+    color: #144A32 !important;
+    border: 1px solid #86EFAC !important;
+  }
+
+  .badge-warning,
+  .badge-waiting-ma {
+    background: linear-gradient(135deg, #FEF3C7 0%, #FFFBEB 100%) !important;
+    color: #92400E !important;
+    border: 1px solid #FCD34D !important;
+  }
+
+  .badge-waiting-coo {
+    background: linear-gradient(135deg, #EEF2FF 0%, #F8FAFC 100%) !important;
+    color: #3730A3 !important;
+    border: 1px solid #C7D2FE !important;
+  }
+
+  .badge-danger,
+  .badge-rejected {
+    background: linear-gradient(135deg, #FEE2E2 0%, #FFF1F2 100%) !important;
+    color: #991B1B !important;
+    border: 1px solid #FECACA !important;
+  }
+
+  .badge-info {
+    background: linear-gradient(135deg, #E0F2FE 0%, #F0F9FF 100%) !important;
+    color: #0369A1 !important;
+    border: 1px solid #7DD3FC !important;
+  }
+
+  /* 4. Universal Mobile & List Cards - High-Craft Depth & Elevation */
+  .insiden-mobile-card {
+    background: #FFFFFF !important;
+    border: 1px solid #FECDD3 !important;
+    border-left: 4px solid #EF4444 !important;
+    border-radius: 16px !important;
+    padding: 14px 16px !important;
+    box-shadow: 0 4px 16px rgba(225, 29, 72, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+    transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+  .insiden-mobile-card:hover {
+    box-shadow: 0 8px 24px rgba(225, 29, 72, 0.12) !important;
+    transform: translateY(-1px) !important;
+  }
+
+  .jadwal-mobile-card {
+    background: #FFFFFF !important;
+    border: 1px solid #E2E8F0 !important;
+    border-left: 4px solid #10B981 !important;
+    border-radius: 16px !important;
+    padding: 14px 16px !important;
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+    transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+  .jadwal-mobile-card:hover {
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.1) !important;
+    transform: translateY(-1px) !important;
+  }
+
+  .review-item-card {
+    background: #FFFFFF !important;
+    border: 1px solid #E2E8F0 !important;
+    border-left: 4px solid #F59E0B !important;
+    border-radius: 16px !important;
+    padding: 14px 16px !important;
+    box-shadow: 0 4px 16px rgba(245, 158, 11, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+    transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+  .review-item-card:hover {
+    box-shadow: 0 8px 24px rgba(245, 158, 11, 0.1) !important;
+    transform: translateY(-1px) !important;
+  }
+
+  .notif-card {
+    background: #FFFFFF !important;
+    border: 1px solid #E2E8F0 !important;
+    border-radius: 16px !important;
+    padding: 13px 15px !important;
+    box-shadow: 0 3px 14px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+    transition: all 0.24s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+  .notif-card:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08) !important;
+    transform: translateY(-1px) !important;
+  }
+
+  /* 5. Universal Filter Containers & Micro Eyebrows */
+  .filter-container,
+  .jadwal-filter-tabs,
+  .notif-filter-tabs,
+  .insiden-filter-bar {
+    background: #FFFFFF !important;
+    border: 1px solid #E2E8F0 !important;
+    border-radius: 14px !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03) !important;
+  }
+
+  .filter-label,
+  .jadwal-meta-item-label,
+  .chart-summary-label {
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+    color: var(--text-muted) !important;
+  }
+
+  /* 6. Universal Ranking Leaderboard High-Craft Pills */
+  .rank-pill.rank-gold {
+    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important;
+    box-shadow: 0 2px 8px rgba(217, 119, 6, 0.3) !important;
+    color: #FFFFFF !important;
+    font-weight: 900 !important;
+  }
+
+  .rank-pill.rank-silver {
+    background: linear-gradient(135deg, #94A3B8 0%, #64748B 100%) !important;
+    box-shadow: 0 2px 8px rgba(100, 116, 139, 0.25) !important;
+    color: #FFFFFF !important;
+    font-weight: 900 !important;
+  }
+
+  .rank-pill.rank-bronze {
+    background: linear-gradient(135deg, #D97706 0%, #92400E 100%) !important;
+    box-shadow: 0 2px 8px rgba(146, 64, 14, 0.25) !important;
+    color: #FFFFFF !important;
+    font-weight: 900 !important;
+  }
+
+  /* 7. Modal Dialogs High-Craft Polish */
+  .modal-dialog,
+  .modal-content {
+    border-radius: 20px !important;
+    border: 1px solid rgba(255, 255, 255, 0.6) !important;
+    box-shadow: 0 20px 48px -10px rgba(15, 23, 42, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+  }
+
+  .modal-header {
+    border-bottom: 1px solid #F1F5F9 !important;
+    padding: 16px 20px !important;
+  }
+
+  .modal-title,
+  .modal-header h2,
+  .modal-header h3 {
+    font-size: 16px !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.025em !important;
+    color: var(--forest-950, #0B291B) !important;
+  }
+
   /* Smart Operations Alert Banner (Jadwal Kerja Tgl 15) */
   .smart-ops-alert-banner {
     background: linear-gradient(135deg, rgba(254, 243, 199, 0.92) 0%, rgba(253, 230, 138, 0.78) 100%);
@@ -2201,14 +2432,15 @@
 
   /* 1. Bento Card Incident */
   .metric-card.card-incident {
-    background: linear-gradient(135deg, #FFFFFF 0%, #FFFFFF 65%, #FFE4E6 100%) !important;
-    border: 1.2px solid #FDA4AF !important;
-    box-shadow: 0 2px 10px rgba(225, 29, 72, 0.06);
+    background: linear-gradient(145deg, #FFFFFF 0%, #FFFFFF 65%, #FFF1F2 100%) !important;
+    border: 1px solid #FECDD3 !important;
+    border-radius: 18px !important;
+    box-shadow: 0 4px 18px rgba(225, 29, 72, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
   }
 
   .metric-card.card-incident:hover {
     border-color: #FB7185 !important;
-    box-shadow: 0 6px 18px rgba(225, 29, 72, 0.14);
+    box-shadow: 0 8px 24px rgba(225, 29, 72, 0.14) !important;
     transform: translateY(-2px);
   }
 
@@ -2220,12 +2452,18 @@
 
   .card-incident .metric-card-title {
     color: #9F1239 !important;
-    font-weight: 700;
+    font-weight: 800 !important;
+    font-size: 11px !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
   }
 
   .card-incident .metric-card-value {
     color: #BE123C !important;
-    font-weight: 900;
+    font-size: 30px !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.04em !important;
+    line-height: 1.05 !important;
   }
 
   .card-incident .metric-arrow-btn {
@@ -2244,6 +2482,7 @@
     background-color: #FFF1F2;
     border: 1px solid #FECDD3;
     color: #BE123C;
+    font-weight: 800;
   }
 
   .card-incident .metric-meta-sub {
@@ -2253,14 +2492,15 @@
 
   /* 2. Bento Card Efficiency */
   .metric-card.card-efficiency {
-    background: linear-gradient(135deg, #FFFFFF 0%, #FFFFFF 65%, #DCFCE7 100%) !important;
-    border: 1.2px solid #86EFAC !important;
-    box-shadow: 0 2px 10px rgba(5, 150, 105, 0.06);
+    background: linear-gradient(145deg, #FFFFFF 0%, #FFFFFF 65%, #F0FDF4 100%) !important;
+    border: 1px solid #BBF7D0 !important;
+    border-radius: 18px !important;
+    box-shadow: 0 4px 18px rgba(5, 150, 105, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
   }
 
   .metric-card.card-efficiency:hover {
     border-color: #4ADE80 !important;
-    box-shadow: 0 6px 18px rgba(5, 150, 105, 0.14);
+    box-shadow: 0 8px 24px rgba(5, 150, 105, 0.14) !important;
     transform: translateY(-2px);
   }
 
@@ -2272,12 +2512,18 @@
 
   .card-efficiency .metric-card-title {
     color: #065F46 !important;
-    font-weight: 700;
+    font-weight: 800 !important;
+    font-size: 11px !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
   }
 
   .card-efficiency .metric-card-value {
     color: #047857 !important;
-    font-weight: 900;
+    font-size: 30px !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.04em !important;
+    line-height: 1.05 !important;
   }
 
   .card-efficiency .metric-arrow-btn {
@@ -2296,6 +2542,7 @@
     background-color: #F0FDF4;
     border: 1px solid #BBF7D0;
     color: #047857;
+    font-weight: 800;
   }
 
   .card-efficiency .metric-meta-sub {
@@ -2305,14 +2552,15 @@
 
   /* 3. Bento Card Tasks */
   .metric-card.card-tasks {
-    background: linear-gradient(135deg, #FFFFFF 0%, #FFFFFF 65%, #E0F2FE 100%) !important;
-    border: 1.2px solid #7DD3FC !important;
-    box-shadow: 0 2px 10px rgba(2, 132, 199, 0.06);
+    background: linear-gradient(145deg, #FFFFFF 0%, #FFFFFF 65%, #F0F9FF 100%) !important;
+    border: 1px solid #BAE6FD !important;
+    border-radius: 18px !important;
+    box-shadow: 0 4px 18px rgba(2, 132, 199, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
   }
 
   .metric-card.card-tasks:hover {
     border-color: #38BDF8 !important;
-    box-shadow: 0 6px 18px rgba(2, 132, 199, 0.14);
+    box-shadow: 0 8px 24px rgba(2, 132, 199, 0.14) !important;
     transform: translateY(-2px);
   }
 
@@ -2324,12 +2572,18 @@
 
   .card-tasks .metric-card-title {
     color: #075985 !important;
-    font-weight: 700;
+    font-weight: 800 !important;
+    font-size: 11px !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
   }
 
   .card-tasks .metric-card-value {
     color: #0369A1 !important;
-    font-weight: 900;
+    font-size: 30px !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.04em !important;
+    line-height: 1.05 !important;
   }
 
   .card-tasks .metric-arrow-btn {
@@ -2348,6 +2602,7 @@
     background-color: #F0F9FF;
     border: 1px solid #BAE6FD;
     color: #0369A1;
+    font-weight: 800;
   }
 
   .card-tasks .metric-meta-sub {
@@ -9941,6 +10196,7 @@
     .show-mobile {
       display: inline !important;
     }
+
     .hide-mobile {
       display: none !important;
     }
@@ -10003,10 +10259,12 @@
       align-items: stretch !important;
       gap: 8px !important;
     }
-    .jadwal-filter-bar > div {
+
+    .jadwal-filter-bar>div {
       min-width: 0 !important;
       width: 100% !important;
     }
+
     .jadwal-filter-bar button {
       width: 100% !important;
       justify-content: center !important;
@@ -10024,6 +10282,7 @@
     margin-top: 10px;
     box-sizing: border-box;
   }
+
   .inc-approval-header {
     display: flex;
     justify-content: space-between;
@@ -10035,16 +10294,19 @@
     letter-spacing: 0.5px;
     color: var(--text-muted, #64748B);
   }
+
   .inc-approval-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 8px;
   }
+
   @media (max-width: 640px) {
     .inc-approval-grid {
       grid-template-columns: 1fr;
     }
   }
+
   .inc-stamp-card {
     border: 1px dashed #CBD5E1;
     border-radius: 8px;
@@ -10056,18 +10318,22 @@
     gap: 4px;
     transition: all 0.2s ease;
   }
+
   .inc-stamp-card.approved {
     border: 1.5px solid #10B981;
     background: #F0FDF4;
   }
+
   .inc-stamp-card.rejected {
     border: 1.5px solid #EF4444;
     background: #FEF2F2;
   }
+
   .inc-stamp-card.pending {
     border: 1px dashed #94A3B8;
     background: #F8FAFC;
   }
+
   .inc-stamp-badge {
     display: inline-flex;
     align-items: center;
@@ -10078,23 +10344,28 @@
     padding: 2px 6px;
     width: fit-content;
   }
+
   .inc-stamp-badge.approved {
     background: #DCFCE7;
     color: #166534;
   }
+
   .inc-stamp-badge.rejected {
     background: #FEE2E2;
     color: #991B1B;
   }
+
   .inc-stamp-badge.pending {
     background: #F1F5F9;
     color: #64748B;
   }
+
   .inc-stamp-meta {
     font-size: 10px;
     color: #64748B;
     line-height: 1.3;
   }
+
   .inc-stamp-note {
     font-size: 10.5px;
     color: #334155;
@@ -10105,11 +10376,13 @@
     margin-top: 2px;
     font-style: italic;
   }
+
   .inc-stamp-actions {
     display: flex;
     gap: 4px;
     margin-top: 6px;
   }
+
   .btn-inc-approve {
     flex: 1;
     background: #10B981;
@@ -10126,9 +10399,11 @@
     gap: 4px;
     transition: background 0.15s ease;
   }
+
   .btn-inc-approve:hover {
     background: #059669;
   }
+
   .btn-inc-reject {
     background: #FFF1F2;
     color: #BE123C;
@@ -10144,6 +10419,7 @@
     gap: 4px;
     transition: all 0.15s ease;
   }
+
   .btn-inc-reject:hover {
     background: #FFE4E6;
   }
@@ -12129,7 +12405,7 @@
     --dm-btn-hover: #23905E;
   }
 
-  /* ---- Auto-mapped overrides from existing component rules (443 rules) ---- */
+  /* ---- Auto-mapped overrides from existing component rules (455 rules) ---- */
   :is(html[data-theme="dark"], html.theme-dark) .sidebar-footer .btn-sidebar { background-color: #151E1A; }
   :is(html[data-theme="dark"], html.theme-dark) .sidebar-footer .btn-sidebar:hover { background-color: rgba(34,197,94,0.10); }
   :is(html[data-theme="dark"], html.theme-dark) .top-bar { background: rgba(21,30,26,0.98); }
@@ -12141,6 +12417,18 @@
   :is(html[data-theme="dark"], html.theme-dark) .select-month-filter:hover { background-color: #151E1A; }
   :is(html[data-theme="dark"], html.theme-dark) .kinetic-shimmer-badge.badge-warning { background: linear-gradient(90deg, #D97706 0%, #F59E0B 30%, rgba(245,158,11,0.28) 50%, #F59E0B 70%, #D97706 100%); }
   :is(html[data-theme="dark"], html.theme-dark) .metric-big-num { background: linear-gradient(180deg, #151E1A 0%, #E6FAF2 75%, rgba(16,185,129,0.24) 100%); }
+  :is(html[data-theme="dark"], html.theme-dark) .badge-success, :is(html[data-theme="dark"], html.theme-dark) .badge-approved { background: linear-gradient(135deg, rgba(34,197,94,0.18) 0%, rgba(34,197,94,0.10) 100%) !important; color: #4ADE80 !important; border: 1px solid rgba(74,222,128,0.40) !important; }
+  :is(html[data-theme="dark"], html.theme-dark) .badge-warning, :is(html[data-theme="dark"], html.theme-dark) .badge-waiting-ma { background: linear-gradient(135deg, rgba(245,158,11,0.20) 0%, rgba(245,158,11,0.12) 100%) !important; color: #FCD34D !important; border: 1px solid rgba(251,191,36,0.45) !important; }
+  :is(html[data-theme="dark"], html.theme-dark) .badge-waiting-coo { background: linear-gradient(135deg, rgba(99,102,241,0.14) 0%, #1A2520 100%) !important; color: #A5B4FC !important; border: 1px solid rgba(129,140,248,0.38) !important; }
+  :is(html[data-theme="dark"], html.theme-dark) .badge-danger, :is(html[data-theme="dark"], html.theme-dark) .badge-rejected { background: linear-gradient(135deg, rgba(239,68,68,0.20) 0%, rgba(244,63,94,0.12) 100%) !important; color: #FCA5A5 !important; border: 1px solid rgba(248,113,113,0.36) !important; }
+  :is(html[data-theme="dark"], html.theme-dark) .badge-info { background: linear-gradient(135deg, rgba(56,189,248,0.20) 0%, rgba(56,189,248,0.12) 100%) !important; color: #7DD3FC !important; border: 1px solid rgba(56,189,248,0.42) !important; }
+  :is(html[data-theme="dark"], html.theme-dark) .insiden-mobile-card { background: #151E1A !important; border: 1px solid rgba(251,113,133,0.36) !important; }
+  :is(html[data-theme="dark"], html.theme-dark) .jadwal-mobile-card { background: #151E1A !important; border: 1px solid #2C3A33 !important; }
+  :is(html[data-theme="dark"], html.theme-dark) .review-item-card { background: #151E1A !important; border: 1px solid #2C3A33 !important; }
+  :is(html[data-theme="dark"], html.theme-dark) .notif-card { background: #151E1A !important; border: 1px solid #2C3A33 !important; }
+  :is(html[data-theme="dark"], html.theme-dark) .filter-container, :is(html[data-theme="dark"], html.theme-dark) .jadwal-filter-tabs, :is(html[data-theme="dark"], html.theme-dark) .notif-filter-tabs, :is(html[data-theme="dark"], html.theme-dark) .insiden-filter-bar { background: #151E1A !important; border: 1px solid #2C3A33 !important; }
+  :is(html[data-theme="dark"], html.theme-dark) .modal-dialog, :is(html[data-theme="dark"], html.theme-dark) .modal-content { border: 1px solid #2C3A33 !important; }
+  :is(html[data-theme="dark"], html.theme-dark) .modal-header { border-bottom: 1px solid #24312B !important; }
   :is(html[data-theme="dark"], html.theme-dark) .smart-ops-alert-banner.alert-danger { background: linear-gradient(135deg, rgba(244,63,94,0.12) 0%, #151E1A 100%); border-color: rgba(251,113,133,0.36); }
   :is(html[data-theme="dark"], html.theme-dark) .smart-ops-alert-icon { background: rgba(21,30,26,0.85); }
   :is(html[data-theme="dark"], html.theme-dark) .smart-ops-alert-desc { color: var(--forest-900, #4ADE80); }
@@ -12155,21 +12443,21 @@
   :is(html[data-theme="dark"], html.theme-dark) .chart-area-badge { color: var(--forest-900, #6EE7B7); background: var(--bg-surface-subtle, #202C27); border: 1px solid var(--border-subtle, #2C3A33); }
   :is(html[data-theme="dark"], html.theme-dark) .chart-mgr-name { color: var(--text-main, #E8EFEB); }
   :is(html[data-theme="dark"], html.theme-dark) .bar-target-nominal { color: var(--text-muted, #9AA8A1); }
-  :is(html[data-theme="dark"], html.theme-dark) .metric-card.card-incident { background: linear-gradient(135deg, #151E1A 0%, #151E1A 65%, rgba(244,63,94,0.20) 100%) !important; }
+  :is(html[data-theme="dark"], html.theme-dark) .metric-card.card-incident { background: linear-gradient(145deg, #151E1A 0%, #151E1A 65%, rgba(244,63,94,0.12) 100%) !important; border: 1px solid rgba(251,113,133,0.36) !important; }
   :is(html[data-theme="dark"], html.theme-dark) .icon-box-incident { background-color: rgba(244,63,94,0.12); border: 1px solid rgba(251,113,133,0.36); color: #FB7185; }
   :is(html[data-theme="dark"], html.theme-dark) .card-incident .metric-card-title { color: #FDA4AF !important; }
   :is(html[data-theme="dark"], html.theme-dark) .card-incident .metric-card-value { color: #FB7185 !important; }
   :is(html[data-theme="dark"], html.theme-dark) .card-incident .metric-arrow-btn { background-color: rgba(244,63,94,0.12); border-color: rgba(251,113,133,0.36); color: #FB7185; }
   :is(html[data-theme="dark"], html.theme-dark) .card-incident .pill-badge-donezo { background-color: rgba(244,63,94,0.12); border: 1px solid rgba(251,113,133,0.36); color: #FB7185; }
   :is(html[data-theme="dark"], html.theme-dark) .card-incident .metric-meta-sub { color: #FDA4AF; }
-  :is(html[data-theme="dark"], html.theme-dark) .metric-card.card-efficiency { background: linear-gradient(135deg, #151E1A 0%, #151E1A 65%, rgba(34,197,94,0.18) 100%) !important; border: 1.2px solid rgba(74,222,128,0.40) !important; }
+  :is(html[data-theme="dark"], html.theme-dark) .metric-card.card-efficiency { background: linear-gradient(145deg, #151E1A 0%, #151E1A 65%, rgba(34,197,94,0.10) 100%) !important; border: 1px solid rgba(74,222,128,0.32) !important; }
   :is(html[data-theme="dark"], html.theme-dark) .icon-box-efficiency { background-color: rgba(34,197,94,0.10); border: 1px solid rgba(74,222,128,0.32); color: #34D399; }
   :is(html[data-theme="dark"], html.theme-dark) .card-efficiency .metric-card-title { color: #6EE7B7 !important; }
   :is(html[data-theme="dark"], html.theme-dark) .card-efficiency .metric-card-value { color: #34D399 !important; }
   :is(html[data-theme="dark"], html.theme-dark) .card-efficiency .metric-arrow-btn { background-color: rgba(34,197,94,0.10); border-color: rgba(74,222,128,0.32); color: #34D399; }
   :is(html[data-theme="dark"], html.theme-dark) .card-efficiency .pill-badge-donezo { background-color: rgba(34,197,94,0.10); border: 1px solid rgba(74,222,128,0.32); color: #34D399; }
   :is(html[data-theme="dark"], html.theme-dark) .card-efficiency .metric-meta-sub { color: #6EE7B7; }
-  :is(html[data-theme="dark"], html.theme-dark) .metric-card.card-tasks { background: linear-gradient(135deg, #151E1A 0%, #151E1A 65%, rgba(56,189,248,0.20) 100%) !important; border: 1.2px solid rgba(56,189,248,0.42) !important; }
+  :is(html[data-theme="dark"], html.theme-dark) .metric-card.card-tasks { background: linear-gradient(145deg, #151E1A 0%, #151E1A 65%, rgba(56,189,248,0.12) 100%) !important; border: 1px solid rgba(56,189,248,0.36) !important; }
   :is(html[data-theme="dark"], html.theme-dark) .icon-box-tasks { background-color: rgba(56,189,248,0.12); border: 1px solid rgba(56,189,248,0.36); color: #38BDF8; }
   :is(html[data-theme="dark"], html.theme-dark) .card-tasks .metric-card-title { color: #7DD3FC !important; }
   :is(html[data-theme="dark"], html.theme-dark) .card-tasks .metric-card-value { color: #7DD3FC !important; }
@@ -16163,7 +16451,7 @@
               </div>
               <div class="metric-card-value" id="metricOpenIncidents">0 Kasus</div>
               <div class="metric-card-sub">
-                <span id="metricAvgSla" class="pill-badge-donezo">Rata-rata SLA: 0.0 Jam</span>
+                <span id="metricAvgSla" class="pill-badge-donezo"><span class="live-dot-rose"></span> Rata-rata SLA: 0.0 Jam</span>
               </div>
               <div class="metric-meta-sub" id="metricMetaSubSla">Target SLA Nasional: &lt; 12 Jam</div>
             </div>
@@ -16191,7 +16479,7 @@
               </div>
               <div class="metric-card-value" id="metricHppWaste">HPP 0%</div>
               <div class="metric-card-sub">
-                <span id="metricPettyCash" class="pill-badge-donezo">Petty Cash: Rp 0</span>
+                <span id="metricPettyCash" class="pill-badge-donezo"><span class="live-dot-green"></span> Petty Cash: Rp 0</span>
               </div>
               <div class="metric-meta-sub" id="metricMetaSubHppWaste">Toleransi HPP: Max 35.0% | Waste: Max 2.0%</div>
             </div>
@@ -24728,16 +25016,22 @@ function renderDashboardView() {
   // Render Grafik Analitik Sales Dominan (Donezo Capsule Bar Chart)
   renderSalesAnalyticsChart();
 
-  document.getElementById('metricOpenIncidents').textContent = openIncidents.length + ' Kasus Aktif';
-  document.getElementById('metricAvgSla').textContent = 'Rata-rata SLA: ' + avgSla + ' Jam';
+  const elOpenInc = document.getElementById('metricOpenIncidents');
+  if (elOpenInc) elOpenInc.textContent = openIncidents.length + ' Kasus Aktif';
+  const elAvgSla = document.getElementById('metricAvgSla');
+  if (elAvgSla) elAvgSla.innerHTML = '<span class="live-dot-rose"></span> Rata-rata SLA: ' + avgSla + ' Jam';
 
-  document.getElementById('metricHppWaste').textContent = 'HPP: ' + avgHpp + '% | Waste: ' + avgWaste + '%';
-  document.getElementById('metricPettyCash').textContent = 'Petty Cash: Rp ' + formatRupiah(totalPettyCash);
+  const elHpp = document.getElementById('metricHppWaste');
+  if (elHpp) elHpp.textContent = 'HPP: ' + avgHpp + '% | Waste: ' + avgWaste + '%';
+  const elPetty = document.getElementById('metricPettyCash');
+  if (elPetty) elPetty.innerHTML = '<span class="live-dot-green"></span> Petty Cash: Rp ' + formatRupiah(totalPettyCash);
 
   applyOperationalConfigToDOM();
 
-  document.getElementById('metricTasksSummary').textContent = progressTasks + ' In Progress / ' + reviewTasks + ' Review';
-  document.getElementById('metricTasksSub').textContent = completedTasks + ' Selesai | ' + waitingTasks + ' Menunggu';
+  const elTasks = document.getElementById('metricTasksSummary');
+  if (elTasks) elTasks.textContent = progressTasks + ' In Progress / ' + reviewTasks + ' Review';
+  const elTasksSub = document.getElementById('metricTasksSub');
+  if (elTasksSub) elTasksSub.innerHTML = '<span class="live-dot-sky"></span> ' + completedTasks + ' Selesai | ' + waitingTasks + ' Menunggu';
 
   // Render Mini Leaderboard Podium (3 Teratas & 3 Terbawah)
   renderMiniLeaderboards(d.leaderboard);
