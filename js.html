@@ -16941,59 +16941,65 @@ function renderMasterUsersList() {
     }
 
     html += `
-      <div class="user-manage-card" style="display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:#FFFFFF; border:1px solid ${isPending ? '#FCD34D' : '#E2E8F0'}; border-radius:8px; margin-bottom:6px;">
-        <div style="display:flex; align-items:center; gap:10px;">
-          <div style="width:34px; height:34px; border-radius:50%; background:${isPending ? '#FEF3C7' : (isAktif ? 'var(--forest-100)' : '#F3F4F6')}; color:${isPending ? '#B45309' : (isAktif ? 'var(--forest-800)' : '#9CA3AF')}; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px;">
+      <div class="user-manage-card ${isPending ? 'is-pending' : ''}">
+        <div class="user-manage-card-main">
+          <div class="user-manage-avatar-box" style="background:${isPending ? '#FEF3C7' : (isAktif ? 'var(--forest-100)' : '#F3F4F6')}; color:${isPending ? '#B45309' : (isAktif ? 'var(--forest-800)' : '#9CA3AF')};">
             ${initial}
           </div>
-          <div>
-            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-              <strong style="font-size:12px; color:var(--text-main);">${displayName}</strong>
-              <span class="badge ${isMasterRole ? 'badge-success' : (roleUpper === 'SPV' ? 'badge-warning' : 'badge-info')}" style="font-size:9.5px; padding:2px 6px;">${roleUpper}</span>
-              ${statusPill}
-              ${isSelf ? '<span class="badge" style="background:#E0E7FF; color:#4338CA; font-size:9.5px; padding:2px 6px; font-weight:700;"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/></svg> Akun Anda</span>' : ''}
+          <div class="user-manage-details">
+            <div class="user-manage-name-line">
+              <span class="user-manage-name-text">${displayName}</span>
+              <div class="user-manage-badges-row">
+                <span class="badge ${isMasterRole ? 'badge-success' : (roleUpper === 'SPV' ? 'badge-warning' : 'badge-info')}" style="font-size:9.5px; padding:2px 6px;">${roleUpper}</span>
+                ${statusPill}
+                ${isSelf ? '<span class="badge" style="background:#E0E7FF; color:#4338CA; font-size:9.5px; padding:2px 6px; font-weight:700;"><svg class="p-ico" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/></svg> Akun Anda</span>' : ''}
+              </div>
             </div>
-            <div style="font-size:11px; color:var(--text-muted); display:flex; gap:8px; flex-wrap:wrap; margin-top:2px;">
-              <span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> <code>${u.username}</code></span>
-              <span>${isMasterRole ? '<svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/></svg> <b>Semua Cabang (Akses Penuh)</b>' : (roleUpper === 'SPV' ? ('<svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1.5-5h15L21 9"/><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/><path d="M5 12v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8"/><path d="M10 15h4v6h-4z"/></svg> Toko: <b>' + (u.cabangId || 'Belum di-assign') + '</b>') : ('<svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg> Wilayah: <b>' + (u.areaId || 'ALL') + '</b>'))}</span>
-              <span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> ${displayWa}</span>
+            <div class="user-manage-meta-line">
+              <span class="user-manage-meta-item"><svg class="p-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> <code>${u.username}</code></span>
+              <span class="user-manage-meta-item">${isMasterRole ? '<svg class="p-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/></svg> Semua Cabang' : (roleUpper === 'SPV' ? ('<svg class="p-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1.5-5h15L21 9"/><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/><path d="M5 12v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8"/><path d="M10 15h4v6h-4z"/></svg> Toko: <b>' + (u.cabangId || 'Belum di-assign') + '</b>') : ('<svg class="p-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg> Wilayah: <b>' + (u.areaId || 'ALL') + '</b>'))}</span>
+              <span class="user-manage-meta-item"><svg class="p-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> ${displayWa}</span>
             </div>
           </div>
         </div>
-        <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-          ${!isSelf ? `
+        ${!isSelf ? `
+          <div class="user-manage-actions-group">
             ${(isCOO && roleUpper !== 'SPV' && isPending) ? `
-              <button type="button" class="btn btn-primary" style="font-size:10.5px; padding:4px 8px; background:var(--forest-800);" title="Tempatkan Wilayah Operasional" onclick="openModalPenempatanUser('${u.username}', '${displayName}', '${roleUpper}')">
-                <svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg> Tempatkan Wilayah
+              <button type="button" class="user-manage-btn btn-rotasi" title="Tempatkan Wilayah Operasional" onclick="openModalPenempatanUser('${u.username}', '${displayName}', '${roleUpper}')">
+                <svg class="p-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg> <span>Tempatkan</span>
               </button>
             ` : ''}
             ${(isManager && roleUpper === 'SPV' && isPending) ? `
-              <button type="button" class="btn btn-primary" style="font-size:10.5px; padding:4px 8px; background:var(--forest-800);" title="Tempatkan Gerai Toko" onclick="openModalPenempatanUser('${u.username}', '${displayName}', '${roleUpper}')">
-                <svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1.5-5h15L21 9"/><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/><path d="M5 12v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8"/><path d="M10 15h4v6h-4z"/></svg> Tempatkan Gerai
+              <button type="button" class="user-manage-btn btn-rotasi" title="Tempatkan Gerai Toko" onclick="openModalPenempatanUser('${u.username}', '${displayName}', '${roleUpper}')">
+                <svg class="p-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1.5-5h15L21 9"/><path d="M5 12v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8"/><path d="M10 15h4v6h-4z"/></svg> <span>Gerai</span>
               </button>
             ` : ''}
             ${(isCOO && roleUpper !== 'SPV' && !isPending) ? `
-              <button type="button" class="btn btn-outline" style="font-size:10.5px; padding:4px 8px; color:var(--forest-800); border-color:var(--forest-200); background:var(--forest-50);" title="Rotasi / Tukar Wilayah Penugasan" onclick="openModalRotasiAM('${u.username}')">
-                <svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Rotasi
+              <button type="button" class="user-manage-btn btn-rotasi" title="Rotasi / Tukar Wilayah Penugasan" onclick="openModalRotasiAM('${u.username}')">
+                <svg class="p-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> <span>Rotasi</span>
               </button>
             ` : ''}
-            <button type="button" class="btn btn-outline" style="font-size:10.5px; padding:4px 8px;" title="Reset Kata Sandi Akun" onclick="masterResetAmPassword('${u.username}', '${displayName}', '${u.areaId || 'ALL'}')">
-              <svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg> Reset
+            <button type="button" class="user-manage-btn btn-reset" title="Reset Kata Sandi Akun" onclick="masterResetAmPassword('${u.username}', '${displayName}', '${u.areaId || 'ALL'}')">
+              <svg class="p-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg> <span>Reset</span>
             </button>
             ${!isPending ? `
-              <button type="button" class="btn ${isAktif ? 'btn-outline' : 'btn-primary'}" style="font-size:10.5px; padding:4px 8px; ${isAktif ? 'color:#DC2626; border-color:#FECACA;' : ''}" onclick="masterToggleAmStatus('${u.username}')">
-                ${isAktif ? 'Nonaktifkan' : 'Aktifkan'}
+              <button type="button" class="user-manage-btn ${isAktif ? 'btn-status-toggle' : 'btn-status-activate'}" title="${isAktif ? 'Nonaktifkan Akun' : 'Aktifkan Akun'}" onclick="masterToggleAmStatus('${u.username}')">
+                <span>${isAktif ? 'Nonaktif' : 'Aktifkan'}</span>
               </button>
             ` : ''}
             ${!isMasterRole ? `
-              <button type="button" class="btn btn-outline" style="font-size:10.5px; padding:4px 8px; color:#DC2626; border-color:#FECACA;" title="Hapus Akun Pengguna" onclick="masterDeleteUser('${u.username}')">
-                <svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg> Hapus
+              <button type="button" class="user-manage-btn btn-delete" title="Hapus Akun Pengguna" onclick="masterDeleteUser('${u.username}')">
+                <svg class="p-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg> <span>Hapus</span>
               </button>
             ` : ''}
-          ` : `
-            <span style="font-size:11px; color:var(--text-muted); font-style:italic; padding-right:6px;">(Sedang digunakan)</span>
-          `}
-        </div>
+          </div>
+        ` : `
+          <div class="user-manage-actions-group">
+            <div class="user-manage-self-banner">
+              <svg class="p-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> <span>Sesi akun aktif Anda</span>
+            </div>
+          </div>
+        `}
       </div>
     `;
   });

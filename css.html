@@ -9557,21 +9557,224 @@
     border-bottom-color: var(--forest-800);
   }
 
+  /* ==========================================================================
+     USER & ACCOUNT MANAGEMENT CARDS (Consistent Responsive Layout)
+     ========================================================================== */
   .user-manage-card {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 10px;
+    padding: 12px 14px;
     background: #FFFFFF;
     border: 1px solid #E2E8F0;
-    border-radius: 8px;
-    transition: all 0.2s ease;
-    margin-bottom: 6px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
   }
-
+  .user-manage-card.is-pending {
+    border-color: #FCD34D !important;
+    background: #FFFDF5;
+  }
   .user-manage-card:hover {
     border-color: #CBD5E1;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+  }
+
+  .user-manage-card-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+  }
+  .user-manage-avatar-box {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 13.5px;
+    flex-shrink: 0;
+  }
+  .user-manage-details {
+    flex: 1;
+    min-width: 0;
+  }
+  .user-manage-name-line {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+  }
+  .user-manage-name-text {
+    font-size: 13.5px;
+    font-weight: 800;
+    color: var(--text-main, #0F172A);
+    line-height: 1.3;
+  }
+  .user-manage-badges-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .user-manage-meta-line {
+    font-size: 11px;
+    color: var(--text-muted, #64748B);
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .user-manage-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 600;
+  }
+
+  .user-manage-actions-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .user-manage-btn {
+    height: 32px;
+    padding: 0 10px;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    white-space: nowrap;
+    border: 1px solid transparent;
+    cursor: pointer;
+    background: transparent;
+    transition: all 0.15s ease;
+  }
+  .user-manage-btn.btn-rotasi {
+    color: #047857;
+    border-color: #A7F3D0;
+    background: #ECFDF5;
+  }
+  .user-manage-btn.btn-rotasi:hover {
+    background: #D1FAE5;
+    border-color: #059669;
+  }
+  .user-manage-btn.btn-reset {
+    color: #334155;
+    border-color: #CBD5E1;
+    background: #F8FAFC;
+  }
+  .user-manage-btn.btn-reset:hover {
+    background: #E2E8F0;
+    color: #0F172A;
+  }
+  .user-manage-btn.btn-status-toggle {
+    color: #DC2626;
+    border-color: #FECACA;
+    background: #FEF2F2;
+  }
+  .user-manage-btn.btn-status-toggle:hover {
+    background: #FEE2E2;
+  }
+  .user-manage-btn.btn-status-activate {
+    color: #FFFFFF;
+    background: #15803D;
+    border-color: #15803D;
+  }
+  .user-manage-btn.btn-status-activate:hover {
+    background: #166534;
+  }
+  .user-manage-btn.btn-delete {
+    color: #DC2626;
+    border-color: #FECACA;
+    background: #FEF2F2;
+  }
+  .user-manage-btn.btn-delete:hover {
+    background: #FEE2E2;
+  }
+
+  .user-manage-self-banner {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted, #64748B);
+    background: #F8FAFC;
+    border-radius: 8px;
+    border: 1px dashed #CBD5E1;
+  }
+
+  /* MOBILE VIEW (<= 768px): STACK PROFILE ON TOP, FULL-WIDTH EQUAL BUTTONS AT BOTTOM */
+  @media (max-width: 768px) {
+    .setting-pane-header-row {
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 10px !important;
+    }
+    .setting-pane-header-row .btn {
+      width: 100% !important;
+      justify-content: center !important;
+    }
+
+    .user-manage-card {
+      flex-direction: column;
+      align-items: stretch;
+      padding: 12px;
+      gap: 10px;
+      box-sizing: border-box;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+    }
+    .user-manage-card-main {
+      width: 100%;
+      min-width: 0;
+    }
+    .user-manage-details {
+      min-width: 0;
+      overflow: hidden;
+    }
+    .user-manage-meta-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 10px;
+    }
+    .user-manage-actions-group {
+      width: 100%;
+      display: flex;
+      gap: 5px;
+      padding-top: 10px;
+      border-top: 1px dashed #E2E8F0;
+      box-sizing: border-box;
+    }
+    .user-manage-btn {
+      flex: 1 1 0;
+      min-width: 0;
+      height: 32px;
+      padding: 0 4px;
+      font-size: 10.5px;
+      justify-content: center;
+      gap: 3px;
+    }
+    .user-manage-btn span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
   }
 
   .cabang-manage-card {
@@ -11309,7 +11512,7 @@
     --dm-btn-hover: #23905E;
   }
 
-  /* ---- Auto-mapped overrides from existing component rules (406 rules) ---- */
+  /* ---- Auto-mapped overrides from existing component rules (419 rules) ---- */
   :is(html[data-theme="dark"], html.theme-dark) .sidebar-footer .btn-sidebar { background-color: #151E1A; }
   :is(html[data-theme="dark"], html.theme-dark) .sidebar-footer .btn-sidebar:hover { background-color: rgba(34,197,94,0.10); }
   :is(html[data-theme="dark"], html.theme-dark) .top-bar { background: rgba(21,30,26,0.98); }
@@ -11663,7 +11866,22 @@
   :is(html[data-theme="dark"], html.theme-dark) .setting-page-footer { background: #1A2520; }
   :is(html[data-theme="dark"], html.theme-dark) .setting-tab-nav { background: #1A2520; }
   :is(html[data-theme="dark"], html.theme-dark) .user-manage-card { background: #151E1A; border: 1px solid #2C3A33; }
+  :is(html[data-theme="dark"], html.theme-dark) .user-manage-card.is-pending { border-color: rgba(251,191,36,0.45) !important; background: rgba(245,158,11,0.10); }
   :is(html[data-theme="dark"], html.theme-dark) .user-manage-card:hover { border-color: #3A4A42; }
+  :is(html[data-theme="dark"], html.theme-dark) .user-manage-name-text { color: var(--text-main, #E8EFEB); }
+  :is(html[data-theme="dark"], html.theme-dark) .user-manage-meta-line { color: var(--text-muted, #9AA8A1); }
+  :is(html[data-theme="dark"], html.theme-dark) .user-manage-btn.btn-rotasi { color: #34D399; border-color: rgba(52,211,153,0.32); background: rgba(16,185,129,0.10); }
+  :is(html[data-theme="dark"], html.theme-dark) .user-manage-btn.btn-rotasi:hover { background: rgba(16,185,129,0.18); }
+  :is(html[data-theme="dark"], html.theme-dark) .user-manage-btn.btn-reset { color: #C3CEC8; border-color: #3A4A42; background: #1A2520; }
+  :is(html[data-theme="dark"], html.theme-dark) .user-manage-btn.btn-reset:hover { background: #26332D; color: #E8EFEB; }
+  :is(html[data-theme="dark"], html.theme-dark) .user-manage-btn.btn-status-toggle { color: #F87171; border-color: rgba(248,113,113,0.36); background: rgba(239,68,68,0.12); }
+  :is(html[data-theme="dark"], html.theme-dark) .user-manage-btn.btn-status-toggle:hover { background: rgba(239,68,68,0.20); }
+  :is(html[data-theme="dark"], html.theme-dark) .user-manage-btn.btn-delete { color: #F87171; border-color: rgba(248,113,113,0.36); background: rgba(239,68,68,0.12); }
+  :is(html[data-theme="dark"], html.theme-dark) .user-manage-btn.btn-delete:hover { background: rgba(239,68,68,0.20); }
+  :is(html[data-theme="dark"], html.theme-dark) .user-manage-self-banner { color: var(--text-muted, #9AA8A1); background: #1A2520; border: 1px dashed #3A4A42; }
+  @media (max-width: 768px) {
+    :is(html[data-theme="dark"], html.theme-dark) .user-manage-actions-group { border-top: 1px dashed #2C3A33; }
+  }
   :is(html[data-theme="dark"], html.theme-dark) .cabang-manage-card { background: #151E1A; border: 1px solid #2C3A33; }
   :is(html[data-theme="dark"], html.theme-dark) .cabang-manage-card:hover { border-color: #3A4A42; }
   :is(html[data-theme="dark"], html.theme-dark) .btn-cabang-action { border: 1px solid #2C3A33; background: #151E1A; }
@@ -13724,6 +13942,85 @@
   :is(html[data-theme="dark"], html.theme-dark) .login-submit-btn:hover {
     background: linear-gradient(135deg, #23905E 0%, #28A06A 55%, #2EB377 100%) !important;
     box-shadow: 0 14px 30px -6px rgba(0, 0, 0, 0.65), 0 0 26px rgba(34, 197, 94, 0.3) !important;
+  }
+
+  /* ==========================================================================
+     USER & ACCOUNT MANAGEMENT CARDS
+     ========================================================================== */
+  :is(html[data-theme="dark"], html.theme-dark) .user-manage-card {
+    background: #151E1A !important;
+    border-color: #24312B !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+  }
+  :is(html[data-theme="dark"], html.theme-dark) .user-manage-card:hover {
+    border-color: #3A4A42 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+  }
+  :is(html[data-theme="dark"], html.theme-dark) .user-manage-card.is-pending {
+    background: #1C1E14 !important;
+    border-color: rgba(245, 158, 11, 0.45) !important;
+  }
+  :is(html[data-theme="dark"], html.theme-dark) .user-manage-name-text {
+    color: #E8EFEB !important;
+  }
+  :is(html[data-theme="dark"], html.theme-dark) .user-manage-meta-line {
+    color: #9AA8A1 !important;
+  }
+  :is(html[data-theme="dark"], html.theme-dark) .user-manage-meta-item code {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #C3CEC8 !important;
+    border: 1px solid #2C3A33 !important;
+  }
+  :is(html[data-theme="dark"], html.theme-dark) .user-manage-actions-group {
+    border-top-color: #24312B !important;
+  }
+  :is(html[data-theme="dark"], html.theme-dark) .user-manage-btn.btn-rotasi {
+    background: rgba(16, 185, 129, 0.12) !important;
+    color: #34D399 !important;
+    border-color: rgba(16, 185, 129, 0.3) !important;
+  }
+  :is(html[data-theme="dark"], html.theme-dark) .user-manage-btn.btn-rotasi:hover {
+    background: rgba(16, 185, 129, 0.22) !important;
+    border-color: #34D399 !important;
+  }
+  :is(html[data-theme="dark"], html.theme-dark) .user-manage-btn.btn-reset {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: #C3CEC8 !important;
+    border-color: #2C3A33 !important;
+  }
+  :is(html[data-theme="dark"], html.theme-dark) .user-manage-btn.btn-reset:hover {
+    background: rgba(255, 255, 255, 0.10) !important;
+    color: #FFFFFF !important;
+    border-color: #3A4A42 !important;
+  }
+  :is(html[data-theme="dark"], html.theme-dark) .user-manage-btn.btn-status-toggle {
+    background: rgba(239, 68, 68, 0.12) !important;
+    color: #F87171 !important;
+    border-color: rgba(239, 68, 68, 0.3) !important;
+  }
+  :is(html[data-theme="dark"], html.theme-dark) .user-manage-btn.btn-status-toggle:hover {
+    background: rgba(239, 68, 68, 0.22) !important;
+  }
+  :is(html[data-theme="dark"], html.theme-dark) .user-manage-btn.btn-status-activate {
+    background: #1E7A50 !important;
+    color: #FFFFFF !important;
+    border-color: #23905E !important;
+  }
+  :is(html[data-theme="dark"], html.theme-dark) .user-manage-btn.btn-status-activate:hover {
+    background: #23905E !important;
+  }
+  :is(html[data-theme="dark"], html.theme-dark) .user-manage-btn.btn-delete {
+    background: rgba(239, 68, 68, 0.12) !important;
+    color: #F87171 !important;
+    border-color: rgba(239, 68, 68, 0.3) !important;
+  }
+  :is(html[data-theme="dark"], html.theme-dark) .user-manage-btn.btn-delete:hover {
+    background: rgba(239, 68, 68, 0.22) !important;
+  }
+  :is(html[data-theme="dark"], html.theme-dark) .user-manage-self-banner {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border-color: #2C3A33 !important;
+    color: #9AA8A1 !important;
   }
 
   /* ==========================================================================

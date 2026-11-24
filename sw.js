@@ -8,7 +8,7 @@ try {
   console.log('OneSignal worker import notice:', eImport);
 }
 
-const CACHE_NAME = 'panorama-pwa-v7';
+const CACHE_NAME = 'panorama-pwa-v8';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
