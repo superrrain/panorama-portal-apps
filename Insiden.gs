@@ -461,6 +461,22 @@ function apiApproveInsiden(payload, user) {
     var updatedOtorisasiStr = JSON.stringify(otorisasiObj);
     sheet.getRange(rowIdx, 15).setValue(updatedOtorisasiStr);
 
+    // Update Status Insiden secara otomatis saat otorisasi diberikan
+    var curStatus = String(targetRow[COL_INSIDEN.STATUS] || '').trim();
+    var finalStatus = curStatus;
+    if (approvalAction === 'APPROVED') {
+      var targetStatus = payload.newStatus || 'INVESTIGASI';
+      if (curStatus === 'OPEN' || curStatus === 'ESKALASI_COO' || !curStatus || payload.newStatus) {
+        sheet.getRange(rowIdx, COL_INSIDEN.STATUS + 1).setValue(targetStatus);
+        finalStatus = targetStatus;
+      }
+    } else if (approvalAction === 'REJECTED') {
+      if (payload.newStatus) {
+        sheet.getRange(rowIdx, COL_INSIDEN.STATUS + 1).setValue(payload.newStatus);
+        finalStatus = payload.newStatus;
+      }
+    }
+
     // Push Notifikasi Luar Aplikasi ke bawahan / gerai terkait
     try {
       var notifActionText = (approvalAction === 'APPROVED') ? 'telah di-ACC' : 'ditolak/revisi';
@@ -476,7 +492,8 @@ function apiApproveInsiden(payload, user) {
     return {
       success: true,
       message: 'Otorisasi ' + approverLevel + ' untuk insiden ' + insidenId + ' berhasil disimpan.',
-      otorisasi: updatedOtorisasiStr
+      otorisasi: updatedOtorisasiStr,
+      newStatus: finalStatus
     };
   } catch (err) {
     Logger.log('apiApproveInsiden error: ' + err.message);

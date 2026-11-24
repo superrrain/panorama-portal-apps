@@ -30952,10 +30952,10 @@ function renderDetailIncApprovalCard(item) {
         <div class="inc-stamp-meta" style="font-style:italic;">Belum ada disposisi Area Manager</div>
         ${(isManager || isCOO) ? `
           <div class="inc-stamp-actions">
-            <button type="button" class="btn-inc-approve" onclick="promptApproveInsiden('MANAGER', 'APPROVED')">
+            <button type="button" class="btn-inc-approve" onclick="executeApproveInsiden('MANAGER', 'APPROVED')">
               <svg class="p-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> ACC AM
             </button>
-            <button type="button" class="btn-inc-reject" onclick="promptApproveInsiden('MANAGER', 'REJECTED')">
+            <button type="button" class="btn-inc-reject" onclick="executeApproveInsiden('MANAGER', 'REJECTED')">
               <svg class="p-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Tolak
             </button>
           </div>
@@ -31003,10 +31003,10 @@ function renderDetailIncApprovalCard(item) {
         <div class="inc-stamp-meta" style="font-style:italic;">${item.status === 'ESKALASI_COO' ? 'Tiket butuh persetujuan biaya/pusat COO' : 'Belum dieskalasi ke COO'}</div>
         ${isCOO ? `
           <div class="inc-stamp-actions">
-            <button type="button" class="btn-inc-approve" style="background:#047857;" onclick="promptApproveInsiden('COO', 'APPROVED')">
+            <button type="button" class="btn-inc-approve" style="background:#047857;" onclick="executeApproveInsiden('COO', 'APPROVED')">
               <svg class="p-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> ACC COO
             </button>
-            <button type="button" class="btn-inc-reject" onclick="promptApproveInsiden('COO', 'REJECTED')">
+            <button type="button" class="btn-inc-reject" onclick="executeApproveInsiden('COO', 'REJECTED')">
               <svg class="p-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Tolak
             </button>
           </div>
@@ -31014,6 +31014,14 @@ function renderDetailIncApprovalCard(item) {
       </div>
     `;
   }
+
+  // Input catatan lapangan (hanya tampil jika masih ada yang pending dan user memiliki hak approval)
+  const canApprove = (isManager && (!mgr || mgr.status !== 'APPROVED')) || (isCOO && (!coo || coo.status !== 'APPROVED'));
+  const noteInputHtml = canApprove ? `
+    <div style="margin-top: 8px;">
+      <input type="text" id="incApprovalNote" placeholder="Catatan instruksi lapangan (opsional)..." class="form-input" style="font-size: 11px; height: 32px; border-radius: 6px; padding: 4px 8px; width: 100%; box-sizing: border-box;">
+    </div>
+  ` : '';
 
   container.innerHTML = `
     <div class="inc-approval-box">
@@ -31025,54 +31033,85 @@ function renderDetailIncApprovalCard(item) {
         ${mgrHtml}
         ${cooHtml}
       </div>
+      ${noteInputHtml}
     </div>
   `;
 }
 
 function promptApproveInsiden(level, action) {
+  executeApproveInsiden(level, action);
+}
+
+function executeApproveInsiden(level, action) {
   const item = window.PANORAMA_SELECTED_INCIDENT;
-  if (!item) return;
+  if (!item) {
+    showToast('Tiket insiden tidak dipilih.', 'warning');
+    return;
+  }
 
-  const levelLabel = (level === 'COO') ? 'Head Operasional (COO)' : 'Area Manager (AM)';
-  const actionLabel = (action === 'APPROVED') ? 'MENYETUJUI (ACC)' : 'MENOLAK / REVISI';
+  const noteInput = document.getElementById('incApprovalNote');
+  let note = noteInput ? noteInput.value.trim() : '';
+  if (!note) {
+    note = (action === 'APPROVED') ? 'Disetujui untuk dilaksanakan sesuai SOP.' : 'Ditolak / perlu revisi atasan.';
+  }
 
-  const defaultNote = (action === 'APPROVED') ? 'Disetujui untuk dilaksanakan sesuai SOP.' : '';
-  const note = window.prompt(
-    `Konfirmasi Otorisasi Tiket ${item.insidenId}:\n` +
-    `Tindakan: ${actionLabel}\n` +
-    `Sebagai: ${levelLabel}\n\n` +
-    `Masukkan catatan disposisi / instruksi lapangan:`,
-    defaultNote
-  );
+  // Tentukan status insiden baru secara otomatis
+  const statusSelect = document.getElementById('detailIncStatusSelect');
+  let currentSelectVal = statusSelect ? statusSelect.value : (item.status || 'OPEN');
+  let targetNewStatus = currentSelectVal;
 
-  if (note === null) return; // Dibatalkan pengguna
+  if (action === 'APPROVED') {
+    // Jika status saat ini OPEN atau ESKALASI_COO, ubah ke INVESTIGASI
+    if (currentSelectVal === 'OPEN' || currentSelectVal === 'ESKALASI_COO') {
+      targetNewStatus = 'INVESTIGASI';
+    }
+  } else if (action === 'REJECTED') {
+    targetNewStatus = 'INVESTIGASI';
+  }
 
-  showGlobalLoader(true, 10000, `Memproses otorisasi ${level}...`);
+  showGlobalLoader(true, 10000, `Menyimpan otorisasi ${level}...`);
 
   const payload = {
     insidenId: item.insidenId,
     approverLevel: level,
     action: action,
-    catatan: note.trim()
+    newStatus: targetNewStatus,
+    catatan: note
   };
 
   callPanoramaApi('apiApproveInsiden', payload, function(res) {
     showGlobalLoader(false);
     if (res && res.success) {
-      showToast(res.message || `Otorisasi ${level} berhasil disimpan!`, 'success');
       item.otorisasi = res.otorisasi;
+      const finalStatus = res.newStatus || targetNewStatus;
+      item.status = finalStatus;
 
-      // Update di memori state
-      if (window.PANORAMA_STATE.data && window.PANORAMA_STATE.data.insiden) {
-        const found = window.PANORAMA_STATE.data.insiden.find(i => (i.insidenId === item.insidenId || i.insidenID === item.insidenId));
-        if (found) found.otorisasi = res.otorisasi;
+      // Update dropdown status di modal secara instan
+      if (statusSelect) {
+        statusSelect.value = finalStatus;
       }
 
+      // Update di memori state antrean insiden
+      if (window.PANORAMA_STATE.data && window.PANORAMA_STATE.data.insiden) {
+        const found = window.PANORAMA_STATE.data.insiden.find(i => (i.insidenId === item.insidenId || i.insidenID === item.insidenId));
+        if (found) {
+          found.otorisasi = res.otorisasi;
+          found.status = finalStatus;
+        }
+      }
+
+      // Re-render visual stempel dan tabel
       renderDetailIncApprovalCard(item);
       renderInsidenView();
+
+      const actionText = (action === 'APPROVED') ? 'di-ACC' : 'ditolak/revisi';
+      showToast(`✅ Tiket ${item.insidenId} berhasil ${actionText} oleh ${level}! Status: ${finalStatus}`, 'success');
     } else {
       showToast(res && res.message ? res.message : 'Gagal menyimpan otorisasi.', 'danger');
     }
+  }, function(err) {
+    showGlobalLoader(false);
+    showToast('Gagal menghubungi server: ' + (err && err.message ? err.message : 'Koneksi terputus'), 'danger');
   });
 }
 
