@@ -1,4 +1,64 @@
-# 📋 PAPAN REVISI & TRACKING PERBAIKAN ZETTBOT (v5.8.3)
+# 📋 PAPAN REVISI & TRACKING PERBAIKAN ZETTBOT (v5.8.4)
+**Proyek**: PANORAMA Executive Operations Portal  
+**Lead Architect**: ZettBOT by Zettbos  
+**Tanggal**: 25 November 2026  
+**Status**: 🟢 SELESAI & TERTUJI (VERIFIED - GAS DEPLOYMENT @87)  
+**Keluhan Pengguna**:  
+1. Penulisan di tab database `DataNotifikasi` berubah format menjadi label panjang (`AREA-06,Area Manager (AREA-06 - Gilang Pratama)` di Row 645).
+2. Notifikasi push status bar HP tidak muncul saat aplikasi tertutup (hanya masuk ke lonceng aplikasi).
+
+---
+
+## 🔍 Analisis Mendalam Akar Masalah (Root Cause Analysis)
+
+### 1. Mengapa Penulisan di Kolom `TargetUser` Database Menjadi Berubah?
+- Pada modul penerbitan tugas (`Tugas.gs` baris 145 & 85):
+  ```javascript
+  var tskNewTarget = isNationalNew ? 'ALL' : [areaNewStr, payload.assignedTo];
+  ```
+- Variabel `payload.assignedTo` dari form UI bernilai: `"Area Manager (AREA-06 - Gilang Pratama)"`.
+- Saat dipanggil ke `recordAndPushNotification()`, array target digabung (`targets.join(',')`), sehingga kolom `TargetUser` di Google Sheet `DataNotifikasi` terisi:
+  `AREA-06,Area Manager (AREA-06 - Gilang Pratama)` (berbeda dari baris sebelumnya yang rapi: `COO,AREA-05`, `COO,AREA-12`, `COO,AREA-03`, `ALL`).
+
+### 2. Mengapa Notifikasi Status Bar HP Tidak Muncul ke HP Gilang (Area Manager)?
+- Di `sendOneSignalPushNotification()`, target diteruskan ke fungsi `resolveUsernamesFromTargetList_()` untuk mencari ID pelanggan OneSignal (`external_id`).
+- Karena `payload.assignedTo` adalah teks panjang `"Area Manager (AREA-06 - Gilang Pratama)"`, fungsi gagal mencocokkannya ke nama di `MasterUser`. Akibatnya, string deskripsi panjang tersebut dimasukkan mentah-mentah ke dalam daftar alias OneSignal:
+  ```json
+  "include_aliases": { "external_id": ["area manager (area-06 - gilang pratama)"] }
+  ```
+- Di HP Mas Gilang, aplikasi melakukan registrasi OneSignal menggunakan username resminya: `"gilang"` (`OneSignal.login('gilang')`).
+- Karena OneSignal mencari user dengan ID `"area manager (area-06 - gilang pratama)"` (yang tidak pernah ada), OneSignal mengirim ke **0 penerima** (`recipients: 0`).
+- Selain itu, di `getUserMap()` `Notifikasi.gs`, pengecekan status pengguna sebelumnya kaku (`uStatus === 'ACTIVE'`), sehingga jika di spreadsheet berstatus bahasa Indonesia (`'AKTIF'`), akun manajer tidak terindeks ke pemetaan wilayah `byArea['AREA-06']`.
+
+---
+
+## 🛠️ Rencana Eksekusi Perbaikan (Implementation Plan)
+
+### 1. Normalisasi Target Tugas di `Tugas.gs`:
+- Hapus penyertaan teks deskripsi `payload.assignedTo` ke dalam array target notifikasi.
+- Format target tugas baru menjadi standar yang baku dan bersih:
+  - Tugas Nasional: `'ALL'`
+  - Tugas Wilayah Tertentu: `['COO', areaNewStr]` (misal: `['COO', 'AREA-06']`), sehingga di sheet `DataNotifikasi` kolom `TargetUser` kembali tertulis rapi dan konsisten: `COO,AREA-06` (atau `AREA-06`).
+
+### 2. Sanitasi & Resolusi External ID di `Notifikasi.gs`:
+- **Pembersihan Database Target (`recordAndPushNotification`)**: Hanya mencatat token target bersih (tanpa teks deskripsi panjang) ke kolom `TargetUser` Google Sheets.
+- **Normalisasi Wilayah & Status di `getUserMap()`**:
+  - Menggunakan `getSheet(TAB.USER)` yang konsisten.
+  - Membaca status aktif secara toleran: aktif jika bukan `BLOCKED`, `INACTIVE`, `NONAKTIF`, `PENDING`.
+  - Memetakan `uArea` secara fleksibel (baik berupa `'AREA-06'`, `'06'`, `'AREA 06'`, maupun `'AREA-06 - ...'`) ke format baku `'AREA-06'` dan `'06'`.
+- **Sanitasi Ketat External ID (`resolveUsernamesFromTargetList_`)**:
+  - Jika target berupa teks deskriptif, regex otomatis mengekstrak kode wilayah (misal: `AREA-06`) dan nama personil (misal: `Gilang Pratama`) untuk dihubungkan ke username riil (`gilang`).
+  - Tolak string dengan spasi atau tanda kurung agar tidak pernah terkirim sebagai alias OneSignal. Hanya username bersih (`gilang`, `coo_master`, `admin`) yang diteruskan ke OneSignal.
+
+---
+
+## 🔒 Jaminan Zero-Regression
+- Struktur kolom dan riwayat data lama di Google Sheets tetap 100% aman dan utuh.
+- Pengiriman notifikasi uji coba langsung diverifikasi setelah penerapan.
+
+---
+
+# 📋 ARSIP PERBAIKAN SEBELUMNYA (v5.8.3)
 **Proyek**: PANORAMA Executive Operations Portal  
 **Lead Architect**: ZettBOT by Zettbos  
 **Tanggal**: 25 November 2026  

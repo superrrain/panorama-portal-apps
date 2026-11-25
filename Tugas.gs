@@ -77,13 +77,23 @@ function apiSaveTugas(payload) {
         var isFeedbackFromCOO = (payload.feedbackCOO !== undefined && String(payload.feedbackCOO).trim() !== '');
         var tskUpTitle = isFeedbackFromCOO ? ('📋 FEEDBACK COO: TUGAS ' + payload.tugasId) : ('📋 PROGRES TUGAS ' + payload.tugasId);
         var tskUpBody = 'Status tugas: ' + (payload.status || 'Updated') + (payload.feedbackCOO ? (' | Catatan COO: ' + payload.feedbackCOO) : '');
-        var areaUpStr = String(payload.areaId || '').toUpperCase();
-        var assignedUpStr = String(payload.assignedTo || '').toLowerCase();
-        var isNationalUp = (!areaUpStr || areaUpStr === 'ALL' || assignedUpStr.indexOf('seluruh') !== -1 || assignedUpStr.indexOf('semua') !== -1 || assignedUpStr === 'all');
+        var areaUpStr = String(payload.areaId || '').toUpperCase().trim();
+        var assignedUpStr = String(payload.assignedTo || '').trim();
+        var isNationalUp = (!areaUpStr || areaUpStr === 'ALL' || assignedUpStr.toLowerCase().indexOf('seluruh') !== -1 || assignedUpStr.toLowerCase().indexOf('semua') !== -1 || assignedUpStr.toLowerCase() === 'all');
         // Jika Master COO memberi balasan feedback/ACC -> notif ke penerima tugas. Jika AM yang update progres -> notif ke Master COO.
-        var tskUpTarget = isFeedbackFromCOO 
-          ? (isNationalUp ? 'ALL' : [areaUpStr, payload.assignedTo])
-          : 'COO';
+        var tskUpTarget = 'COO';
+        if (isFeedbackFromCOO) {
+          if (isNationalUp) {
+            tskUpTarget = 'ALL';
+          } else if (areaUpStr && areaUpStr !== 'ALL') {
+            tskUpTarget = ['COO', areaUpStr];
+          } else {
+            var mAreaUp = assignedUpStr.match(/AREA-\d+/i);
+            tskUpTarget = mAreaUp ? ['COO', mAreaUp[0].toUpperCase()] : 'ALL';
+          }
+        } else {
+          tskUpTarget = (areaUpStr && areaUpStr !== 'ALL') ? ['COO', areaUpStr] : 'COO';
+        }
         triggerOperationalPushAlert('TUGAS', tskUpTitle, tskUpBody, tskUpTarget);
       } catch (eTskUpPush) {
         Logger.log('Push update tugas notice: ' + eTskUpPush.message);
@@ -138,11 +148,19 @@ function apiSaveTugas(payload) {
       try {
         var tskNewTitle = '📋 INSTRUKSI TUGAS OPERASIONAL';
         var tskNewBody = (payload.judul || 'Tugas Baru') + ' [' + (payload.prioritas || 'NORMAL') + '] • Ditugaskan ke: ' + (payload.assignedTo || 'Seluruh Area Manager');
-        var areaNewStr = String(payload.areaId || '').toUpperCase();
-        var assignedNewStr = String(payload.assignedTo || '').toLowerCase();
-        var isNationalNew = (!areaNewStr || areaNewStr === 'ALL' || assignedNewStr.indexOf('seluruh') !== -1 || assignedNewStr.indexOf('semua') !== -1 || assignedNewStr === 'all');
-        // Pembuat (Master COO) tidak perlu notifikasi. Notifikasi ditujukan langsung ke Area Manager yang ditugaskan.
-        var tskNewTarget = isNationalNew ? 'ALL' : [areaNewStr, payload.assignedTo];
+        var areaNewStr = String(payload.areaId || '').toUpperCase().trim();
+        var assignedNewStr = String(payload.assignedTo || '').trim();
+        var isNationalNew = (!areaNewStr || areaNewStr === 'ALL' || assignedNewStr.toLowerCase().indexOf('seluruh') !== -1 || assignedNewStr.toLowerCase().indexOf('semua') !== -1 || assignedNewStr.toLowerCase() === 'all');
+        // Target tugas operasional: jika bukan nasional, arahkan ke COO dan Area terkait (COO,AREA-XX)
+        var tskNewTarget = 'ALL';
+        if (!isNationalNew) {
+          if (areaNewStr && areaNewStr !== 'ALL') {
+            tskNewTarget = ['COO', areaNewStr];
+          } else {
+            var mAreaNew = assignedNewStr.match(/AREA-\d+/i);
+            tskNewTarget = mAreaNew ? ['COO', mAreaNew[0].toUpperCase()] : 'ALL';
+          }
+        }
         triggerOperationalPushAlert('TUGAS', tskNewTitle, tskNewBody, tskNewTarget);
       } catch (eTskNewPush) {
         Logger.log('Push new tugas notice: ' + eTskNewPush.message);

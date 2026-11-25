@@ -29,16 +29,15 @@ function getActiveUsernames_() {
   var list = ['coo_master', 'admin', 'coo'];
   try {
     var ss = (typeof getSpreadsheetInstance === 'function') ? getSpreadsheetInstance() : SpreadsheetApp.getActiveSpreadsheet();
-    if (ss) {
-      var sheet = ss.getSheetByName('MasterUser');
-      if (sheet) {
-        var data = sheet.getDataRange().getValues();
-        for (var i = 1; i < data.length; i++) {
-          var u = String(data[i][1] || '').trim().toLowerCase();
-          var status = String(data[i][7] || 'ACTIVE').trim().toUpperCase();
-          if (u && status === 'ACTIVE' && list.indexOf(u) === -1) {
-            list.push(u);
-          }
+    var sheet = (typeof getSheet === 'function') ? getSheet('MasterUser') : (ss ? ss.getSheetByName('MasterUser') : null);
+    if (sheet) {
+      var data = sheet.getDataRange().getValues();
+      for (var i = 1; i < data.length; i++) {
+        var u = String(data[i][1] || '').trim().toLowerCase();
+        var status = String(data[i][7] || 'ACTIVE').trim().toUpperCase();
+        var isActive = (!status || status === 'ACTIVE' || status === 'AKTIF' || (status !== 'BLOCKED' && status !== 'INACTIVE' && status !== 'NONAKTIF' && status !== 'PENDING' && status !== 'MENUNGGU'));
+        if (u && isActive && list.indexOf(u) === -1) {
+          list.push(u);
         }
       }
     }
@@ -148,7 +147,34 @@ function recordAndPushNotification(category, title, message, targetUsernames, ac
 
     var targets = targetUsernames || 'ALL';
     var fullTitle = title || ('PANORAMA ' + catUpper);
-    var targetUserStr = Array.isArray(targets) ? targets.join(',') : String(targets);
+    
+    // Normalisasi & sanitasi targetUserStr agar tersimpan rapi sebagai token kanonikal di tab DataNotifikasi
+    var rawTargets = Array.isArray(targets) ? targets : [targets];
+    var cleanTokens = [];
+    rawTargets.forEach(function(t) {
+      var s = String(t || '').trim();
+      if (!s) return;
+      s.split(',').forEach(function(item) {
+        var it = item.trim();
+        if (!it) return;
+        var itUpper = it.toUpperCase();
+        var mArea = it.match(/AREA-\d+/i);
+        if (mArea) {
+          var canonArea = mArea[0].toUpperCase();
+          if (cleanTokens.indexOf(canonArea) === -1) cleanTokens.push(canonArea);
+        } else if (/^\d{1,2}$/.test(it)) {
+          var numArea = 'AREA-' + (it.length === 1 ? '0' + it : it);
+          if (cleanTokens.indexOf(numArea) === -1) cleanTokens.push(numArea);
+        } else if (itUpper === 'COO' || itUpper === 'ALL' || itUpper === 'MASTER') {
+          var topToken = (itUpper === 'MASTER') ? 'COO' : itUpper;
+          if (cleanTokens.indexOf(topToken) === -1) cleanTokens.push(topToken);
+        } else if (/^[a-zA-Z0-9_.-]+$/.test(it)) {
+          var uToken = it.toLowerCase();
+          if (cleanTokens.indexOf(uToken) === -1) cleanTokens.push(uToken);
+        }
+      });
+    });
+    var targetUserStr = cleanTokens.length > 0 ? cleanTokens.join(',') : 'ALL';
     var tz = Session.getScriptTimeZone() || 'Asia/Jakarta';
     var nowStr = Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd HH:mm:ss');
     var todayDateStr = Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd');
@@ -239,34 +265,48 @@ function resolveUsernamesFromTargetList_(targets) {
     userMap = { byArea: {}, byName: {}, byRole: {}, allUsers: [] };
     try {
       var ss = (typeof getSpreadsheetInstance === 'function') ? getSpreadsheetInstance() : SpreadsheetApp.getActiveSpreadsheet();
-      if (ss) {
-        var sheet = ss.getSheetByName('MasterUser');
-        if (sheet) {
-          var data = sheet.getDataRange().getValues();
-          for (var i = 1; i < data.length; i++) {
-            var uName = String(data[i][1] || '').trim().toLowerCase();
-            var uFullName = String(data[i][3] || '').trim().toLowerCase();
-            var uRole = String(data[i][4] || '').trim().toUpperCase();
-            var uArea = String(data[i][5] || '').trim().toUpperCase();
-            var uStatus = String(data[i][7] || 'ACTIVE').trim().toUpperCase();
-            if (uName && uStatus === 'ACTIVE') {
-              userMap.allUsers.push(uName);
-              if (uRole) {
-                if (!userMap.byRole[uRole]) userMap.byRole[uRole] = [];
-                userMap.byRole[uRole].push(uName);
+      var sheet = (typeof getSheet === 'function') ? getSheet('MasterUser') : (ss ? ss.getSheetByName('MasterUser') : null);
+      if (sheet) {
+        var data = sheet.getDataRange().getValues();
+        for (var i = 1; i < data.length; i++) {
+          var uName = String(data[i][1] || '').trim().toLowerCase();
+          var uFullName = String(data[i][3] || '').trim().toLowerCase();
+          var uRole = String(data[i][4] || '').trim().toUpperCase();
+          var uArea = String(data[i][5] || '').trim().toUpperCase();
+          var uStatus = String(data[i][7] || 'ACTIVE').trim().toUpperCase();
+          var isUserActive = (!uStatus || uStatus === 'ACTIVE' || uStatus === 'AKTIF' || (uStatus !== 'BLOCKED' && uStatus !== 'INACTIVE' && uStatus !== 'NONAKTIF' && uStatus !== 'PENDING' && uStatus !== 'MENUNGGU'));
+          if (uName && isUserActive) {
+            userMap.allUsers.push(uName);
+            if (uRole) {
+              if (!userMap.byRole[uRole]) userMap.byRole[uRole] = [];
+              if (userMap.byRole[uRole].indexOf(uName) === -1) userMap.byRole[uRole].push(uName);
+            }
+            if (uArea && uArea !== 'ALL' && uArea !== 'UMUM') {
+              if (!userMap.byArea[uArea]) userMap.byArea[uArea] = [];
+              if (userMap.byArea[uArea].indexOf(uName) === -1) userMap.byArea[uArea].push(uName);
+
+              // Ekstrak digit angka area untuk pemetaan AREA-06, 06, dan 6
+              var mDigits = uArea.match(/\d+/);
+              if (mDigits) {
+                var numStr = mDigits[0];
+                var paddedArea = 'AREA-' + (numStr.length === 1 ? '0' + numStr : numStr);
+                if (!userMap.byArea[paddedArea]) userMap.byArea[paddedArea] = [];
+                if (userMap.byArea[paddedArea].indexOf(uName) === -1) userMap.byArea[paddedArea].push(uName);
+
+                var rawNum = String(parseInt(numStr, 10));
+                if (!userMap.byArea[rawNum]) userMap.byArea[rawNum] = [];
+                if (userMap.byArea[rawNum].indexOf(uName) === -1) userMap.byArea[rawNum].push(uName);
               }
-              if (uArea && uArea !== 'ALL' && uArea !== 'UMUM') {
-                if (!userMap.byArea[uArea]) userMap.byArea[uArea] = [];
-                userMap.byArea[uArea].push(uName);
-              }
-              if (uFullName) {
-                userMap.byName[uFullName] = uName;
-              }
+            }
+            if (uFullName) {
+              userMap.byName[uFullName] = uName;
             }
           }
         }
       }
-    } catch (e) {}
+    } catch (e) {
+      Logger.log('getUserMap notice: ' + e.message);
+    }
     return userMap;
   }
 
@@ -276,8 +316,11 @@ function resolveUsernamesFromTargetList_(targets) {
     var itemUpper = item.toUpperCase();
     var itemLower = item.toLowerCase();
 
-    // Normalisasi cerdas: jika target berupa 1-2 digit angka ('03', '3', '12'), ubah ke format resmi ('AREA-03', 'AREA-12')
-    if (/^\d{1,2}$/.test(item)) {
+    // Normalisasi cerdas: jika target mengandung kode AREA (misal 'Area Manager (AREA-06 - Gilang Pratama)' atau '06')
+    var mArea = itemUpper.match(/AREA-\d+/);
+    if (mArea) {
+      itemUpper = mArea[0];
+    } else if (/^\d{1,2}$/.test(item)) {
       itemUpper = 'AREA-' + (item.length === 1 ? '0' + item : item);
     }
 
@@ -292,7 +335,7 @@ function resolveUsernamesFromTargetList_(targets) {
       mgrList.forEach(function(m) {
         if (resolved.indexOf(m) === -1) resolved.push(m);
       });
-    } else if (itemUpper.indexOf('AREA-') === 0) {
+    } else if (itemUpper.indexOf('AREA-') === 0 || /^\d+$/.test(itemUpper)) {
       var map = getUserMap();
       if (map && map.byArea[itemUpper]) {
         map.byArea[itemUpper].forEach(function(u) {
@@ -305,7 +348,10 @@ function resolveUsernamesFromTargetList_(targets) {
         var uname = map2.byName[itemLower];
         if (resolved.indexOf(uname) === -1) resolved.push(uname);
       } else if (itemLower !== 'all' && itemLower !== 'coo') {
-        if (resolved.indexOf(itemLower) === -1) resolved.push(itemLower);
+        // Hanya masukkan string format username valid tanpa spasi atau tanda kurung
+        if (/^[a-zA-Z0-9_.-]+$/.test(itemLower)) {
+          if (resolved.indexOf(itemLower) === -1) resolved.push(itemLower);
+        }
       }
     }
   }
@@ -347,15 +393,12 @@ function sendOneSignalPushNotification(targetUsernames, title, message, actionUr
     } else {
       var cleanExternalIds = resolveUsernamesFromTargetList_(targetUsernames);
 
-      if (cleanExternalIds.length > 0) {
-        // Format Resmi OneSignal Web SDK v16 (User Model & Aliases)
-        payload.target_channel = 'push';
-        payload.include_aliases = {
-          external_id: cleanExternalIds
-        };
-        // Dual-Compatibility: tetap sertakan include_external_user_ids untuk fallback klien legacy
+      if (cleanExternalIds && cleanExternalIds.length > 0) {
+        // Format baku universal OneSignal REST API v1 untuk external user IDs (sesuai PRD v5.6.38)
         payload.include_external_user_ids = cleanExternalIds;
+        payload.channel_for_external_user_ids = 'push';
       } else {
+        // Fallback jika tidak ada username terdeteksi
         payload.included_segments = ['Total Subscriptions'];
       }
     }
