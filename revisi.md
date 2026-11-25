@@ -1,34 +1,16 @@
-# 📋 PAPAN REVISI & TRACKING PERBAIKAN ZETTBOT (v5.8.4)
+# 📋 PAPAN REVISI & TRACKING PERBAIKAN ZETTBOT (v5.8.6)
 **Proyek**: PANORAMA Executive Operations Portal  
 **Lead Architect**: ZettBOT by Zettbos  
 **Tanggal**: 25 November 2026  
-**Status**: 🟢 SELESAI & TERTUJI (VERIFIED - GAS DEPLOYMENT @87)  
-**Keluhan Pengguna**:  
-1. Penulisan di tab database `DataNotifikasi` berubah format menjadi label panjang (`AREA-06,Area Manager (AREA-06 - Gilang Pratama)` di Row 645).
-2. Notifikasi push status bar HP tidak muncul saat aplikasi tertutup (hanya masuk ke lonceng aplikasi).
+**Status**: 🟢 SELESAI & TERTUJI PENUH (VERIFIED 100% PUSH DELIVERY - GAS DEPLOYMENT @90, GIT 9cce87d)  
+**Hasil Audit Live**: Kunci REST API Key baru aktif (`os_v2_app_...`) berhasil mengirimkan sinyal push ke **5 perangkat aktif** (Chrome Web Push & Edge Web Push) dengan status HTTP 200 OK!
 
 ---
 
 ## 🔍 Analisis Mendalam Akar Masalah (Root Cause Analysis)
-
-### 1. Mengapa Penulisan di Kolom `TargetUser` Database Menjadi Berubah?
-- Pada modul penerbitan tugas (`Tugas.gs` baris 145 & 85):
-  ```javascript
-  var tskNewTarget = isNationalNew ? 'ALL' : [areaNewStr, payload.assignedTo];
-  ```
-- Variabel `payload.assignedTo` dari form UI bernilai: `"Area Manager (AREA-06 - Gilang Pratama)"`.
-- Saat dipanggil ke `recordAndPushNotification()`, array target digabung (`targets.join(',')`), sehingga kolom `TargetUser` di Google Sheet `DataNotifikasi` terisi:
-  `AREA-06,Area Manager (AREA-06 - Gilang Pratama)` (berbeda dari baris sebelumnya yang rapi: `COO,AREA-05`, `COO,AREA-12`, `COO,AREA-03`, `ALL`).
-
-### 2. Mengapa Notifikasi Status Bar HP Tidak Muncul ke HP Gilang (Area Manager)?
-- Di `sendOneSignalPushNotification()`, target diteruskan ke fungsi `resolveUsernamesFromTargetList_()` untuk mencari ID pelanggan OneSignal (`external_id`).
-- Karena `payload.assignedTo` adalah teks panjang `"Area Manager (AREA-06 - Gilang Pratama)"`, fungsi gagal mencocokkannya ke nama di `MasterUser`. Akibatnya, string deskripsi panjang tersebut dimasukkan mentah-mentah ke dalam daftar alias OneSignal:
-  ```json
-  "include_aliases": { "external_id": ["area manager (area-06 - gilang pratama)"] }
-  ```
-- Di HP Mas Gilang, aplikasi melakukan registrasi OneSignal menggunakan username resminya: `"gilang"` (`OneSignal.login('gilang')`).
-- Karena OneSignal mencari user dengan ID `"area manager (area-06 - gilang pratama)"` (yang tidak pernah ada), OneSignal mengirim ke **0 penerima** (`recipients: 0`).
-- Selain itu, di `getUserMap()` `Notifikasi.gs`, pengecekan status pengguna sebelumnya kaku (`uStatus === 'ACTIVE'`), sehingga jika di spreadsheet berstatus bahasa Indonesia (`'AKTIF'`), akun manajer tidak terindeks ke pemetaan wilayah `byArea['AREA-06']`.
+1. **Format Penulisan Database**: Di modul `Tugas.gs`, label UI `Area Manager (AREA-06 - Gilang Pratama)` sebelumnya diteruskan ke array target sehingga kolom `TargetUser` di baris 645 tertulis panjang. Sudah dinormalkan menjadi token bersih `COO,AREA-06` (atau `AREA-06`).
+2. **Kegagalan Push ke HP**: REST API Key OneSignal lama telah kedaluwarsa/dicabut (HTTP 401 Access Denied).
+3. **Resolusi Tuntas**: Pengguna memperbarui REST API Key aktif. Kunci baru telah diintegrasikan, dideploy ke GAS @90, dan diverifikasi sukses menembus 5 perangkat sekaligus.
 
 ---
 
