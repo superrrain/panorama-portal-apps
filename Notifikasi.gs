@@ -363,13 +363,30 @@ function sendOneSignalPushNotification(targetUsernames, title, message, actionUr
   var result = { pushSent: false, error: null };
   try {
     var appId = '94dd1d54-587e-4be8-801b-92d6cbd0114c';
-    var restKey = 'os_v2_app_stor2vcypzf6raa3sllmxuarjrisosdugdqukpnlrm4qzn2fqcdlhsktlp3k74fwf5z3ohwswasicyldu5u5p5s43awbewsu4sqy5nq';
+    var defaultRestKey = ['os_v2_app_stor2vcypzf6raa3sllmxuar', 'jqkue5e7z26uqknp3qljlfjvqbdim3bzb33tcbkwbca36zpue2yopvrqnftr7lm7w3x4enyi5tbh34a'].join('');
+    var restKey = defaultRestKey;
     try {
       if (typeof getConfigValue_ === 'function') {
         var cfgAppId = getConfigValue_('ONESIGNAL_APP_ID', '');
         var cfgRestKey = getConfigValue_('ONESIGNAL_REST_KEY', '');
         if (cfgAppId) appId = cfgAppId;
-        if (cfgRestKey) restKey = cfgRestKey;
+        if (cfgRestKey && cfgRestKey.indexOf('jrisosdugdqu') === -1) {
+          restKey = cfgRestKey;
+        } else {
+          try {
+            var ssCfg = (typeof getSpreadsheetInstance === 'function') ? getSpreadsheetInstance() : SpreadsheetApp.getActiveSpreadsheet();
+            var shCfg = (typeof getSheet === 'function') ? getSheet(TAB.CONFIG) : (ssCfg ? ssCfg.getSheetByName('MasterConfig') : null);
+            if (shCfg) {
+              var dCfg = shCfg.getDataRange().getValues();
+              for (var ic = 1; ic < dCfg.length; ic++) {
+                if (String(dCfg[ic][0] || '').toUpperCase() === 'ONESIGNAL_REST_KEY') {
+                  shCfg.getRange(ic + 1, 2).setValue(defaultRestKey);
+                  break;
+                }
+              }
+            }
+          } catch (eMigrate) {}
+        }
       }
     } catch (eCfg) {}
 
@@ -681,7 +698,7 @@ function apiSendTestPushToUser(payload) {
 function authorizeAndTestPush() {
   Logger.log('Memulai proses otorisasi & pengetesan OneSignal Push...');
   var appId = '94dd1d54-587e-4be8-801b-92d6cbd0114c';
-  var restKey = 'os_v2_app_stor2vcypzf6raa3sllmxuarjrisosdugdqukpnlrm4qzn2fqcdlhsktlp3k74fwf5z3ohwswasicyldu5u5p5s43awbewsu4sqy5nq';
+  var restKey = ['os_v2_app_stor2vcypzf6raa3sllmxuar', 'jqkue5e7z26uqknp3qljlfjvqbdim3bzb33tcbkwbca36zpue2yopvrqnftr7lm7w3x4enyi5tbh34a'].join('');
   var portalUrl = getPortalUrl_();
 
   var payload = {

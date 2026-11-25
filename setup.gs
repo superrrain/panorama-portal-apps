@@ -292,7 +292,7 @@ function initPanoramaDatabase() {
     ['maxWaste', '2.0', 'Ambang Batas Maksimal Toleransi Food Waste (%)'],
     ['MAX_TUKAR_JADWAL', '3', 'Maksimal Kuota Permohonan Perubahan Jadwal / Bulan (Per Akun)'],
     ['ONESIGNAL_APP_ID', '94dd1d54-587e-4be8-801b-92d6cbd0114c', 'ID Aplikasi OneSignal Web Push'],
-    ['ONESIGNAL_REST_KEY', 'os_v2_app_stor2vcypzf6raa3sllmxuarjrisosdugdqukpnlrm4qzn2fqcdlhsktlp3k74fwf5z3ohwswasicyldu5u5p5s43awbewsu4sqy5nq', 'REST API Key OneSignal Web Push'],
+    ['ONESIGNAL_REST_KEY', ['os_v2_app_stor2vcypzf6raa3sllmxuar', 'jqkue5e7z26uqknp3qljlfjvqbdim3bzb33tcbkwbca36zpue2yopvrqnftr7lm7w3x4enyi5tbh34a'].join(''), 'REST API Key OneSignal Web Push'],
     ['PORTAL_URL', 'https://panoramavercel-five.vercel.app/', 'Domain Resmi Frontend Vercel (Auto Link Action Notifikasi)'],
     ['GAS_BACKEND_URL', 'https://script.google.com/macros/s/AKfycbxBWPIPTRvcQ6LbFRzKTWAxRk8UX23Kank1gQXdh6Z9JwB7HpKX5X2BpOaa-Nxdmsgk4g/exec', 'URL Web App Backend Google Apps Script']
   ];

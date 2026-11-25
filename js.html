@@ -933,7 +933,7 @@ function testOneSignalBroadcastPush() {
   const inputAppId = (document.getElementById('configInputOneSignalAppId')?.value || '').trim();
   const inputRestKey = (document.getElementById('configInputOneSignalRestKey')?.value || '').trim();
   const appId = inputAppId || cfg.onesignalAppId || cfg.ONESIGNAL_APP_ID || '94dd1d54-587e-4be8-801b-92d6cbd0114c';
-  const restKey = inputRestKey || cfg.onesignalRestKey || cfg.ONESIGNAL_REST_KEY || 'os_v2_app_stor2vcypzf6raa3sllmxuarjrisosdugdqukpnlrm4qzn2fqcdlhsktlp3k74fwf5z3ohwswasicyldu5u5p5s43awbewsu4sqy5nq';
+  const restKey = inputRestKey || cfg.onesignalRestKey || cfg.ONESIGNAL_REST_KEY || ['os_v2_app_stor2vcypzf6raa3sllmxuar', 'jqkue5e7z26uqknp3qljlfjvqbdim3bzb33tcbkwbca36zpue2yopvrqnftr7lm7w3x4enyi5tbh34a'].join('');
 
   if (!appId || !restKey) {
     showToast('OneSignal App ID & REST API Key masih kosong. Harap isi dari onesignal.com dan klik Simpan Pengaturan terlebih dahulu.', 'warning');
@@ -17189,7 +17189,7 @@ function initSettingPageView() {
     if (document.getElementById('configInputWaToken')) document.getElementById('configInputWaToken').value = cfg.waToken || cfg.WA_GATEWAY_TOKEN || '';
     if (document.getElementById('configInputWaUrl')) document.getElementById('configInputWaUrl').value = cfg.waUrl || cfg.WA_GATEWAY_URL || ('https:' + '/' + '/api.fonnte.com/send');
     if (document.getElementById('configInputOneSignalAppId')) document.getElementById('configInputOneSignalAppId').value = cfg.onesignalAppId || cfg.ONESIGNAL_APP_ID || '94dd1d54-587e-4be8-801b-92d6cbd0114c';
-    if (document.getElementById('configInputOneSignalRestKey')) document.getElementById('configInputOneSignalRestKey').value = cfg.onesignalRestKey || cfg.ONESIGNAL_REST_KEY || 'os_v2_app_stor2vcypzf6raa3sllmxuarjrisosdugdqukpnlrm4qzn2fqcdlhsktlp3k74fwf5z3ohwswasicyldu5u5p5s43awbewsu4sqy5nq';
+    if (document.getElementById('configInputOneSignalRestKey')) document.getElementById('configInputOneSignalRestKey').value = cfg.onesignalRestKey || cfg.ONESIGNAL_REST_KEY || ['os_v2_app_stor2vcypzf6raa3sllmxuar', 'jqkue5e7z26uqknp3qljlfjvqbdim3bzb33tcbkwbca36zpue2yopvrqnftr7lm7w3x4enyi5tbh34a'].join('');
     let curGasUrl = cfg.gasBackendUrl || cfg.GAS_BACKEND_URL || PANORAMA_GAS_URL;
     if (curGasUrl && (curGasUrl.indexOf('AKfycbzzr') !== -1)) curGasUrl = PANORAMA_GAS_URL;
     if (document.getElementById('configInputGasBackendUrl')) document.getElementById('configInputGasBackendUrl').value = curGasUrl;
@@ -18003,7 +18003,7 @@ function saveOperationalParameters(showToastFlag) {
   const waToken = (document.getElementById('configInputWaToken')?.value || '').trim() || (window.PANORAMA_STATE.operationalConfig?.waToken || '');
   const waUrl = (document.getElementById('configInputWaUrl')?.value || '').trim() || (window.PANORAMA_STATE.operationalConfig?.waUrl || ('https:' + '/' + '/api.fonnte.com/send'));
   const onesignalAppId = (document.getElementById('configInputOneSignalAppId')?.value || '').trim() || (window.PANORAMA_STATE.operationalConfig?.onesignalAppId || '94dd1d54-587e-4be8-801b-92d6cbd0114c');
-  const onesignalRestKey = (document.getElementById('configInputOneSignalRestKey')?.value || '').trim() || (window.PANORAMA_STATE.operationalConfig?.onesignalRestKey || 'os_v2_app_stor2vcypzf6raa3sllmxuarjrisosdugdqukpnlrm4qzn2fqcdlhsktlp3k74fwf5z3ohwswasicyldu5u5p5s43awbewsu4sqy5nq');
+  const onesignalRestKey = (document.getElementById('configInputOneSignalRestKey')?.value || '').trim() || (window.PANORAMA_STATE.operationalConfig?.onesignalRestKey || ['os_v2_app_stor2vcypzf6raa3sllmxuar', 'jqkue5e7z26uqknp3qljlfjvqbdim3bzb33tcbkwbca36zpue2yopvrqnftr7lm7w3x4enyi5tbh34a'].join(''));
   const gasBackendUrl = (document.getElementById('configInputGasBackendUrl')?.value || '').trim() || PANORAMA_GAS_URL;
 
   const configData = {

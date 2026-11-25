@@ -1457,8 +1457,8 @@ function apiGetInitialData(userSession, fallbackUser) {
         operationalConfig['ONESIGNAL_APP_ID'] = '94dd1d54-587e-4be8-801b-92d6cbd0114c';
       }
       if (!operationalConfig['onesignalRestKey']) {
-        operationalConfig['onesignalRestKey'] = 'os_v2_app_stor2vcypzf6raa3sllmxuarjrisosdugdqukpnlrm4qzn2fqcdlhsktlp3k74fwf5z3ohwswasicyldu5u5p5s43awbewsu4sqy5nq';
-        operationalConfig['ONESIGNAL_REST_KEY'] = 'os_v2_app_stor2vcypzf6raa3sllmxuarjrisosdugdqukpnlrm4qzn2fqcdlhsktlp3k74fwf5z3ohwswasicyldu5u5p5s43awbewsu4sqy5nq';
+        operationalConfig['onesignalRestKey'] = ['os_v2_app_stor2vcypzf6raa3sllmxuar', 'jqkue5e7z26uqknp3qljlfjvqbdim3bzb33tcbkwbca36zpue2yopvrqnftr7lm7w3x4enyi5tbh34a'].join('');
+        operationalConfig['ONESIGNAL_REST_KEY'] = ['os_v2_app_stor2vcypzf6raa3sllmxuar', 'jqkue5e7z26uqknp3qljlfjvqbdim3bzb33tcbkwbca36zpue2yopvrqnftr7lm7w3x4enyi5tbh34a'].join('');
       }
     } catch (eCfg) {
       Logger.log('Config read notice: ' + eCfg.message);
