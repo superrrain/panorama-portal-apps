@@ -276,6 +276,11 @@ function resolveUsernamesFromTargetList_(targets) {
     var itemUpper = item.toUpperCase();
     var itemLower = item.toLowerCase();
 
+    // Normalisasi cerdas: jika target berupa 1-2 digit angka ('03', '3', '12'), ubah ke format resmi ('AREA-03', 'AREA-12')
+    if (/^\d{1,2}$/.test(item)) {
+      itemUpper = 'AREA-' + (item.length === 1 ? '0' + item : item);
+    }
+
     if (itemUpper === 'COO' || itemUpper === 'MASTER') {
       var coos = getCooUsernames_();
       coos.forEach(function(c) {
@@ -343,6 +348,12 @@ function sendOneSignalPushNotification(targetUsernames, title, message, actionUr
       var cleanExternalIds = resolveUsernamesFromTargetList_(targetUsernames);
 
       if (cleanExternalIds.length > 0) {
+        // Format Resmi OneSignal Web SDK v16 (User Model & Aliases)
+        payload.target_channel = 'push';
+        payload.include_aliases = {
+          external_id: cleanExternalIds
+        };
+        // Dual-Compatibility: tetap sertakan include_external_user_ids untuk fallback klien legacy
         payload.include_external_user_ids = cleanExternalIds;
       } else {
         payload.included_segments = ['Total Subscriptions'];
@@ -406,13 +417,14 @@ function apiGetNotifikasi(userSession) {
 
       // Cek apakah notifikasi ini relevan untuk user yang sedang aktif
       var isTargetMatch = false;
+      var curAreaNum = curAreaId ? curAreaId.replace('AREA-', '').trim() : '';
       if (isCOO) {
         isTargetMatch = true; // Master COO berhak memantau semua notifikasi
       } else if (targetUpper === 'ALL') {
         isTargetMatch = true;
       } else if (curUsername && targetLower.indexOf(curUsername) !== -1) {
         isTargetMatch = true;
-      } else if (curAreaId && targetUpper.indexOf(curAreaId) !== -1) {
+      } else if (curAreaId && (targetUpper.indexOf(curAreaId) !== -1 || (curAreaNum && targetUpper.indexOf(curAreaNum) !== -1))) {
         isTargetMatch = true;
       }
 
@@ -491,6 +503,7 @@ function apiMarkAllNotificationsRead(userSession) {
     var isCOO = (userSession.role === 'COO' || userSession.username === 'coo_master' || userSession.areaId === 'ALL');
     var curUsername = String(userSession.username || '').toLowerCase().trim();
     var curAreaId = String(userSession.areaId || '').toUpperCase().trim();
+    var curAreaNum = curAreaId ? curAreaId.replace('AREA-', '').trim() : '';
     var updatedCount = 0;
 
     for (var i = 1; i < data.length; i++) {
@@ -502,7 +515,7 @@ function apiMarkAllNotificationsRead(userSession) {
         if (isCOO) isMatch = true;
         else if (targetStr.toUpperCase() === 'ALL') isMatch = true;
         else if (curUsername && targetStr.toLowerCase().indexOf(curUsername) !== -1) isMatch = true;
-        else if (curAreaId && targetStr.toUpperCase().indexOf(curAreaId) !== -1) isMatch = true;
+        else if (curAreaId && (targetStr.toUpperCase().indexOf(curAreaId) !== -1 || (curAreaNum && targetStr.toUpperCase().indexOf(curAreaNum) !== -1))) isMatch = true;
 
         if (isMatch) {
           sheet.getRange(i + 1, COL_NOTIFIKASI.STATUS + 1).setValue('READ');

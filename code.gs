@@ -376,7 +376,7 @@ function handleApiRequest(action, params) {
 
       case 'sendTestPush':
       case 'apiSendTestPushToUser':
-        result = apiSendTestPushToUser(params.pushPayload || params);
+        result = apiSendTestPushToUser(params.pushPayload || params.payload || params);
         break;
 
       case 'testBroadcastPush':

@@ -1,60 +1,52 @@
-# 📋 PAPAN REVISI & TRACKING PERBAIKAN ZETTBOT (v5.8.0)
+# 📋 PAPAN REVISI & TRACKING PERBAIKAN ZETTBOT (v5.8.1)
 **Proyek**: PANORAMA Executive Operations Portal  
 **Lead Architect**: ZettBOT by Zettbos  
-**Tanggal**: 23 November 2026  
-**Status**: 🟢 SELESAI & TERTUJI (VERIFIED) - Partisi Transaksi Mingguan Efisiensi HPP Sesuai Kalender Resmi  
-**Modul Terdampak**: Efisiensi Operasional (HPP Bahan Baku & Petty Cash Mingguan)
+**Tanggal**: 25 November 2026  
+**Status**: 🟢 SELESAI & TERTUJI (VERIFIED) - OneSignal Web SDK v16 REST API Payload & Auto-Normalizer Area ID Deployed @84  
+**Modul Terdampak**: `Notifikasi.gs`, `code.gs` (OneSignal API Payload & Area ID Normalizer)
 
 ---
 
-## 🎯 Ringkasan Eksekutif & Solusi yang Telah Diterapkan
+## 🎯 Klarifikasi & Penegasan Fokus Perbaikan
 
-### 1. Kebutuhan Pengguna
-- Memperbaiki pencatatan transaksi mingguan efisiensi HPP agar **tidak terakumulasi / menumpuk ke dalam 1 baris saja**.
-- Menerapkan pembagian rekapitulasi per minggu secara otomatis sesuai kalender resmi:
-  * **Minggu 1**: Tanggal 1 s/d 7 Nov
-  * **Minggu 2**: Tanggal 8 s/d 14 Nov
-  * **Minggu 3**: Tanggal 15 s/d 21 Nov
-  * **Minggu 4**: Tanggal 22 s/d 28 Nov
-  * **Minggu 5**: Tanggal 29 s/d Akhir Bulan (30/31 Nov)
+Kritik pengguna **100% valid**: Akun pimpinan/Master COO (`admin` / `coo_master`) memang **tidak pernah diubah** dan di fungsi `getCooUsernames_()` daftar default `['coo_master', 'admin', 'coo']` sudah selalu menyertakan username tersebut dari awal.
 
-### 2. Solusi Rekayasa Sistem yang Diterapkan
-1. **Frontend Partisi Minggu Kalender (`js.html`)**:
-   - Menambahkan fungsi matematis `getCalendarWeekInfo(dateStr)` untuk mempartisi minggu ke 1 s/d 5 murni dari tanggal transaksi kalender.
-   - Mengubah `renderEfisiensiWeeklyBreakdown()`:
-     * Label baris kini menampilkan minggu kalender riil beserta rentang tanggalnya (cth: `Mgg 1 (07/11/2026 • Tgl 1–7)`, `Mgg 2 (10/11/2026 • Tgl 8–14)`).
-     * Setiap minggu kalender tampil sebagai baris mandiri (tidak saling menimpa).
-     * Tombol `[Edit]` pada baris minggu memungkinkan koreksi nilai langsung untuk minggu terkait.
-     * Strip ringkasan bawah otomatis menjumlahkan total belanja seluruh minggu untuk menghitung rasio HPP bulanan gerai.
-   - Mengubah `setEfisiensiInputMode()`, `openInputEfisiensiModal()`, dan `onEfisiensiBranchChange()`:
-     * Menyesuaikan form input dengan minggu aktif yang dipilih pada tanggal pelaporan.
-     * Mode `ADD` menambah belanja/kas khusus untuk minggu tersebut.
-     * Mode `CORRECT` mengoreksi nilai minggu tersebut.
-   - Mengubah `updateEfisiensiLiveCalculation()` & `submitEfisiensiForm()`:
-     * Menghitung HPP live dengan memadukan belanja minggu aktif dan akumulasi minggu lainnya dalam 1 bulan berjalan.
-   - Mengubah `applyEfisiensiToLocalState()`:
-     * Pencocokan data di memori mengunci berdasarkan **Cabang + Bulan + Minggu Kalender**, sehingga transaksi di minggu baru (misal tgl 10 Nov) otomatis membuat entri baru (**Minggu 2**) tanpa menimpa **Minggu 1**.
-   - Penyelarasan `renderEfisiensiView()` & `recalculateLeaderboardLive()`:
-     * Menjumlahkan seluruh minggu berjalan per cabang agar kartu efisiensi dan skor Leaderboard pilar 2 (HPP) tetap 100% akurat.
-2. **Backend Smart Upsert Kalender (`Efisiensi.gs` & `code.gs`)**:
-   - Di `Efisiensi.gs` (`apiSaveEfisiensi`), pencocokan baris di database `DataEfisiensi` kini didasarkan pada `targetEffId` ATAU `cabangId + targetMonth + targetWeekNum`.
-   - Transaksi di minggu kalender yang berbeda akan tersimpan di baris baru secara terpisah di Google Sheets.
-   - Di `code.gs`, pembacaan data efisiensi memastikan nilai HPP tersimpan dengan benar dan seluruh entri mingguan terbaca lengkap ke memori aplikasi.
-3. **Kompilasi Bundles**:
-   - Seluruh berkas telah dikompilasi ulang dan tersinkronisasi 100%:
-     * `index.html` (1.798.502 bytes)
-     * `app.html` (1.798.502 bytes)
-     * `PANORAMA_VERCEL/index.html` (1.798.502 bytes)
-     * `PANORAMA_VERCEL/app.html` (1.798.502 bytes)
+Oleh karena itu, **tidak ada perubahan atau utak-atik pada akun Master COO**.
 
 ---
 
-## 🧪 Hasil Pengujian & Verifikasi Otomatis
-- [x] Syntax AST Check `js.html`: **PASS** (Zero syntax error).
-- [x] Syntax AST Check `Efisiensi.gs` & `code.gs`: **PASS** (Zero syntax error).
-- [x] Calendar Week Partitioning Test: **PASS** (Tgl 1–7 = Mgg 1, Tgl 8–14 = Mgg 2, Tgl 15–21 = Mgg 3, Tgl 22–28 = Mgg 4, Tgl 29–30 = Mgg 5).
-- [x] Simulation Multi-Week Transaction: **PASS** (Input Mgg 1 tgl 07/11/2026 Rp 10.000.000 + Input Mgg 2 tgl 10/11/2026 Rp 11.726.385 menghasilkan 2 baris terpisah dan total akumulasi bulanan Rp 21.726.385).
-- [x] Bundles Compilation Check: **PASS** (1.798.502 bytes tersinkronisasi identik).
-- [x] Clasp Production Deployment Locking: **PASS** (Redeploy ke `AKfycbxBWPIPTRvcQ6LbFRzKTWAxRk8UX23Kank1gQXdh6Z9JwB7HpKX5X2BpOaa-Nxdmsgk4g` @70 ver 23.0 tanpa merubah URL).
-- [x] CI/CD GitHub & Vercel Integration: **PASS** (Tersambung ke `superrrain/panorama-portal-apps` branch `main`, auto-deploy aktif di `https://panoramavercel-five.vercel.app/`).
+## 🔍 Akar Masalah Sebenarnya (Hanya 2 Titik Kunci)
 
+### 1. Format REST API OneSignal Kedaluwarsa (Penyebab Gagal ke HP Pak Risman & Semua HP Manajer)
+- Akun Pak Risman (`admin`) dan para Area Manager (`dimas`, `gilang`, dll.) **sebenarnya sudah berhasil dikumpulkan** oleh backend GAS ke dalam variabel:
+  `cleanExternalIds = ['coo_master', 'admin', 'coo', 'gilang'];`
+- Namun, saat dikirim ke OneSignal:
+  `payload.include_external_user_ids = cleanExternalIds;`
+- Di sisi HP/Browser, aplikasi menggunakan **OneSignal Web SDK v16** (`OneSignal.login()`).
+- OneSignal API modern **tidak lagi menerima `include_external_user_ids` untuk SDK v16**, sehingga OneSignal merespon **0 penerima (`recipients: 0`)**.
+- **Solusi Tepat**: Kirim payload sesuai format resmi OneSignal Web SDK v16:
+  ```json
+  {
+    "target_channel": "push",
+    "include_aliases": {
+      "external_id": cleanExternalIds
+    },
+    "include_external_user_ids": cleanExternalIds
+  }
+  ```
+
+### 2. Format Area ID pada Data Transaksi (`03` / `12` vs `AREA-03` / `AREA-12`)
+- Di `Sales.gs`, `Insiden.gs`, dan `Efisiensi.gs`, sistem memanggil:
+  `['COO', payload.areaId]`
+- Jika `payload.areaId` berisi angka murni `'03'` atau `'12'`, fungsi pencarian `resolveUsernamesFromTargetList_` hanya mengecek `if (item.indexOf('AREA-') === 0)`.
+- Karena tidak ada awalan `'AREA-'`, backend gagal mencocokkan ke username Area Manager (`dimas`/`gilang`).
+- **Solusi Tepat**: Tambahkan auto-prefix sederhana: jika target adalah 2 digit angka (`'03'`, `'12'`), otomatis baca sebagai `'AREA-03'`, `'AREA-12'` sehingga username Area Manager terkait ikut tertangkap.
+
+### 3. Server Dispatcher Test Push (`code.gs`)
+- Penyelarasan pembacaan `apiSendTestPushToUser(params.pushPayload || params.payload || params)` agar saat tes dilakukan, ia benar-benar menguji alur targeted yang sama persis dengan notifikasi omset/insiden riil.
+
+---
+
+## 🔒 Jaminan Keamanan Kode
+- Tidak menyentuh struktur akun Master COO atau data login apapun.
+- Hanya memperbaiki transmisi protokol HTTP OneSignal dan penanganan string Area ID.
