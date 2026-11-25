@@ -842,9 +842,70 @@ html, body {
 }
 #dev-scrub { width: 360px; accent-color: var(--emerald-mint); }
 #dev-clock { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; min-width: 60px; }
+
+/* In-Browser Video Export Dock */
+#video-export-dock {
+  position: fixed;
+  top: 20px; right: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  z-index: 999;
+  transition: opacity 0.3s ease;
+}
+#btnRecordTab {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 22px;
+  border-radius: 9999px;
+  background: rgba(15, 23, 19, 0.94);
+  border: 1.5px solid rgba(52, 211, 153, 0.45);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55), 0 0 16px rgba(16, 185, 129, 0.25);
+  color: #FFFFFF;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  transition: all 0.2s ease;
+}
+#btnRecordTab:hover {
+  background: rgba(22, 101, 52, 0.95);
+  border-color: #34D399;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(22, 101, 52, 0.4);
+}
+.rec-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: #EF4444;
+  box-shadow: 0 0 8px #EF4444;
+  animation: pulseRec 1.2s infinite ease-in-out;
+}
+@keyframes pulseRec {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+.export-hint {
+  font-size: 11px;
+  color: #94A3B8;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+}
 </style>
 </head>
 <body>
+
+<!-- Floating Export Button -->
+<div id="video-export-dock">
+  <button id="btnRecordTab" onclick="startExportRecording()">
+    <span class="rec-dot"></span>
+    <span id="recBtnText">Unduh Video (Rekam Otomatis)</span>
+  </button>
+  <span class="export-hint">Klik lalu pilih tab browser untuk merekam & download otomatis</span>
+</div>
 
 <div id="stage">
   <!-- Ambient Background -->
@@ -1444,6 +1505,78 @@ window.addEventListener('keydown', e => {
     tl.play(0);
   }
 });
+
+// 1-Click Native Tab Video Recording & Auto-Download
+let isRecording = false;
+async function startExportRecording() {
+  if (isRecording) return;
+  const btnText = document.getElementById('recBtnText');
+  const dock = document.getElementById('video-export-dock');
+  const devBar = document.getElementById('dev-bar');
+
+  try {
+    const stream = await navigator.mediaDevices.getDisplayMedia({
+      video: {
+        displaySurface: "browser",
+        frameRate: 60
+      },
+      audio: false,
+      preferCurrentTab: true
+    });
+
+    isRecording = true;
+    dock.style.opacity = '0'; // Sembunyikan tombol saat sedang direkam agar bersih
+    if (devBar) devBar.style.display = 'none';
+
+    const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+      ? 'video/webm;codecs=vp9'
+      : (MediaRecorder.isTypeSupported('video/webm') ? 'video/webm' : 'video/mp4');
+
+    const recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 8000000 });
+    const chunks = [];
+
+    recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+
+    recorder.onstop = () => {
+      isRecording = false;
+      dock.style.opacity = '1';
+      btnText.textContent = '✓ Mengunduh Video...';
+
+      const blob = new Blob(chunks, { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'PANORAMA-Tutorial-Part1-ControlTower.webm';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      stream.getTracks().forEach(t => t.stop());
+      setTimeout(() => { btnText.textContent = 'Unduh Video (Rekam Otomatis)'; }, 3500);
+    };
+
+    recorder.start();
+    tl.play(0); // Mulai animasi dari frame 0
+
+    // Berhenti otomatis tepat di detik ke-60
+    setTimeout(() => {
+      if (recorder.state === 'recording') {
+        recorder.stop();
+      }
+    }, 60500);
+
+    stream.getVideoTracks()[0].onended = () => {
+      if (recorder.state === 'recording') recorder.stop();
+    };
+
+  } catch (err) {
+    console.warn('Recording cancelled or not permitted:', err);
+    dock.style.opacity = '1';
+    btnText.textContent = 'Unduh Video (Rekam Otomatis)';
+    isRecording = false;
+  }
+}
 
 // Autoplay Start
 window.addEventListener('DOMContentLoaded', () => {
