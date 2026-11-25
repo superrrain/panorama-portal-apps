@@ -6,6 +6,7 @@ Thumbs.db
 
 # Scratch & Temp Files
 scratch/
+tutorial/
 
 # Credentials
 .vercel/
