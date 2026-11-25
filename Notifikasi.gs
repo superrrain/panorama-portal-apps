@@ -403,23 +403,57 @@ function sendOneSignalPushNotification(targetUsernames, title, message, actionUr
       }
     }
 
+    var cleanKey = String(restKey).trim();
+    // OneSignal v2 App Keys (os_v2_app_...) menggunakan skema 'Key', sedangkan kunci legacy menggunakan 'Basic'
+    var authHeader = (cleanKey.indexOf('os_v2_') === 0) ? ('Key ' + cleanKey) : ('Basic ' + cleanKey);
+
     var options = {
       method: 'post',
       contentType: 'application/json',
       headers: {
-        'Authorization': 'Basic ' + restKey
+        'Authorization': authHeader
       },
       payload: JSON.stringify(payload),
       muteHttpExceptions: true
     };
 
-    var res = UrlFetchApp.fetch('https://onesignal.com/api/v1/notifications', options);
+    var res = null;
+    try {
+      res = UrlFetchApp.fetch('https://api.onesignal.com/notifications', options);
+    } catch (eFetch1) {
+      Logger.log('OneSignal api.onesignal.com fetch notice: ' + eFetch1.message);
+    }
+
+    if (!res || res.getResponseCode() < 200 || res.getResponseCode() >= 300) {
+      try {
+        var optionsLegacy = {
+          method: 'post',
+          contentType: 'application/json',
+          headers: {
+            'Authorization': 'Basic ' + cleanKey
+          },
+          payload: JSON.stringify(payload),
+          muteHttpExceptions: true
+        };
+        var resLegacy = UrlFetchApp.fetch('https://onesignal.com/api/v1/notifications', optionsLegacy);
+        if (resLegacy && resLegacy.getResponseCode() >= 200 && resLegacy.getResponseCode() < 300) {
+          res = resLegacy;
+        } else if (!res) {
+          res = resLegacy;
+        }
+      } catch (eFetch2) {
+        Logger.log('OneSignal onesignal.com fetch notice: ' + eFetch2.message);
+      }
+    }
+
     if (res && res.getResponseCode() >= 200 && res.getResponseCode() < 300) {
       result.pushSent = true;
+      result.response = res.getContentText();
       Logger.log('OneSignal Push Sent successfully: ' + res.getContentText());
     } else {
       result.error = res ? res.getContentText() : 'No response';
-      Logger.log('OneSignal Push API response: ' + result.error);
+      result.statusCode = res ? res.getResponseCode() : 0;
+      Logger.log('OneSignal Push API response (' + result.statusCode + '): ' + result.error);
     }
   } catch (errPush) {
     result.error = errPush.message;
@@ -616,17 +650,21 @@ function apiSendTestPushToUser(payload) {
     var url = payload && payload.portalUrl ? payload.portalUrl : '';
 
     var pushRes = recordAndPushNotification('TUGAS', title, message, targetUser, url);
+    var isSent = (pushRes && pushRes.pushResult && pushRes.pushResult.pushSent);
+    var pushErr = (pushRes && pushRes.pushResult && pushRes.pushResult.error) ? pushRes.pushResult.error : '';
+
     return {
-      success: true,
-      pushResult: pushRes,
-      message: pushRes.success
+      success: isSent,
+      notificationId: pushRes.notificationId,
+      pushResult: pushRes.pushResult,
+      message: isSent
         ? 'Notifikasi push berhasil dikirimkan ke status bar perangkat Anda!'
-        : 'Sinyal push disimulasikan. Pastikan OneSignal App ID & REST Key sudah aktif di Pengaturan.'
+        : ('Data tersimpan di database, namun pengiriman push ke OneSignal ditolak (' + (pushErr.indexOf('Access denied') !== -1 ? 'OneSignal REST API Key tidak valid / kedaluwarsa. Periksa Settings > Keys & IDs di onesignal.com' : pushErr) + ').')
     };
   } catch (e) {
     return {
-      success: true,
-      message: 'Simulasi push notifikasi berhasil diproses untuk sesi aktif.'
+      success: false,
+      message: 'Gagal kirim notifikasi uji coba: ' + e.message
     };
   }
 }

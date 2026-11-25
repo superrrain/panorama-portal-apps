@@ -22329,20 +22329,22 @@ async function requestPushNotificationPermission() {
  */
 function testDevicePushNotification() {
   const user = window.PANORAMA_STATE.user || {};
-  showToast('Mengirim sinyal push notifikasi ke HP Anda...', 'info');
+  showToast('Mengirim sinyal push notifikasi ke HP Anda via OneSignal...', 'info');
 
-  // Trigger langsung di status bar HP saat tombol ditekan
-  triggerLocalPushNotification('🔔 Uji Notifikasi PANORAMA', 'Halo ' + (user.namaLengkap || 'Executive') + '! Notifikasi push berhasil menembus status bar HP Anda.');
-
-  // Kirim juga ke backend server OneSignal
+  // Kirim ke backend server OneSignal untuk pengujian transmisi server push yang sebenarnya
   callPanoramaApi('apiSendTestPushToUser', {
     username: user.username,
     nama: user.namaLengkap,
     portalUrl: window.location.href
   }, function(res) {
-    showToast(res && res.message ? res.message : 'Push notifikasi terkirim!', 'success');
-  }, function() {
-    showToast('Push notifikasi disimulasikan ke perangkat aktif.', 'info');
+    if (res && res.success) {
+      showToast(res.message || 'Push notifikasi server terkirim!', 'success');
+      triggerLocalPushNotification('🔔 Uji Notifikasi PANORAMA', 'Halo ' + (user.namaLengkap || 'Executive') + '! Notifikasi push berhasil menembus status bar HP Anda.');
+    } else {
+      showToast(res && res.message ? res.message : 'OneSignal menolak pengiriman push.', 'warning');
+    }
+  }, function(err) {
+    showToast('Gagal menghubungi server push.', 'error');
   });
 }
 
