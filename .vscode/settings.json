@@ -1,0 +1,22 @@
+{
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+    ".claspignore": true,
+    ".vercelignore": true,
+    "apple-touch-icon-precomposed.png": true,
+    "apple-touch-icon.png": true,
+    "favicon-16x16.png": true,
+    "favicon-32x32.png": true,
+    "favicon.ico": true,
+    "icon-192.png": true,
+    "icon-512.png": true,
+    "app.html": true,
+    "index.html": true,
+    "scratch/archive": true
+  }
+}
