@@ -1,4 +1,31 @@
-# 📋 PAPAN REVISI & TRACKING PERBAIKAN ZETTBOT (v5.8.2)
+# 📋 PAPAN REVISI & TRACKING PERBAIKAN ZETTBOT (v5.8.3)
+**Proyek**: PANORAMA Executive Operations Portal  
+**Lead Architect**: ZettBOT by Zettbos  
+**Tanggal**: 25 November 2026  
+**Status**: 🟢 SELESAI & TERTUJI (VERIFIED) - Perbaikan Tombol Aksi Edit Efisiensi (Fix ReferenceError isHppSafe & Multi-Role Branch Binding)  
+**Modul Terdampak**: `js.html`, Bundle HTML (`index.html`, `app.html`, `PANORAMA_VERCEL/*`)
+
+---
+
+## 🔍 Akar Masalah & Solusi Perbaikan v5.8.3
+
+Saat tombol aksi edit `[ ✎ ]` pada tabel Efisiensi HPP & Waste diklik, tombol tidak merespon karena 2 kendala teknis:
+
+1. **`ReferenceError: isHppSafe is not defined` pada `renderEfisiensiWeeklyBreakdown()`**:
+   - Di dalam loop mingguan `sortedEffs.forEach()`, badge status HPP mencoba membaca variabel `isHppSafe` dan `hpp`.
+   - Variabel tersebut sebelumnya tidak dideklarasikan di scope baris item, melainkan di blok ringkasan bawah.
+   - **Solusi**: Telah dideklarasikan dan dikalkulasi secara presisi `monthlyOmzet`, `hpp`, `maxHppStd`, dan `isHppSafe` per baris minggu riwayat.
+
+2. **Resolusi Cabang untuk Akun Master Admin (`openInputEfisiensiModal` & `openEditEfisiensiModalForBranch`)**:
+   - Pengecekan peran `user.role === 'COO'` sebelumnya mengecualikan akun berlabel `'MASTER_ADMIN'`, sehingga saat filter wilayah diset `'ALL'`, daftar cabang bernilai kosong.
+   - **Solusi**: Menggunakan standardisasi `roleInfo.isMaster || roleInfo.isCOO || roleInfo.canViewAll`. Jika cabang yang dipilih belum ada di dropdown, sistem secara otomatis menginjeksi opsi cabang tersebut sehingga modal langsung menampilkan cabang yang diklik secara instan.
+
+3. **Global Window Scope Binding**:
+   - Menjamin seluruh fungsi modal (`openEditEfisiensiModalForBranch`, `openInputEfisiensiModal`, `setEfisiensiInputMode`, dll.) terdaftar secara eksplisit pada objek `window` agar bebas kendala closure di berbagai runtime browser.
+
+---
+
+# 📋 ARSIP PERBAIKAN SEBELUMNYA (v5.8.2)
 **Proyek**: PANORAMA Executive Operations Portal  
 **Lead Architect**: ZettBOT by Zettbos  
 **Tanggal**: 25 November 2026  

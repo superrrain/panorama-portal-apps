@@ -6993,6 +6993,21 @@ function openEditEfisiensiModalForBranch(cabangId) {
   openInputEfisiensiModal();
   const branchSelect = document.getElementById('efisiensiInputCabang');
   if (branchSelect && cabangId) {
+    let found = false;
+    for (let i = 0; i < branchSelect.options.length; i++) {
+      if (branchSelect.options[i].value === cabangId) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      const d = window.PANORAMA_STATE.data;
+      const cbg = (d && d.cabang) ? d.cabang.find(c => c.cabangId === cabangId) : null;
+      const opt = document.createElement('option');
+      opt.value = cabangId;
+      opt.textContent = cbg ? (cbg.namaCabang + ' (' + cbg.brand + ')') : cabangId;
+      branchSelect.appendChild(opt);
+    }
     branchSelect.value = cabangId;
   }
   const d = window.PANORAMA_STATE.data;
@@ -7009,6 +7024,15 @@ function openEditEfisiensiModalForBranch(cabangId) {
   setEfisiensiInputMode(existingEff ? 'CORRECT' : 'ADD');
   onEfisiensiBranchChange();
 }
+
+window.openEditEfisiensiModalForBranch = openEditEfisiensiModalForBranch;
+window.openInputEfisiensiModal = openInputEfisiensiModal;
+window.setEfisiensiInputMode = setEfisiensiInputMode;
+window.onEfisiensiBranchChange = onEfisiensiBranchChange;
+window.onEfisiensiDateChange = onEfisiensiDateChange;
+window.updateEfisiensiLiveCalculation = updateEfisiensiLiveCalculation;
+window.submitEfisiensiForm = submitEfisiensiForm;
+window.editEfisiensiWeekRow = editEfisiensiWeekRow;
 
 /**
  * Render Rincian Transaksi Mingguan Efisiensi (HPP & Kas Kecil) (v5.8.0)
@@ -7067,6 +7091,17 @@ function renderEfisiensiWeeklyBreakdown(selectedCId) {
 
     const belanja = Number(item.pembelianBahanBaku || 0);
     const kas = Number(item.terpakaiPettyCash || 0);
+
+    // HPP berbasis Realisasi Omzet Bulan Berjalan
+    const monthlyOmzet = getMonthlyActualOmzetForBranch(targetCId, itemDate);
+    let hpp = Number(item.hppPersen || 0);
+    if (belanja > 0 && monthlyOmzet > 0) {
+      hpp = Math.round((belanja / monthlyOmzet) * 1000) / 10;
+    }
+    const cfg = window.PANORAMA_STATE.operationalConfig || {};
+    const maxHppStd = Number((cfg.maxHpp !== undefined && cfg.maxHpp !== '') ? cfg.maxHpp : (item.targetHppMax || 35.0));
+    const isHppSafe = hpp <= maxHppStd;
+
     sumBelanja += belanja;
     sumKas += kas;
     if (item.kasBulanan) {
@@ -7185,9 +7220,9 @@ function openInputEfisiensiModal() {
   const d = window.PANORAMA_STATE.data;
   if (!d || !d.cabang) return;
 
-  const user = window.PANORAMA_STATE.user;
-  const isCOO = (user && user.role === 'COO');
-  const userArea = isCOO ? (window.PANORAMA_STATE.filters.areaId || 'AREA-01') : (user ? user.areaId : 'AREA-01');
+  const user = window.PANORAMA_STATE.user || {};
+  const isCOO = (roleInfo.isMaster || roleInfo.isCOO || roleInfo.canViewAll);
+  const userArea = isCOO ? (window.PANORAMA_STATE.filters.areaId || 'ALL') : (user.areaId || 'AREA-01');
 
   // Filter cabang sesuai wilayah MA (atau seluruh cabang jika COO)
   const allowedBranches = d.cabang.filter(c => isCOO ? (userArea === 'ALL' || c.areaId === userArea) : c.areaId === userArea);

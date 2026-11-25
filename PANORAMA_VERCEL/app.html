@@ -59,7 +59,7 @@
         if (s.indexOf('page=ulasan') !== -1 || s.indexOf('page=review') !== -1 || s.indexOf('p=ulasan') !== -1 || p.page === 'ulasan' || p.page === 'review') {
           document.documentElement.classList.add('panorama-review-mode');
         }
-      } catch (eReviewMode) {}
+      } catch (eReviewMode) { }
     })();
 
     // Early Theme Resolver & Android Force-Dark Adapter (0-Flicker v5.7.1)
@@ -72,7 +72,7 @@
         // 1. Standard W3C media query
         try {
           if (mq && mq.matches) return true;
-        } catch (eMq) {}
+        } catch (eMq) { }
 
         // 2. Android Force-Dark / OS-level Inversion Probe (ColorOS / MIUI / HyperOS)
         try {
@@ -88,7 +88,7 @@
             var brightness = (r * 299 + g * 587 + b * 114) / 1000;
             if (brightness < 160) return true;
           }
-        } catch (eProbe) {}
+        } catch (eProbe) { }
 
         return false;
       }
@@ -150,7 +150,7 @@
       window.togglePanoramaTheme = function () {
         var current = docEl.getAttribute('data-theme') || (detectSystemDark() ? 'dark' : 'light');
         var next = current === 'dark' ? 'light' : 'dark';
-        try { localStorage.setItem('PANORAMA_THEME_V2', next); } catch (e) {}
+        try { localStorage.setItem('PANORAMA_THEME_V2', next); } catch (e) { }
         docEl.classList.add('theme-switching');
         apply(next);
         setTimeout(function () { docEl.classList.remove('theme-switching'); }, 400);
@@ -181,7 +181,7 @@
             }
           }
         }
-      } catch (eEarlySess) {}
+      } catch (eEarlySess) { }
     })();
   </script>
 
@@ -16127,7 +16127,8 @@
             <svg class="theme-icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <circle cx="12" cy="12" r="4" />
-              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+              <path
+                d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
             </svg>
           </button>
 
@@ -16297,31 +16298,36 @@
                 <div class="hero-ranking-header">
                   <div class="hero-ranking-top-row">
                     <span class="hero-ranking-title">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" y1="20" x2="18" y2="10"/>
-                        <line x1="12" y1="20" x2="12" y2="4"/>
-                        <line x1="6" y1="20" x2="6" y2="14"/>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="20" x2="18" y2="10" />
+                        <line x1="12" y1="20" x2="12" y2="4" />
+                        <line x1="6" y1="20" x2="6" y2="14" />
                       </svg>
                       Ranking Cabang
                     </span>
                     <span class="hero-ranking-badge" id="badgeHeroRankScope">NASIONAL</span>
                   </div>
                   <div class="hero-ranking-tabs">
-                    <button type="button" class="hero-ranking-tab active" id="btnHeroRankTop" onclick="setHeroRankingTab('TOP')">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="hero-rank-tab-icon">
-                        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
-                        <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
-                        <path d="M4 22h16"/>
-                        <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
-                        <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
-                        <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+                    <button type="button" class="hero-ranking-tab active" id="btnHeroRankTop"
+                      onclick="setHeroRankingTab('TOP')">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="hero-rank-tab-icon">
+                        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+                        <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+                        <path d="M4 22h16" />
+                        <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+                        <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+                        <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
                       </svg>
                       <span id="lblHeroRankTop">Top 10 Tertinggi</span>
                     </button>
-                    <button type="button" class="hero-ranking-tab" id="btnHeroRankBottom" onclick="setHeroRankingTab('BOTTOM')">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="hero-rank-tab-icon">
-                        <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/>
-                        <polyline points="17 18 23 18 23 12"/>
+                    <button type="button" class="hero-ranking-tab" id="btnHeroRankBottom"
+                      onclick="setHeroRankingTab('BOTTOM')">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="hero-rank-tab-icon">
+                        <polyline points="23 18 13.5 8.5 8.5 13.5 1 6" />
+                        <polyline points="17 18 23 18 23 12" />
                       </svg>
                       <span id="lblHeroRankBottom">10 Terbawah</span>
                     </button>
@@ -16351,7 +16357,8 @@
                 <div class="sales-chart-header-left">
                   <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                     <div class="metric-icon-box icon-box-sales">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="20" x2="18" y2="10" />
                         <line x1="12" y1="20" x2="12" y2="4" />
                         <line x1="6" y1="20" x2="6" y2="14" />
@@ -16449,7 +16456,8 @@
               <div class="metric-card-header">
                 <div class="metric-card-title-group">
                   <div class="metric-icon-box icon-box-incident">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"
+                      stroke-linecap="round" stroke-linejoin="round">
                       <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
                       <line x1="12" y1="9" x2="12" y2="13" />
                       <line x1="12" y1="17" x2="12.01" y2="17" />
@@ -16458,15 +16466,18 @@
                   <span class="metric-card-title">2. Insiden & SLA</span>
                 </div>
                 <div class="metric-arrow-btn" onclick="switchTab('insiden')" title="Buka Detail Insiden">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M7 17L17 7"/>
-                    <path d="M7 7h10v10"/>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 17L17 7" />
+                    <path d="M7 7h10v10" />
                   </svg>
                 </div>
               </div>
               <div class="metric-card-value" id="metricOpenIncidents">0 Kasus</div>
               <div class="metric-card-sub">
-                <span id="metricAvgSla" class="pill-badge-donezo"><span class="live-dot-rose"></span> Rata-rata SLA: 0.0 Jam</span>
+                <span id="metricAvgSla" class="pill-badge-donezo">Rata-rata SLA: 0.0 Jam</span>
+                <span id="metricAvgSla" class="pill-badge-donezo"><span class="live-dot-rose"></span> Rata-rata SLA: 0.0
+                  Jam</span>
               </div>
               <div class="metric-meta-sub" id="metricMetaSubSla">Target SLA Nasional: &lt; 12 Jam</div>
             </div>
@@ -16477,8 +16488,10 @@
               <div class="metric-card-header">
                 <div class="metric-card-title-group">
                   <div class="metric-icon-box icon-box-efficiency">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <path
+                        d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
                       <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
                       <line x1="12" y1="22.08" x2="12" y2="12" />
                     </svg>
@@ -16486,15 +16499,18 @@
                   <span class="metric-card-title">3. Efisiensi Biaya Toko</span>
                 </div>
                 <div class="metric-arrow-btn" onclick="switchTab('efisiensi')" title="Buka Detail Efisiensi">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M7 17L17 7"/>
-                    <path d="M7 7h10v10"/>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 17L17 7" />
+                    <path d="M7 7h10v10" />
                   </svg>
                 </div>
               </div>
               <div class="metric-card-value" id="metricHppWaste">HPP 0%</div>
               <div class="metric-card-sub">
-                <span id="metricPettyCash" class="pill-badge-donezo"><span class="live-dot-green"></span> Petty Cash: Rp 0</span>
+                <span id="metricPettyCash" class="pill-badge-donezo">Petty Cash: Rp 0</span>
+                <span id="metricPettyCash" class="pill-badge-donezo"><span class="live-dot-green"></span> Petty Cash: Rp
+                  0</span>
               </div>
               <div class="metric-meta-sub" id="metricMetaSubHppWaste">Toleransi HPP: Max 35.0% | Waste: Max 2.0%</div>
             </div>
@@ -16505,7 +16521,8 @@
               <div class="metric-card-header">
                 <div class="metric-card-title-group">
                   <div class="metric-icon-box icon-box-tasks">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"
+                      stroke-linecap="round" stroke-linejoin="round">
                       <path d="M9 11l3 3L22 4" />
                       <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
                     </svg>
@@ -16513,9 +16530,10 @@
                   <span class="metric-card-title">4. Status Tugas Lapangan</span>
                 </div>
                 <div class="metric-arrow-btn" onclick="switchTab('tugas')" title="Buka Kanban Tugas">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M7 17L17 7"/>
-                    <path d="M7 7h10v10"/>
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 17L17 7" />
+                    <path d="M7 7h10v10" />
                   </svg>
                 </div>
               </div>
@@ -16536,7 +16554,8 @@
               <div class="panel-header">
                 <div class="panel-title">
                   <div class="metric-icon-box icon-box-leaderboard">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                      stroke-linecap="round" stroke-linejoin="round">
                       <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
                       <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
                       <path d="M4 22h16" />
@@ -16592,7 +16611,8 @@
               <div class="panel-header">
                 <div class="panel-title">
                   <div class="metric-icon-box icon-box-incident">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                      stroke-linecap="round" stroke-linejoin="round">
                       <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
                       <line x1="12" y1="9" x2="12" y2="13" />
                       <line x1="12" y1="17" x2="12.01" y2="17" />
@@ -16627,7 +16647,8 @@
             <div class="panel-header sales-panel-header">
               <div class="panel-title">
                 <div class="metric-icon-box icon-box-sales">
-                  <svg class="p-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                  <svg class="p-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="18" y1="20" x2="18" y2="10" />
                     <line x1="12" y1="20" x2="12" y2="4" />
                     <line x1="6" y1="20" x2="6" y2="14" />
@@ -16707,7 +16728,8 @@
             <div class="panel-header">
               <div class="panel-title">
                 <div class="metric-icon-box icon-box-leaderboard">
-                  <svg class="p-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                  <svg class="p-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
                     <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
                     <path d="M4 22h16" />
@@ -16753,7 +16775,8 @@
             <div class="panel-header">
               <div class="panel-title">
                 <div class="metric-icon-box icon-box-incident">
-                  <svg class="p-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                  <svg class="p-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
                     <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
                     <line x1="12" y1="9" x2="12" y2="13" />
                     <line x1="12" y1="17" x2="12.01" y2="17" />
@@ -16802,7 +16825,8 @@
             <div class="panel-header efisiensi-panel-header">
               <div class="panel-title" style="flex: 1; min-width: 0;">
                 <div class="metric-icon-box icon-box-efficiency">
-                  <svg class="p-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                  <svg class="p-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
                     <path
                       d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
                   </svg>
@@ -16855,7 +16879,8 @@
               <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                 <div class="panel-title">
                   <div class="metric-icon-box icon-box-tasks">
-                    <svg class="p-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                    <svg class="p-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
                       <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
                       <polyline points="9 11 12 14 22 4" />
                     </svg>
@@ -16987,7 +17012,8 @@
               style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; width: 100%;">
               <div style="display: flex; align-items: center; gap: 10px;">
                 <div class="metric-icon-box icon-box-jadwal">
-                  <svg class="p-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                  <svg class="p-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
                     <rect width="18" height="18" x="3" y="4" rx="2" />
                     <line x1="16" x2="16" y1="2" y2="6" />
                     <line x1="8" x2="8" y1="2" y2="6" />
@@ -17100,7 +17126,8 @@
                   <button type="button" class="btn" id="btnExportAbsensiMaExcel" onclick="exportAbsensiMaToExcel()"
                     title="Download Rekap Absensi & Jadwal Kerja Seluruh Area Manager ke Excel (.xls) untuk Pencocokan Mesin Fingerprint HRD"
                     style="height: 38px; display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700; border-radius: 10px; background: #0F5132; color: #FFFFFF; border: 1px solid #0B3D26; white-space: nowrap; padding: 0 16px; cursor: pointer; box-shadow: 0 2px 6px rgba(15,81,50,0.2); transition: all 0.2s ease;">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                      stroke-linecap="round" stroke-linejoin="round">
                       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                       <polyline points="14 2 14 8 20 8" />
                       <line x1="16" y1="13" x2="8" y2="13" />
@@ -17282,13 +17309,16 @@
                 <div class="metric-icon-box icon-box-review">
                   <svg class="p-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                    <polygon
+                      points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                   </svg>
                 </div>
                 <div>
-                  <h3 style="font-size:16px; font-weight:800; color:var(--text-main); margin:0;">Customer Review & AI Intelligence</h3>
+                  <h3 style="font-size:16px; font-weight:800; color:var(--text-main); margin:0;">Customer Review & AI
+                    Intelligence</h3>
                   <p style="font-size:11px; color:var(--text-muted); margin:2px 0 0 0;">
-                    Monitoring kepuasan pelanggan realtime, evaluasi keluhan &le; 3 bintang, dan eskalasi instan WhatsApp.
+                    Monitoring kepuasan pelanggan realtime, evaluasi keluhan &le; 3 bintang, dan eskalasi instan
+                    WhatsApp.
                   </p>
                 </div>
               </div>
@@ -17329,8 +17359,10 @@
             <div class="sales-kpi-summary-grid" id="mapsKpiSummaryGrid">
               <div class="sales-kpi-card maps-kpi-card-rating">
                 <span class="sales-kpi-label">Rating Rata-rata</span>
-                <span class="sales-kpi-value"><span id="mapsKpiAvgRating">0.0</span> <span style="color:#F59E0B; font-size:12px;">★★★★★</span></span>
-                <span class="sales-kpi-sub" style="color:var(--text-muted);"><span id="mapsKpiTotalReviews">0 Ulasan</span> • Real-Time</span>
+                <span class="sales-kpi-value"><span id="mapsKpiAvgRating">0.0</span> <span
+                    style="color:#F59E0B; font-size:12px;">★★★★★</span></span>
+                <span class="sales-kpi-sub" style="color:var(--text-muted);"><span id="mapsKpiTotalReviews">0
+                    Ulasan</span> • Real-Time</span>
               </div>
               <div class="sales-kpi-card maps-kpi-card-critical">
                 <span class="sales-kpi-label">Komplain Kritis (&le; 3★)</span>
@@ -17339,7 +17371,8 @@
               </div>
               <div class="sales-kpi-card maps-kpi-card-sentiment">
                 <span class="sales-kpi-label">Isu Utama AI (NLP)</span>
-                <span class="sales-kpi-value" style="font-size:13px; font-weight:800;" id="mapsKpiTopIssue">Pelayanan & Antrean</span>
+                <span class="sales-kpi-value" style="font-size:13px; font-weight:800;" id="mapsKpiTopIssue">Pelayanan &
+                  Antrean</span>
                 <span class="sales-kpi-sub" style="color:var(--text-muted);">Sentimen Pelanggan</span>
               </div>
               <div class="sales-kpi-card maps-kpi-card-resolution">
@@ -17349,153 +17382,154 @@
               </div>
             </div>
 
-          <!-- Rating Breakdown Distribution & Live Filter Toolbar -->
-          <div
-            style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:12px; padding:14px 16px; margin-bottom:14px;">
+            <!-- Rating Breakdown Distribution & Live Filter Toolbar -->
             <div
-              style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
-              <div>
-                <strong style="font-size:12.5px; color:var(--text-main);">Filter Keluhan & Customer Review</strong>
-                <div style="font-size:11px; color:var(--text-muted);">Pilih bintang, kategori isu ulasan, atau cari
-                  gerai binaan tertentu</div>
+              style="background:var(--bg-surface); border:1px solid var(--border-color); border-radius:12px; padding:14px 16px; margin-bottom:14px;">
+              <div
+                style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+                <div>
+                  <strong style="font-size:12.5px; color:var(--text-main);">Filter Keluhan & Customer Review</strong>
+                  <div style="font-size:11px; color:var(--text-muted);">Pilih bintang, kategori isu ulasan, atau cari
+                    gerai binaan tertentu</div>
+                </div>
+                <!-- Status Scanner Pill & QR Code Generator -->
+                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                  <button type="button" class="btn btn-primary" onclick="openModalQrUlasan()"
+                    style="display:inline-flex; align-items:center; gap:6px; font-size:11.5px; padding:6px 12px; font-weight:700;"
+                    title="Generate & Cetak QR Code Meja Seluruh Gerai">
+                    <span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+                        <line x1="12" y1="18" x2="12.01" y2="18" />
+                      </svg></span> QR Code Meja Gerai
+                  </button>
+                  <div
+                    style="display:inline-flex; align-items:center; gap:6px; background:#ECFDF5; border:1px solid #A7F3D0; padding:4px 10px; border-radius:99px; font-size:11px; color:#065F46; font-weight:700;">
+                    <span class="ai-pulse-dot"></span>
+                    <span>Live Form Ulasan: Terhubung</span>
+                  </div>
+                </div>
               </div>
-              <!-- Status Scanner Pill & QR Code Generator -->
-              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                <button type="button" class="btn btn-primary" onclick="openModalQrUlasan()"
-                  style="display:inline-flex; align-items:center; gap:6px; font-size:11.5px; padding:6px 12px; font-weight:700;"
-                  title="Generate & Cetak QR Code Meja Seluruh Gerai">
-                  <span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                      stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
-                      <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
-                      <line x1="12" y1="18" x2="12.01" y2="18" />
-                    </svg></span> QR Code Meja Gerai
+
+              <!-- Pill Filter Bintang Rating -->
+              <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
+                <button type="button" class="pill-btn active" id="btnFilterReviewCritical"
+                  onclick="filterMapsReviews('critical')">
+                  <svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg> Kritis (&le; 3 Bintang)
                 </button>
-                <div
-                  style="display:inline-flex; align-items:center; gap:6px; background:#ECFDF5; border:1px solid #A7F3D0; padding:4px 10px; border-radius:99px; font-size:11px; color:#065F46; font-weight:700;">
-                  <span class="ai-pulse-dot"></span>
-                  <span>Live Form Ulasan: Terhubung</span>
+                <button type="button" class="pill-btn" id="btnFilterReviewStar1" onclick="filterMapsReviews('1')">
+                  <svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon
+                      points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg> 1 Bintang (Darurat)
+                </button>
+                <button type="button" class="pill-btn" id="btnFilterReviewStar2" onclick="filterMapsReviews('2')">
+                  <svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon
+                      points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon
+                      points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg> 2 Bintang
+                </button>
+                <button type="button" class="pill-btn" id="btnFilterReviewStar3" onclick="filterMapsReviews('3')">
+                  <svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon
+                      points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon
+                      points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon
+                      points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg> 3 Bintang
+                </button>
+                <button type="button" class="pill-btn" id="btnFilterReviewStar45"
+                  onclick="filterMapsReviews('positive')">
+                  <svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon
+                      points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon
+                      points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon
+                      points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon
+                      points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon
+                      points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg> 4-5 Bintang (Pujian)
+                </button>
+                <button type="button" class="pill-btn" id="btnFilterReviewAll" onclick="filterMapsReviews('all')">
+                  Semua Ulasan
+                </button>
+              </div>
+
+              <!-- Second Row Filters: Search & Issue Tag Dropdown & Area Dropdown -->
+              <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                <div style="flex:2; min-width:200px; position:relative;">
+                  <input type="text" class="form-input" id="mapsReviewSearchInput"
+                    placeholder="Cari cabang, reviewer, kata keluhan (misal: lambat, cair, kotor)..."
+                    style="font-size:11.5px; padding:7px 12px 7px 30px;" oninput="onSearchMapsReviews(this.value)">
+                  <span
+                    style="position:absolute; left:9px; top:50%; transform:translateY(-50%); color:var(--text-muted); font-size:12px;"><svg
+                      class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="11" cy="11" r="8" />
+                      <path d="m21 21-4.3-4.3" />
+                    </svg></span>
+                </div>
+
+                <div style="flex:1; min-width:140px;" id="mapsAreaFilterWrapper">
+                  <select class="form-input" id="mapsReviewAreaSelect" style="font-size:11.5px; padding:7px 10px;"
+                    onchange="onFilterMapsArea(this.value)">
+                    <option value="ALL">Semua Wilayah Operasional</option>
+                  </select>
+                </div>
+
+                <div style="flex:1; min-width:150px;">
+                  <select class="form-input" id="mapsReviewIssueSelect" style="font-size:11.5px; padding:7px 10px;"
+                    onchange="onFilterMapsIssue(this.value)">
+                    <option value="ALL">Semua Analisis Isu AI</option>
+                    <option value="PELAYANAN">Pelayanan & Antrean</option>
+                    <option value="RASA_PRODUK">Rasa & Kualitas Produk</option>
+                    <option value="KEBERSIHAN">Kebersihan & Sanitasi</option>
+                    <option value="KASIR">Kasir & Transaksi</option>
+                    <option value="FASILITAS">Fasilitas AC & Toko</option>
+                  </select>
+                </div>
+
+                <div style="font-size:11px; color:var(--text-muted); white-space:nowrap;">
+                  <span id="mapsReviewCountBadge">Menampilkan 0 ulasan</span>
                 </div>
               </div>
             </div>
 
-            <!-- Pill Filter Bintang Rating -->
-            <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
-              <button type="button" class="pill-btn active" id="btnFilterReviewCritical"
-                onclick="filterMapsReviews('critical')">
-                <svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
-                  <line x1="12" y1="9" x2="12" y2="13" />
-                  <line x1="12" y1="17" x2="12.01" y2="17" />
-                </svg> Kritis (&le; 3 Bintang)
-              </button>
-              <button type="button" class="pill-btn" id="btnFilterReviewStar1" onclick="filterMapsReviews('1')">
-                <svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
-                  <polygon
-                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                </svg> 1 Bintang (Darurat)
-              </button>
-              <button type="button" class="pill-btn" id="btnFilterReviewStar2" onclick="filterMapsReviews('2')">
-                <svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
-                  <polygon
-                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                </svg><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
-                  <polygon
-                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                </svg> 2 Bintang
-              </button>
-              <button type="button" class="pill-btn" id="btnFilterReviewStar3" onclick="filterMapsReviews('3')">
-                <svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
-                  <polygon
-                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                </svg><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
-                  <polygon
-                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                </svg><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
-                  <polygon
-                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                </svg> 3 Bintang
-              </button>
-              <button type="button" class="pill-btn" id="btnFilterReviewStar45" onclick="filterMapsReviews('positive')">
-                <svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
-                  <polygon
-                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                </svg><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
-                  <polygon
-                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                </svg><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
-                  <polygon
-                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                </svg><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
-                  <polygon
-                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                </svg><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
-                  <polygon
-                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                </svg> 4-5 Bintang (Pujian)
-              </button>
-              <button type="button" class="pill-btn" id="btnFilterReviewAll" onclick="filterMapsReviews('all')">
-                Semua Ulasan
-              </button>
-            </div>
-
-            <!-- Second Row Filters: Search & Issue Tag Dropdown & Area Dropdown -->
-            <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-              <div style="flex:2; min-width:200px; position:relative;">
-                <input type="text" class="form-input" id="mapsReviewSearchInput"
-                  placeholder="Cari cabang, reviewer, kata keluhan (misal: lambat, cair, kotor)..."
-                  style="font-size:11.5px; padding:7px 12px 7px 30px;" oninput="onSearchMapsReviews(this.value)">
-                <span
-                  style="position:absolute; left:9px; top:50%; transform:translateY(-50%); color:var(--text-muted); font-size:12px;"><svg
-                    class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="11" cy="11" r="8" />
-                    <path d="m21 21-4.3-4.3" />
-                  </svg></span>
-              </div>
-
-              <div style="flex:1; min-width:140px;" id="mapsAreaFilterWrapper">
-                <select class="form-input" id="mapsReviewAreaSelect" style="font-size:11.5px; padding:7px 10px;"
-                  onchange="onFilterMapsArea(this.value)">
-                  <option value="ALL">Semua Wilayah Operasional</option>
-                </select>
-              </div>
-
-              <div style="flex:1; min-width:150px;">
-                <select class="form-input" id="mapsReviewIssueSelect" style="font-size:11.5px; padding:7px 10px;"
-                  onchange="onFilterMapsIssue(this.value)">
-                  <option value="ALL">Semua Analisis Isu AI</option>
-                  <option value="PELAYANAN">Pelayanan & Antrean</option>
-                  <option value="RASA_PRODUK">Rasa & Kualitas Produk</option>
-                  <option value="KEBERSIHAN">Kebersihan & Sanitasi</option>
-                  <option value="KASIR">Kasir & Transaksi</option>
-                  <option value="FASILITAS">Fasilitas AC & Toko</option>
-                </select>
-              </div>
-
-              <div style="font-size:11px; color:var(--text-muted); white-space:nowrap;">
-                <span id="mapsReviewCountBadge">Menampilkan 0 ulasan</span>
-              </div>
+            <!-- Reviews Feed Container -->
+            <div id="mapsReviewsContainer">
+              <!-- Injected dynamically via JS -->
             </div>
           </div>
-
-          <!-- Reviews Feed Container -->
-          <div id="mapsReviewsContainer">
-            <!-- Injected dynamically via JS -->
-          </div>
-        </div>
-      </section>
+        </section>
 
         <!-- ========================================================================
              SECTION 9: PERPUSTAKAAN DIGITAL SOP & REGULASI PERUSAHAAN
@@ -18398,17 +18432,38 @@
                         PANORAMA sedang <strong>ditutup total</strong>. Mendukung Android & iOS (PWA Home Screen).
                       </p>
                       <div style="display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap; align-items:center;">
-                        <span style="font-size:10.5px; font-weight:700; color:var(--text-muted);">Khusus Disiarkan:</span>
-                        <span class="badge" style="background:#E0F2FE; color:#0369A1; font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:4px;">
-                          <svg class="p-ico" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+                        <span style="font-size:10.5px; font-weight:700; color:var(--text-muted);">Khusus
+                          Disiarkan:</span>
+                        <span class="badge"
+                          style="background:#E0F2FE; color:#0369A1; font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:4px;">
+                          <svg class="p-ico" width="11" height="11" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                          </svg>
                           📋 Tugas
                         </span>
-                        <span class="badge" style="background:#FEE2E2; color:#B91C1C; font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:4px;">
-                          <svg class="p-ico" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                        <span class="badge"
+                          style="background:#FEE2E2; color:#B91C1C; font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:4px;">
+                          <svg class="p-ico" width="11" height="11" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                              d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z">
+                            </path>
+                            <line x1="12" y1="9" x2="12" y2="13"></line>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                          </svg>
                           🚨 Insiden
                         </span>
-                        <span class="badge" style="background:#FEF3C7; color:#92400E; font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:4px;">
-                          <svg class="p-ico" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                        <span class="badge"
+                          style="background:#FEF3C7; color:#92400E; font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:4px;">
+                          <svg class="p-ico" width="11" height="11" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                          </svg>
                           📅 Jadwal
                         </span>
                       </div>
@@ -18923,7 +18978,8 @@
             </div>
           </div>
           <p class="breakdown-note">ℹ️ Target ini otomatis aktif pada filter <em>Hari Ini</em>, <em>Minggu Ini</em>, dan
-            <em>Bulan Ini</em> serta mengisi otomatis form laporan sales harian.</p>
+            <em>Bulan Ini</em> serta mengisi otomatis form laporan sales harian.
+          </p>
         </div>
 
         <!-- REKAP TARGET CABANG AKTIF SAAT INI -->
@@ -18982,8 +19038,7 @@
           </div>
           <div class="form-group" style="flex: 1;">
             <label class="form-label">Tanggal Pelaporan</label>
-            <input type="date" class="form-input" id="efisiensiInputTanggal"
-              onchange="onEfisiensiDateChange()">
+            <input type="date" class="form-input" id="efisiensiInputTanggal" onchange="onEfisiensiDateChange()">
           </div>
         </div>
 
@@ -20058,7 +20113,8 @@
             <div class="form-group" style="margin-bottom: 10px;">
               <label class="form-label" style="margin-bottom: 4px;">Keterangan Tambahan / Cabang Visit</label>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;" id="calEditorInputsWrap">
-                <select class="form-select" id="calEditorCabangSelect" style="font-size: 11.5px;" onchange="onCalendarCabangChange()">
+                <select class="form-select" id="calEditorCabangSelect" style="font-size: 11.5px;"
+                  onchange="onCalendarCabangChange()">
                   <!-- Injected via JS -->
                 </select>
                 <input type="text" class="form-input" id="calEditorAgendaInput"
@@ -28412,6 +28468,21 @@ function openEditEfisiensiModalForBranch(cabangId) {
   openInputEfisiensiModal();
   const branchSelect = document.getElementById('efisiensiInputCabang');
   if (branchSelect && cabangId) {
+    let found = false;
+    for (let i = 0; i < branchSelect.options.length; i++) {
+      if (branchSelect.options[i].value === cabangId) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      const d = window.PANORAMA_STATE.data;
+      const cbg = (d && d.cabang) ? d.cabang.find(c => c.cabangId === cabangId) : null;
+      const opt = document.createElement('option');
+      opt.value = cabangId;
+      opt.textContent = cbg ? (cbg.namaCabang + ' (' + cbg.brand + ')') : cabangId;
+      branchSelect.appendChild(opt);
+    }
     branchSelect.value = cabangId;
   }
   const d = window.PANORAMA_STATE.data;
@@ -28428,6 +28499,15 @@ function openEditEfisiensiModalForBranch(cabangId) {
   setEfisiensiInputMode(existingEff ? 'CORRECT' : 'ADD');
   onEfisiensiBranchChange();
 }
+
+window.openEditEfisiensiModalForBranch = openEditEfisiensiModalForBranch;
+window.openInputEfisiensiModal = openInputEfisiensiModal;
+window.setEfisiensiInputMode = setEfisiensiInputMode;
+window.onEfisiensiBranchChange = onEfisiensiBranchChange;
+window.onEfisiensiDateChange = onEfisiensiDateChange;
+window.updateEfisiensiLiveCalculation = updateEfisiensiLiveCalculation;
+window.submitEfisiensiForm = submitEfisiensiForm;
+window.editEfisiensiWeekRow = editEfisiensiWeekRow;
 
 /**
  * Render Rincian Transaksi Mingguan Efisiensi (HPP & Kas Kecil) (v5.8.0)
@@ -28486,6 +28566,17 @@ function renderEfisiensiWeeklyBreakdown(selectedCId) {
 
     const belanja = Number(item.pembelianBahanBaku || 0);
     const kas = Number(item.terpakaiPettyCash || 0);
+
+    // HPP berbasis Realisasi Omzet Bulan Berjalan
+    const monthlyOmzet = getMonthlyActualOmzetForBranch(targetCId, itemDate);
+    let hpp = Number(item.hppPersen || 0);
+    if (belanja > 0 && monthlyOmzet > 0) {
+      hpp = Math.round((belanja / monthlyOmzet) * 1000) / 10;
+    }
+    const cfg = window.PANORAMA_STATE.operationalConfig || {};
+    const maxHppStd = Number((cfg.maxHpp !== undefined && cfg.maxHpp !== '') ? cfg.maxHpp : (item.targetHppMax || 35.0));
+    const isHppSafe = hpp <= maxHppStd;
+
     sumBelanja += belanja;
     sumKas += kas;
     if (item.kasBulanan) {
@@ -28604,9 +28695,9 @@ function openInputEfisiensiModal() {
   const d = window.PANORAMA_STATE.data;
   if (!d || !d.cabang) return;
 
-  const user = window.PANORAMA_STATE.user;
-  const isCOO = (user && user.role === 'COO');
-  const userArea = isCOO ? (window.PANORAMA_STATE.filters.areaId || 'AREA-01') : (user ? user.areaId : 'AREA-01');
+  const user = window.PANORAMA_STATE.user || {};
+  const isCOO = (roleInfo.isMaster || roleInfo.isCOO || roleInfo.canViewAll);
+  const userArea = isCOO ? (window.PANORAMA_STATE.filters.areaId || 'ALL') : (user.areaId || 'AREA-01');
 
   // Filter cabang sesuai wilayah MA (atau seluruh cabang jika COO)
   const allowedBranches = d.cabang.filter(c => isCOO ? (userArea === 'ALL' || c.areaId === userArea) : c.areaId === userArea);
