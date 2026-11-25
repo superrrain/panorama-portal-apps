@@ -19031,33 +19031,15 @@
           <div class="form-group" style="margin-bottom: 0;">
             <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
               <span id="labelKasInputTitle">+ Tambah Pengeluaran Kas (Rp)</span>
-              <span id="labelKasLiveAccum" class="badge badge-neutral" style="font-size: 10px;">Sisa: Rp 0</span>
+              <span id="labelKasLiveAccum" class="badge badge-neutral" style="font-size: 10px;">Total Bln: Rp 0</span>
             </label>
             <input type="number" class="form-input" id="inputKasTerpakaiMingguan" placeholder="Ketik nominal kas..."
               oninput="updateEfisiensiLiveCalculation()">
-            <div id="kasAccumInfoBox" class="efisiensi-calc-subtext">Plafon: Rp 1.500.000 • Sisa: Rp 1.500.000</div>
-
-            <!-- Tombol Tindakan Reimburse Kas Toko -->
-            <div class="reimburse-action-card">
-              <div class="reimburse-action-text">
-                <strong style="color: #166534; font-size: 11px;">Dana Reimburse Cair?</strong>
-                <span style="font-size: 10px; color: var(--text-muted); display: block;">Kembalikan saldo fisik ke
-                  plafon. Akumulasi bulanan tetap utuh.</span>
-              </div>
-              <button type="button" class="btn btn-outline btn-reimburse-sm" id="btnReimburseKas"
-                onclick="triggerReimburseKasCurrentBranch()">
-                <svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="23 4 23 10 17 10" />
-                  <polyline points="1 20 1 14 7 14" />
-                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
-                </svg> Reimburse
-              </button>
-            </div>
+            <div id="kasAccumInfoBox" class="efisiensi-calc-subtext">Total Kas Terpakai Bulan Ini: Rp 0</div>
           </div>
         </div>
 
-        <!-- SECTION 2: RUTINITAS BULANAN (WASTE & PLAFON KAS TOKO) -->
+        <!-- SECTION 2: RUTINITAS BULANAN (WASTE BAHAN BAKU) -->
         <div class="efisiensi-form-section" style="margin-bottom: 0;">
           <div class="efisiensi-section-title" style="margin-bottom: 8px;">
             <span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -19067,17 +19049,10 @@
                 <line x1="6" y1="20" x2="6" y2="14" />
               </svg> SETTING BULANAN (OPSIONAL)</span>
           </div>
-          <div class="form-row">
-            <div class="form-group" style="flex: 1; margin-bottom: 0;">
-              <label class="form-label">Waste Bulanan (%) <span
-                  style="font-size: 10px; color: var(--text-muted); font-weight: normal;">(≤ 2.0%)</span></label>
-              <input type="number" step="0.1" class="form-input" id="inputWasteBulanan" placeholder="Contoh: 1.2">
-            </div>
-            <div class="form-group" style="flex: 1.2; margin-bottom: 0;">
-              <label class="form-label">Plafon Kas (Rp)</label>
-              <input type="number" class="form-input" id="inputPlafonKas" placeholder="Contoh: 1500000"
-                oninput="updateEfisiensiLiveCalculation()">
-            </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label">Waste Bulanan (%) <span
+                style="font-size: 10px; color: var(--text-muted); font-weight: normal;">(≤ 2.0%)</span></label>
+            <input type="number" step="0.1" class="form-input" id="inputWasteBulanan" placeholder="Contoh: 1.2">
           </div>
         </div>
 
@@ -19107,7 +19082,6 @@
                   <th>Belanja (Rp)</th>
                   <th>HPP</th>
                   <th>Kas Keluar</th>
-                  <th>Sisa Saldo</th>
                   <th style="text-align: center;">Pelapor</th>
                   <th style="text-align: center; width: 55px;">Aksi</th>
                 </tr>
@@ -27895,7 +27869,7 @@ function renderEfisiensiView() {
       statusType = 'no-report';
       statusLabel = 'Belum Lapor';
       statusBadgeClass = 'badge-neutral';
-    } else if (hppVal <= maxHppStd && wasteVal <= maxWasteStd && kasVal <= plafonVal) {
+    } else if (hppVal <= maxHppStd && wasteVal <= maxWasteStd) {
       statusType = 'safe';
       statusLabel = '✓ Efisien';
       statusBadgeClass = 'badge-success';
@@ -27907,13 +27881,9 @@ function renderEfisiensiView() {
       statusType = 'danger';
       statusLabel = '<svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> HPP Tinggi';
       statusBadgeClass = 'badge-danger';
-    } else if (wasteVal > maxWasteStd) {
-      statusType = 'warning';
-      statusLabel = '<svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Waste Tinggi';
-      statusBadgeClass = 'badge-warning';
     } else {
       statusType = 'warning';
-      statusLabel = '<svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Over Kas';
+      statusLabel = '<svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Waste Tinggi';
       statusBadgeClass = 'badge-warning';
     }
 
@@ -27962,8 +27932,7 @@ function renderEfisiensiView() {
   areaDataList.forEach(item => {
     item.avgHpp = item.laporCount > 0 ? (Math.round((item.sumHpp / item.laporCount) * 10) / 10) : 0;
     item.avgWaste = item.laporCount > 0 ? (Math.round((item.sumWaste / item.laporCount) * 10) / 10) : 0;
-    item.sisaKas = item.totalPlafon - item.totalKas;
-    item.isEfisien = (item.laporCount > 0 && item.avgHpp <= maxHppStd && item.avgWaste <= maxWasteStd && item.totalKas <= item.totalPlafon);
+    item.isEfisien = (item.laporCount > 0 && item.avgHpp <= maxHppStd && item.avgWaste <= maxWasteStd);
   });
 
   areaDataList.sort((a, b) => a.id.localeCompare(b.id));
@@ -28008,7 +27977,6 @@ function renderEfisiensiView() {
     if (isSpecificArea && activeArea) {
       const hppBadge = activeArea.avgHpp <= maxHppStd ? 'var(--forest-800)' : 'var(--danger)';
       const wasteBadge = activeArea.avgWaste <= maxWasteStd ? 'var(--forest-800)' : 'var(--warning)';
-      const kasBadge = activeArea.totalKas <= activeArea.totalPlafon ? 'var(--forest-800)' : 'var(--danger)';
 
       kpiGrid.innerHTML = 
         '<div class="sales-kpi-card">' +
@@ -28023,8 +27991,8 @@ function renderEfisiensiView() {
         '</div>' +
         '<div class="sales-kpi-card">' +
           '<span class="sales-kpi-label">Kas Terpakai Area</span>' +
-          '<span class="sales-kpi-value" style="color:' + kasBadge + ';">Rp ' + formatCompactRupiah(activeArea.totalKas) + '</span>' +
-          '<span class="sales-kpi-sub" style="color:var(--text-muted);">Plafon: Rp ' + formatCompactRupiah(activeArea.totalPlafon) + ' (Sisa: Rp ' + formatCompactRupiah(activeArea.sisaKas) + ')</span>' +
+          '<span class="sales-kpi-value" style="color:var(--forest-800);">Rp ' + formatCompactRupiah(activeArea.totalKas) + '</span>' +
+          '<span class="sales-kpi-sub" style="color:var(--text-muted);">Akumulasi Pengeluaran Gerai Bulan Ini</span>' +
         '</div>' +
         '<div class="sales-kpi-card">' +
           '<span class="sales-kpi-label">Kepatuhan Toko</span>' +
@@ -28037,7 +28005,6 @@ function renderEfisiensiView() {
       let natTotalCab = 0;
       let natSumHpp = 0;
       let natSumWaste = 0;
-      let natPlafon = 0;
       let natKas = 0;
       let patuhAreaCount = 0;
 
@@ -28046,14 +28013,12 @@ function renderEfisiensiView() {
         natLapor += a.laporCount;
         natSumHpp += a.sumHpp;
         natSumWaste += a.sumWaste;
-        natPlafon += a.totalPlafon;
         natKas += a.totalKas;
         if (a.isEfisien) patuhAreaCount++;
       });
 
       const natAvgHpp = natLapor > 0 ? (Math.round((natSumHpp / natLapor) * 10) / 10) : 0;
       const natAvgWaste = natLapor > 0 ? (Math.round((natSumWaste / natLapor) * 10) / 10) : 0;
-      const natSisaKas = natPlafon - natKas;
 
       kpiGrid.innerHTML = 
         '<div class="sales-kpi-card">' +
@@ -28068,8 +28033,8 @@ function renderEfisiensiView() {
         '</div>' +
         '<div class="sales-kpi-card">' +
           '<span class="sales-kpi-label">Kas Terpakai Nasional</span>' +
-          '<span class="sales-kpi-value" style="color:' + (natKas <= natPlafon ? 'var(--forest-800)' : 'var(--danger)') + ';">Rp ' + formatCompactRupiah(natKas) + '</span>' +
-          '<span class="sales-kpi-sub" style="color:var(--text-muted);">Plafon: Rp ' + formatCompactRupiah(natPlafon) + ' (Sisa: Rp ' + formatCompactRupiah(natSisaKas) + ')</span>' +
+          '<span class="sales-kpi-value" style="color:var(--forest-800);">Rp ' + formatCompactRupiah(natKas) + '</span>' +
+          '<span class="sales-kpi-sub" style="color:var(--text-muted);">Akumulasi Pengeluaran Seluruh Gerai</span>' +
         '</div>' +
         '<div class="sales-kpi-card">' +
           '<span class="sales-kpi-label">Kepatuhan Area</span>' +
@@ -28092,8 +28057,7 @@ function renderEfisiensiView() {
           '<th>Kota / Lokasi</th>' +
           '<th>HPP Bahan Baku</th>' +
           '<th style="text-align: center; width: 95px;">Waste</th>' +
-          '<th style="text-align: right; width: 115px;">Plafon Kas</th>' +
-          '<th style="text-align: right; min-width: 140px;">Kas Terpakai (Sisa)</th>' +
+          '<th style="text-align: right; min-width: 130px;">Kas Terpakai</th>' +
           '<th style="text-align: center; width: 110px;">Status</th>' +
           '<th style="text-align: center; width: 60px;">Aksi</th>' +
         '</tr>';
@@ -28127,11 +28091,9 @@ function renderEfisiensiView() {
 
         let kasCell = '<span style="color:var(--text-muted); font-size:11.5px;">-</span>';
         if (cb.hasReport) {
-          const isOverKas = cb.terpakaiPettyCash > cb.plafonPettyCash;
           kasCell = 
             '<div style="text-align:right;">' +
-              '<div style="font-weight:700; font-size:12px; color:' + (isOverKas ? 'var(--danger)' : 'var(--text-main)') + ';">Rp ' + formatRupiah(cb.terpakaiPettyCash) + '</div>' +
-              '<div style="font-size:10px; color:' + (cb.sisaKas >= 0 ? 'var(--success)' : 'var(--danger)') + '; font-weight:600;">' + (cb.sisaKas >= 0 ? 'Sisa: Rp ' + formatRupiah(cb.sisaKas) : 'Over: Rp ' + formatRupiah(Math.abs(cb.sisaKas))) + '</div>' +
+              '<div style="font-weight:700; font-size:12px; color:var(--text-main);">Rp ' + formatRupiah(cb.terpakaiPettyCash) + '</div>' +
             '</div>';
         }
 
@@ -28143,7 +28105,6 @@ function renderEfisiensiView() {
           '<td><span style="font-size:11px; color:var(--text-muted);">' + escapeHtml(cb.kota || activeArea.wilayah || '') + '</span></td>' +
           '<td>' + hppCell + '</td>' +
           '<td>' + wasteCell + '</td>' +
-          '<td style="text-align:right; font-weight:600; color:var(--text-main);">Rp ' + formatRupiah(cb.plafonPettyCash) + '</td>' +
           '<td>' + kasCell + '</td>' +
           '<td style="text-align:center;"><span class="badge ' + cb.statusBadgeClass + '" style="font-size:10px;">' + cb.statusLabel + '</span></td>' +
           '<td style="text-align:center;">' +
@@ -28192,8 +28153,8 @@ function renderEfisiensiView() {
             '</div>' +
             '<div class="efisiensi-metric-pill">' +
               '<span class="efisiensi-metric-label">Kas Terpakai</span>' +
-              '<span class="efisiensi-metric-value ' + (cb.hasReport && cb.terpakaiPettyCash <= cb.plafonPettyCash ? 'val-success' : (cb.hasReport ? 'val-danger' : '')) + '">' + kasValDisplay + '</span>' +
-              '<span class="efisiensi-metric-sub">' + (cb.hasReport ? (cb.sisaKas >= 0 ? 'Sisa Rp ' + formatCompactRupiah(cb.sisaKas) : 'Over Rp ' + formatCompactRupiah(Math.abs(cb.sisaKas))) : 'Plafon Rp ' + formatCompactRupiah(cb.plafonPettyCash)) + '</span>' +
+              '<span class="efisiensi-metric-value">' + kasValDisplay + '</span>' +
+              '<span class="efisiensi-metric-sub">Total Bulan Ini</span>' +
             '</div>' +
           '</div>' +
           '<div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; font-size:11px;">' +
@@ -28226,8 +28187,7 @@ function renderEfisiensiView() {
           '<th>Total Gerai</th>' +
           '<th>Rata-rata HPP</th>' +
           '<th style="text-align: center; width: 100px;">Rata-rata Waste</th>' +
-          '<th style="text-align: right; width: 120px;">Plafon Kas</th>' +
-          '<th style="text-align: right; min-width: 150px;">Kas Terpakai (Sisa)</th>' +
+          '<th style="text-align: right; min-width: 140px;">Kas Terpakai</th>' +
           '<th style="text-align: center; width: 120px;">Status Kepatuhan</th>' +
           '<th style="text-align: center; width: 130px;">Aksi</th>' +
         '</tr>';
@@ -28254,11 +28214,7 @@ function renderEfisiensiView() {
           '<td><span class="badge badge-neutral">' + a.totalCabang + ' Gerai (' + a.laporCount + ' Lapor)</span></td>' +
           '<td><span class="badge ' + hppBadgeClass + '" style="font-size:11px;">' + (a.laporCount > 0 ? a.avgHpp.toFixed(1) + '%' : '-') + '</span><span style="font-size:10px; color:var(--text-muted); margin-left:4px;">(Max ' + maxHppStd.toFixed(1) + '%)</span></td>' +
           '<td style="text-align:center;"><span class="badge ' + wasteBadgeClass + '" style="font-size:11px;">' + (a.laporCount > 0 ? a.avgWaste.toFixed(1) + '%' : '-') + '</span><div style="font-size:10px; color:var(--text-muted); margin-top:2px;">Max ' + maxWasteStd.toFixed(1) + '%</div></td>' +
-          '<td style="text-align:right; font-weight:600; color:var(--text-main);">Rp ' + formatRupiah(a.totalPlafon) + '</td>' +
-          '<td style="text-align:right;">' +
-            '<div style="font-weight:700; font-size:12px; color:' + (a.totalKas > a.totalPlafon ? 'var(--danger)' : 'var(--text-main)') + ';">Rp ' + formatRupiah(a.totalKas) + '</div>' +
-            '<div style="font-size:10px; color:' + (a.sisaKas >= 0 ? 'var(--success)' : 'var(--danger)') + '; font-weight:600;">' + (a.sisaKas >= 0 ? 'Sisa: Rp ' + formatRupiah(a.sisaKas) : 'Over: Rp ' + formatRupiah(Math.abs(a.sisaKas))) + '</div>' +
-          '</td>' +
+          '<td style="text-align:right; font-weight:700; font-size:12px; color:var(--text-main);">Rp ' + formatRupiah(a.totalKas) + '</td>' +
           '<td style="text-align:center;"><span class="badge ' + statusBadgeClass + '" style="font-size:10px;">' + statusText + '</span></td>' +
           '<td style="text-align:center;">' +
             '<button type="button" class="btn btn-outline" style="padding:4px 9px; font-size:10px; font-weight:700;" onclick="setAreaFilter(\'' + a.id + '\')">Lihat ' + a.totalCabang + ' Cabang →</button>' +
@@ -28302,8 +28258,8 @@ function renderEfisiensiView() {
             '</div>' +
             '<div class="efisiensi-metric-pill">' +
               '<span class="efisiensi-metric-label">Kas Terpakai</span>' +
-              '<span class="efisiensi-metric-value ' + (a.totalKas <= a.totalPlafon ? 'val-success' : 'val-danger') + '">Rp ' + formatCompactRupiah(a.totalKas) + '</span>' +
-              '<span class="efisiensi-metric-sub">Sisa Rp ' + formatCompactRupiah(a.sisaKas) + '</span>' +
+              '<span class="efisiensi-metric-value">Rp ' + formatCompactRupiah(a.totalKas) + '</span>' +
+              '<span class="efisiensi-metric-sub">Total Bulan Ini</span>' +
             '</div>' +
           '</div>' +
           '<div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">' +
@@ -28510,7 +28466,7 @@ function renderEfisiensiWeeklyBreakdown(selectedCId) {
   const branchEffs = filterEfisiensiByActiveMonth(d.efisiensi).filter(e => String(e.cabangId) === String(targetCId));
 
   if (branchEffs.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 16px; color: var(--text-muted);">Belum ada riwayat transaksi mingguan untuk gerai ini.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 16px; color: var(--text-muted);">Belum ada riwayat transaksi mingguan untuk gerai ini.</td></tr>';
     if (summary) summary.innerHTML = '<span>Belum ada transaksi tercatat.</span>';
     return;
   }
@@ -28522,7 +28478,6 @@ function renderEfisiensiWeeklyBreakdown(selectedCId) {
 
   let sumBelanja = 0;
   let sumKas = 0;
-  let maxPlafon = 1500000;
   let latestKasBulanan = 0;
 
   sortedEffs.forEach(item => {
@@ -28531,20 +28486,6 @@ function renderEfisiensiWeeklyBreakdown(selectedCId) {
 
     const belanja = Number(item.pembelianBahanBaku || 0);
     const kas = Number(item.terpakaiPettyCash || 0);
-    const plafon = Number(item.plafonPettyCash || 1500000);
-    maxPlafon = plafon;
-    const sisa = plafon - kas;
-
-    // HPP berbasis Realisasi Omzet Bulan Berjalan
-    const monthlyOmzet = getMonthlyActualOmzetForBranch(targetCId, itemDate);
-    let hpp = Number(item.hppPersen || 0);
-    if (belanja > 0 && monthlyOmzet > 0) {
-      hpp = Math.round((belanja / monthlyOmzet) * 1000) / 10;
-    }
-    const cfg = window.PANORAMA_STATE.operationalConfig || {};
-    const maxHppStd = Number((cfg.maxHpp !== undefined && cfg.maxHpp !== '') ? cfg.maxHpp : (item.targetHppMax || 35.0));
-    const isHppSafe = hpp <= maxHppStd;
-
     sumBelanja += belanja;
     sumKas += kas;
     if (item.kasBulanan) {
@@ -28568,8 +28509,7 @@ function renderEfisiensiWeeklyBreakdown(selectedCId) {
       '<td><div style="font-weight: 700; color: var(--text-main); font-size: 11px;">' + weekLabel + '</div></td>' +
       '<td><strong style="color: var(--text-main);">Rp ' + formatRupiah(belanja) + '</strong></td>' +
       '<td><span class="badge ' + (isHppSafe ? 'badge-success' : 'badge-danger') + '" style="font-size: 10px; padding: 2px 6px;">' + hpp.toFixed(1) + '%</span></td>' +
-      '<td><span style="color: var(--danger); font-weight: 600;">Rp ' + formatRupiah(kas) + '</span></td>' +
-      '<td><span style="color: ' + (sisa >= 0 ? 'var(--success)' : 'var(--danger)') + '; font-weight: 600;">Rp ' + formatRupiah(sisa) + '</span></td>' +
+      '<td><span style="color: var(--text-main); font-weight: 600;">Rp ' + formatRupiah(kas) + '</span></td>' +
       '<td style="text-align: center; color: var(--text-muted); font-size: 10.5px;">' + pelaporDisplay + '</td>' +
       '<td style="text-align: center;"><button type="button" class="btn-breakdown-edit" onclick="editEfisiensiWeekRow(\'' + (item.efisiensiId || '') + '\', \'' + itemDate + '\')" title="Koreksi Transaksi Minggu Ini">' + getPanoramaSvgIcon('edit', 11) + ' Edit</button></td>';
 
@@ -28578,7 +28518,6 @@ function renderEfisiensiWeeklyBreakdown(selectedCId) {
 
   if (summary) {
     if (!latestKasBulanan) latestKasBulanan = sumKas;
-    const sisaKasToko = maxPlafon - sumKas;
     const monthlyOmzetSum = getMonthlyActualOmzetForBranch(targetCId, activeDate);
     const totalHppMonth = (monthlyOmzetSum > 0 && sumBelanja > 0)
       ? (Math.round((sumBelanja / monthlyOmzetSum) * 1000) / 10)
@@ -28590,7 +28529,7 @@ function renderEfisiensiWeeklyBreakdown(selectedCId) {
     summary.innerHTML = 
       '<div>Total Riwayat Belanja Bahan: <strong style="color: var(--primary);">Rp ' + formatRupiah(sumBelanja) + '</strong> ' +
       '<span style="margin-left: 6px; font-size: 10.5px; color: var(--text-muted);">(HPP Bln: <strong style="color: ' + (isHppSafe ? 'var(--forest-800)' : 'var(--danger)') + ';">' + totalHppMonth.toFixed(1) + '%</strong> • Omzet Bln: <strong>Rp ' + formatRupiah(monthlyOmzetSum) + '</strong>)</span></div>' +
-      '<div>Kas Terpakai Riwayat: <strong style="color: var(--danger);">Rp ' + formatRupiah(sumKas) + '</strong> (Sisa: <strong style="color: ' + (sisaKasToko >= 0 ? 'var(--success)' : 'var(--danger)') + ';">Rp ' + formatRupiah(sisaKasToko) + '</strong>) • Bln: <strong>Rp ' + formatRupiah(latestKasBulanan) + '</strong></div>';
+      '<div>Total Kas Terpakai Riwayat: <strong style="color: var(--text-main);">Rp ' + formatRupiah(sumKas) + '</strong> • Akumulasi 1 Bln: <strong>Rp ' + formatRupiah(latestKasBulanan) + '</strong></div>';
   }
 }
 
@@ -28635,11 +28574,6 @@ function editEfisiensiWeekRow(effId, dateStr) {
   const inputWaste = document.getElementById('inputWasteBulanan');
   if (inputWaste && targetItem) {
     inputWaste.value = targetItem.wastePersen || '';
-  }
-
-  const inputPlafon = document.getElementById('inputPlafonKas');
-  if (inputPlafon && targetItem) {
-    inputPlafon.value = targetItem.plafonPettyCash || 1500000;
   }
 
   updateEfisiensiLiveCalculation();
@@ -28715,11 +28649,6 @@ function openInputEfisiensiModal() {
     inputWaste.value = existingEff ? existingEff.wastePersen : '';
   }
 
-  const inputPlafon = document.getElementById('inputPlafonKas');
-  if (inputPlafon) {
-    inputPlafon.value = existingEff ? existingEff.plafonPettyCash : 1500000;
-  }
-
   window.PANORAMA_STATE.editingEfisiensiId = null;
   setEfisiensiInputMode('ADD');
   renderEfisiensiWeeklyBreakdown(selCbgId);
@@ -28777,11 +28706,6 @@ function onEfisiensiBranchChange() {
   const inputWaste = document.getElementById('inputWasteBulanan');
   if (inputWaste) {
     inputWaste.value = existingEffAny ? existingEffAny.wastePersen : '';
-  }
-
-  const inputPlafon = document.getElementById('inputPlafonKas');
-  if (inputPlafon) {
-    inputPlafon.value = existingEffAny ? existingEffAny.plafonPettyCash : 1500000;
   }
 
   if (window.PANORAMA_STATE.efisiensiInputMode === 'CORRECT') {
@@ -28878,34 +28802,29 @@ function updateEfisiensiLiveCalculation() {
     }
   }
 
-  // 2. Akumulasi / Koreksi Kas Kecil (Siklus Berjalan vs Akumulasi 1 Bulan)
-  const existingEffAny = activeEffList.find(e => String(e.cabangId) === String(selCbgId)) || null;
-  const inputPlafon = document.getElementById('inputPlafonKas');
-  const plafon = inputPlafon ? (parseFloat(inputPlafon.value) || (existingEffAny ? existingEffAny.plafonPettyCash : 1500000)) : 1500000;
-
+  // 2. Akumulasi / Koreksi Kas Kecil (Minggu Ini & Akumulasi 1 Bulan)
   const inputKas = document.getElementById('inputKasTerpakaiMingguan');
   const kasBaru = inputKas ? (parseFloat(inputKas.value) || 0) : 0;
   const kasMingguSebelumnya = existingWeekEff ? (Number(existingWeekEff.terpakaiPettyCash) || 0) : 0;
 
   const thisWeekKas = isCorrectMode ? kasBaru : (kasMingguSebelumnya + kasBaru);
   const totalKasBulanan = sumOtherKas + thisWeekKas;
-  const sisaKas = plafon - totalKasBulanan;
 
   const labelKas = document.getElementById('labelKasLiveAccum');
   const infoKas = document.getElementById('kasAccumInfoBox');
 
   if (labelKas) {
-    labelKas.textContent = 'Sisa: Rp ' + formatRupiah(sisaKas);
-    labelKas.className = 'badge ' + (sisaKas >= 0 ? 'badge-success' : 'badge-danger');
+    labelKas.textContent = 'Total Bln: Rp ' + formatRupiah(totalKasBulanan);
+    labelKas.className = 'badge badge-neutral';
   }
 
   if (infoKas) {
     if (isCorrectMode) {
-      infoKas.innerHTML = 'Koreksi ' + currentWeekInfo.weekLabel + ': <strong>Rp ' + formatRupiah(thisWeekKas) + '</strong> • Plafon: <strong>Rp ' + formatRupiah(plafon) + '</strong> • 1 Bln: <strong>Rp ' + formatRupiah(totalKasBulanan) + '</strong>';
+      infoKas.innerHTML = 'Koreksi ' + currentWeekInfo.weekLabel + ': <strong>Rp ' + formatRupiah(thisWeekKas) + '</strong> • Total Kas 1 Bln: <strong>Rp ' + formatRupiah(totalKasBulanan) + '</strong>';
     } else if (kasBaru > 0) {
-      infoKas.innerHTML = 'Kas ' + currentWeekInfo.weekLabel + ': <strong>Rp ' + formatRupiah(thisWeekKas) + '</strong> (+Rp ' + formatRupiah(kasBaru) + ') • Plafon: <strong>Rp ' + formatRupiah(plafon) + '</strong> • 1 Bln: <strong>Rp ' + formatRupiah(totalKasBulanan) + '</strong>';
+      infoKas.innerHTML = 'Kas ' + currentWeekInfo.weekLabel + ': <strong>Rp ' + formatRupiah(thisWeekKas) + '</strong> (+Rp ' + formatRupiah(kasBaru) + ') • Total Kas 1 Bln: <strong>Rp ' + formatRupiah(totalKasBulanan) + '</strong>';
     } else {
-      infoKas.innerHTML = 'Plafon: <strong>Rp ' + formatRupiah(plafon) + '</strong> • Kas ' + currentWeekInfo.weekLabel + ': <strong>Rp ' + formatRupiah(kasMingguSebelumnya) + '</strong> • 1 Bln: <strong>Rp ' + formatRupiah(totalKasBulanan) + '</strong>';
+      infoKas.innerHTML = 'Kas ' + currentWeekInfo.weekLabel + ': <strong>Rp ' + formatRupiah(kasMingguSebelumnya) + '</strong> • Total Kas 1 Bln: <strong>Rp ' + formatRupiah(totalKasBulanan) + '</strong>';
     }
   }
 }
@@ -28938,9 +28857,6 @@ function submitEfisiensiForm() {
 
   const inputWaste = document.getElementById('inputWasteBulanan');
   const wasteInputVal = inputWaste ? inputWaste.value.trim() : '';
-
-  const inputPlafon = document.getElementById('inputPlafonKas');
-  const plafonInputVal = inputPlafon ? inputPlafon.value.trim() : '';
 
   const selMonthPrefix = String(tanggal).substring(0, 7);
   const activeEffList = d.efisiensi ? filterEfisiensiByActiveMonth(d.efisiensi, selMonthPrefix) : [];
@@ -28991,13 +28907,7 @@ function submitEfisiensiForm() {
     finalWaste = Math.round(parseFloat(wasteInputVal) * 10) / 10;
   }
 
-  // 3. Plafon Petty Cash
-  let finalPlafon = existingEffAny ? existingEffAny.plafonPettyCash : 1500000;
-  if (plafonInputVal !== '') {
-    finalPlafon = Math.max(0, parseFloat(plafonInputVal));
-  }
-
-  // 4. Hitung Kas Kecil Minggu Ini & 1 Bulan
+  // 3. Hitung Kas Kecil Minggu Ini & 1 Bulan
   const kasMingguSebelumnya = existingWeekEff ? Number(existingWeekEff.terpakaiPettyCash || 0) : 0;
   const thisWeekKas = isCorrectMode ? kasBaru : (kasMingguSebelumnya + kasBaru);
   const totalKasBulan = otherWeeks.reduce((acc, w) => acc + (Number(w.terpakaiPettyCash) || 0), 0) + thisWeekKas;
@@ -29016,7 +28926,7 @@ function submitEfisiensiForm() {
     targetHppMax: maxHppTarget,
     wastePersen: finalWaste,
     targetWasteMax: maxWasteTarget,
-    plafonPettyCash: finalPlafon,
+    plafonPettyCash: 0,
     terpakaiPettyCash: thisWeekKas,
     kasBulanan: totalKasBulan,
     pembelianBahanBaku: thisWeekBelanja,
@@ -29047,62 +28957,10 @@ function submitEfisiensiForm() {
 }
 
 /**
- * Tindakan Khusus: Reimburse Kas Toko (Reset Kas Berjalan Toko Menjadi 0) (v5.8.0)
+ * Tindakan Khusus: Reimburse Kas Toko (Telah Dinonaktifkan Sesuai Permintaan)
  */
 function triggerReimburseKasCurrentBranch() {
-  const d = window.PANORAMA_STATE.data;
-  const user = window.PANORAMA_STATE.user;
-  const branchSelect = document.getElementById('efisiensiInputCabang');
-  const cabangId = branchSelect ? branchSelect.value : '';
-
-  if (!cabangId) {
-    showToast('Pilih cabang terlebih dahulu untuk melakukan reimburse.', 'warning');
-    return;
-  }
-
-  const activeEffList = d.efisiensi ? filterEfisiensiByActiveMonth(d.efisiensi) : [];
-  const existingEff = activeEffList.find(e => String(e.cabangId) === String(cabangId)) || null;
-  const cbg = d.cabang ? d.cabang.find(c => c.cabangId === cabangId) : null;
-  const namaCabang = cbg ? cbg.namaCabang : cabangId;
-  const plafon = existingEff ? (Number(existingEff.plafonPettyCash) || 1500000) : 1500000;
-  const kasBulananSekarang = existingEff ? (Number(existingEff.kasBulanan || existingEff.terpakaiPettyCash) || 0) : 0;
-
-  const tglInput = document.getElementById('efisiensiInputTanggal');
-  const tanggal = (tglInput && tglInput.value) ? tglInput.value : new Date().toISOString().slice(0, 10);
-  const currentWeekInfo = getCalendarWeekInfo(tanggal);
-
-  const payload = {
-    efisiensiId: existingEff ? existingEff.efisiensiId : '',
-    cabangId: cabangId,
-    areaId: cbg ? cbg.areaId : (user ? user.areaId : 'AREA-01'),
-    namaCabang: namaCabang,
-    tanggal: tanggal,
-    plafonPettyCash: plafon,
-    terpakaiPettyCash: 0,
-    kasBulanan: kasBulananSekarang,
-    pembelianBahanBaku: existingEff ? (Number(existingEff.pembelianBahanBaku) || 0) : 0,
-    hppPersen: existingEff ? Number(existingEff.hppPersen || 0) : 33.5,
-    wastePersen: existingEff ? Number(existingEff.wastePersen || 0) : 1.2,
-    mingguKe: currentWeekInfo.weekNum,
-    updatedBy: user ? (user.namaLengkap || user.nama || 'Area Manager') : 'Area Manager'
-  };
-
-  showGlobalLoader(true, 2500);
-
-  const inputKas = document.getElementById('inputKasTerpakaiMingguan');
-  if (inputKas) inputKas.value = '';
-
-  applyEfisiensiToLocalState(payload);
-  updateEfisiensiLiveCalculation();
-
-  callPanoramaApi('apiSaveEfisiensi', payload, function(res) {
-    showGlobalLoader(false);
-    showToast('✓ Kas gerai ' + namaCabang + ' berhasil di-reimburse! Saldo toko kembali penuh Rp ' + formatRupiah(plafon) + '.', 'success');
-  }, function(err) {
-    showGlobalLoader(false);
-    console.warn('Sync Reimburse notice:', err);
-    showToast('✓ Kas gerai ' + namaCabang + ' di-reimburse di layar.', 'warning');
-  });
+  showToast('Fitur reimburse kas telah dinonaktifkan.', 'info');
 }
 
 /**

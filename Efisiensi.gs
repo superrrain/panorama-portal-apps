@@ -142,7 +142,7 @@ function apiSaveEfisiensi(payload) {
       sheet.getRange(primaryRow, COL_EFISIENSI.TARGET_HPP + 1).setValue(targetHppVal);
       sheet.getRange(primaryRow, COL_EFISIENSI.WASTE + 1).setValue(Number(payload.wastePersen || 0));
       sheet.getRange(primaryRow, COL_EFISIENSI.TARGET_WASTE + 1).setValue(targetWasteVal);
-      sheet.getRange(primaryRow, COL_EFISIENSI.PLAFON_CASH + 1).setValue(Number(payload.plafonPettyCash || 1500000));
+      sheet.getRange(primaryRow, COL_EFISIENSI.PLAFON_CASH + 1).setValue(payload.plafonPettyCash !== undefined ? Number(payload.plafonPettyCash) : 0);
       sheet.getRange(primaryRow, COL_EFISIENSI.TERPAKAI_CASH + 1).setValue(Number(payload.terpakaiPettyCash || 0));
       sheet.getRange(primaryRow, COL_EFISIENSI.NOTA_URL + 1).setValue(Number(payload.kasBulanan !== undefined ? payload.kasBulanan : (payload.terpakaiPettyCash || 0)));
       sheet.getRange(primaryRow, COL_EFISIENSI.CATATAN + 1).setValue(Number(payload.pembelianBahanBaku || 0));
@@ -185,7 +185,7 @@ function apiSaveEfisiensi(payload) {
         targetHppVal,
         Number(payload.wastePersen || 0),
         targetWasteVal,
-        Number(payload.plafonPettyCash || 1500000),
+        (payload.plafonPettyCash !== undefined ? Number(payload.plafonPettyCash) : 0),
         Number(payload.terpakaiPettyCash || 0),
         Number(payload.kasBulanan !== undefined ? payload.kasBulanan : (payload.terpakaiPettyCash || 0)),
         Number(payload.pembelianBahanBaku || 0),
@@ -223,30 +223,8 @@ function apiSaveEfisiensi(payload) {
  * API: Reimburse Kas Toko (Reset Kas Siklus Berjalan Toko ke 0, Pertahankan Akumulasi Kas Bulanan)
  */
 function apiReimburseKas(payload) {
-  try {
-    var sheet = getSheet(TAB.EFISIENSI);
-    var data = sheet.getDataRange().getValues();
-    var existingRowIdx = -1;
-
-    for (var i = 1; i < data.length; i++) {
-      if (String(data[i][COL_EFISIENSI.CABANG_ID]) === String(payload.cabangId)) {
-        existingRowIdx = i + 1;
-        break;
-      }
-    }
-
-    if (existingRowIdx > 0) {
-      sheet.getRange(existingRowIdx, COL_EFISIENSI.TERPAKAI_CASH + 1).setValue(0);
-      sheet.getRange(existingRowIdx, COL_EFISIENSI.TANGGAL + 1).setValue(payload.tanggal || new Date().toISOString().slice(0, 10));
-      sheet.getRange(existingRowIdx, COL_EFISIENSI.UPDATED_BY + 1).setValue(payload.updatedBy || 'Area Manager');
-      return { 
-        success: true, 
-        message: 'Kas toko gerai ' + payload.cabangId + ' berhasil di-reimburse! Saldo toko kembali penuh ke plafon.' 
-      };
-    } else {
-      return { success: false, message: 'Data gerai tidak ditemukan untuk proses reimburse.' };
-    }
-  } catch (err) {
-    return { success: false, message: 'Gagal reimburse kas: ' + err.message };
-  }
+  return { 
+    success: true, 
+    message: 'Fitur reimburse kas telah dinonaktifkan.' 
+  };
 }

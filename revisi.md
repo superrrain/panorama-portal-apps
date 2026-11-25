@@ -1,6 +1,47 @@
-# 📋 PAPAN REVISI & TRACKING PERBAIKAN ZETTBOT (v5.8.1)
+# 📋 PAPAN REVISI & TRACKING PERBAIKAN ZETTBOT (v5.8.2)
 **Proyek**: PANORAMA Executive Operations Portal  
 **Lead Architect**: ZettBOT by Zettbos  
+**Tanggal**: 25 November 2026  
+**Status**: 🟢 SELESAI & TERTUJI (VERIFIED) - Penghapusan Fitur Reimburse & Plafon Kas Kecil, Petty Cash Murni Akumulasi Pengeluaran  
+**Modul Terdampak**: `index_modular.html`, `js.html`, `Efisiensi.gs`, Bundle HTML (`index.html`, `app.html`, `PANORAMA_VERCEL/*`)
+
+---
+
+## 🎯 Ringkasan Perubahan v5.8.2: Penyederhanaan Petty Cash (Kas Kecil)
+
+Berdasarkan instruksi langsung pimpinan operasional:
+> *"hapus aja fitur reimburse ini dan plafond pettcash , cukup menjumlahkan aja petty cash yang terpakai"*
+
+Sistem monitoring kas kecil kini disederhanakan secara menyeluruh tanpa konsep plafon, saldo sisa, atau reimburse:
+
+### 1. Penghapusan Fitur & Tombol Reimburse Kas
+- **Modal Input/Koreksi Efisiensi**: Menghapus action banner *"Dana Reimburse Cair? Kembalikan saldo fisik ke plafon..."* serta tombol `[🔁 Reimburse]`.
+- **Backend Handler (`Efisiensi.gs`)**: Fungsi `apiReimburseKas()` kini dinonaktifkan secara aman dan mengembalikan respons sukses neutral tanpa mereset saldo, mencegah mutasi data yang tidak diinginkan.
+
+### 2. Penghapusan Plafon Petty Cash & Konsep Saldo Sisa
+- **Form Input Efisiensi**: Input `Plafon Kas (Rp)` dihapus total. Section 2 form disederhanakan hanya memuat `Waste Bulanan (%)`.
+- **Live Badge & Helper Text**: Menghapus indikator badge `Sisa: Rp ...` dan helper `Plafon: Rp ...`. Digantikan dengan `Total Bln: Rp ...` yang langsung menjumlahkan total kas terpakai bulan berjalan.
+- **Tabel Rekapitulasi (Desktop & Mobile)**:
+  - Kolom `Plafon Kas` pada tabel Mode Cabang & Mode Area ditiadakan.
+  - Kolom `Kas Terpakai (Sisa)` disederhanakan menjadi `Kas Terpakai`.
+  - Kartu Mobile KPI tidak lagi menampilkan Plafon atau Sisa Saldo, melainkan `Total Kas Terpakai Bulan Ini`.
+  - Tabel Riwayat Mingguan: Kolom `Sisa Saldo` dihapus (sekarang 6 kolom baku).
+- **Status Evaluasi Efisiensi**: Menghilangkan logika `Over Kas` (`kasVal > plafonVal`). Status efisiensi gerai kini murni dievaluasi berdasarkan kepatuhan `HPP` dan `Waste Spoiled`.
+
+### 3. Sifat Kas Murni Akumulatif Kumulatif
+- Kas kecil dihitung dan ditampilkan murni sebagai jumlah pengeluaran kas yang terpakai:
+  - Nominal mingguan (Mgg 1 s/d Mgg 5).
+  - Total riwayat dan akumulasi kas bulan berjalan.
+
+---
+
+## 🔒 Jaminan Keamanan Kode & Zero-Regression
+1. **Integritas Spreadsheet**: Kolom `DataEfisiensi` di Google Sheets (`COL_EFISIENSI.PLAFON_CASH`) tidak digeser atau dihapus agar data historis tetap utuh. Nilai plafon pada input baru otomatis diisi default 0.
+2. **Kompilasi Bundel Sinkron**: Seluruh berkas produksi (`index.html`, `app.html`, `PANORAMA_VERCEL/index.html`, `PANORAMA_VERCEL/app.html`) telah dikompilasi ulang dan identik 100%.
+
+---
+
+# 📋 ARSIP PERBAIKAN SEBELUMNYA (v5.8.1)
 **Tanggal**: 25 November 2026  
 **Status**: 🟢 SELESAI & TERTUJI (VERIFIED) - OneSignal Web SDK v16 REST API Payload & Auto-Normalizer Area ID Deployed @84  
 **Modul Terdampak**: `Notifikasi.gs`, `code.gs` (OneSignal API Payload & Area ID Normalizer)
