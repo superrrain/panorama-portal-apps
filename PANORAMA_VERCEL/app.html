@@ -39577,6 +39577,7 @@ function initSettingPageView() {
   const userRoleInfo = getUserRoleInfo(user);
   const isCOO = userRoleInfo.isMaster;
   const isManager = userRoleInfo.isManager;
+  const isSPV = userRoleInfo.isSPV;
   const isGuest = userRoleInfo.isGuest;
   const canManageUsers = (isCOO || (isManager && !isGuest));
 
@@ -39635,8 +39636,14 @@ function initSettingPageView() {
     if (subtitleEl) subtitleEl.textContent = 'Kelola profil eksekutif, kata sandi, manajemen akun operasional, dan parameter operasional perusahaan.';
     if (roleBadge) roleBadge.textContent = 'ROLE: MASTER COO (HEAD OF OPERATIONS)';
     if (areaBadge) areaBadge.textContent = 'Cakupan: Seluruh Wilayah Perusahaan';
+  } else if (isSPV) {
+    if (titleEl) titleEl.innerHTML = 'Setting Akun Profil SPV Gerai';
+    if (subtitleEl) subtitleEl.textContent = 'Kelola profil operasional gerai dan pembaruan kata sandi akun Anda.';
+    const spvStoreName = user.namaCabang || ((window.PANORAMA_STATE.data && Array.isArray(window.PANORAMA_STATE.data.cabang)) ? ((window.PANORAMA_STATE.data.cabang.find(c => String(c.cabangId).trim() === String(user.cabangId).trim()) || {}).namaCabang) : '') || 'Momoyo Babakan Ciparay';
+    if (roleBadge) roleBadge.textContent = 'ROLE: SUPERVISOR GERAI (SPV)';
+    if (areaBadge) areaBadge.textContent = 'Gerai Binaan: ' + (user.cabangId ? user.cabangId + ' • ' + spvStoreName : spvStoreName) + (user.areaId ? ' (' + user.areaId + ')' : '');
   } else {
-    if (titleEl) titleEl.innerHTML = 'Setting Akun Profil';
+    if (titleEl) titleEl.innerHTML = 'Setting Akun Profil Area Manager';
     if (subtitleEl) subtitleEl.textContent = 'Kelola profil operasional dan pembaruan kata sandi akun Anda.';
     if (roleBadge) roleBadge.textContent = 'ROLE: AREA MANAGER';
     if (areaBadge) areaBadge.textContent = 'Wilayah Binaan: ' + (user.areaId ? user.areaId + ' - Operasional Binaan' : 'Area Terkunci');
@@ -39650,8 +39657,24 @@ function initSettingPageView() {
   const aName = document.getElementById('settingInputAreaLabel');
   if (uName) uName.value = user.username || user.userId || '';
   if (nName) nName.value = user.namaLengkap || '';
-  if (wName) wName.value = user.noWa || user.wa || '';
-  if (aName) aName.value = isCOO ? 'Seluruh Wilayah Perusahaan' : (user.areaId ? user.areaId + ' - Wilayah Operasional Terkunci' : 'Area Binaan');
+
+  // Sanitasi Nomor WhatsApp (Cegah tampilan #ERROR! dari formula spreadsheet)
+  let cleanWa = String(user.noWa || user.wa || '').trim();
+  if (cleanWa.startsWith('#') || cleanWa.toUpperCase().includes('ERROR') || cleanWa.toUpperCase().includes('REF!') || cleanWa.toUpperCase().includes('VALUE!')) {
+    cleanWa = '';
+  }
+  if (wName) wName.value = cleanWa;
+
+  if (aName) {
+    if (isCOO) {
+      aName.value = 'Seluruh Wilayah Perusahaan';
+    } else if (isSPV) {
+      const spvStoreName = user.namaCabang || ((window.PANORAMA_STATE.data && Array.isArray(window.PANORAMA_STATE.data.cabang)) ? ((window.PANORAMA_STATE.data.cabang.find(c => String(c.cabangId).trim() === String(user.cabangId).trim()) || {}).namaCabang) : '') || 'Momoyo Babakan Ciparay';
+      aName.value = (user.cabangId ? user.cabangId + ' • ' : '') + spvStoreName + ' (Toko Terkunci)';
+    } else {
+      aName.value = user.areaId ? user.areaId + ' - Wilayah Operasional Terkunci' : 'Area Binaan';
+    }
+  }
 
   // Perbarui Status Badge Notifikasi Status Bar HP
   updatePushNotificationStatusUI();

@@ -1972,6 +1972,10 @@ const COL_CONFIG = { KEY: 0, VALUE: 1, KETERANGAN: 2 };
   * **Eliminasi Fallback Bocor Data Tanggal Lain**:
     - Menghapus blok fallback lama `else if (isToday && sale)` pada `renderSalesTrendChart()` mode `SPV_WEEKLY` yang sebelumnya menyebabkan kolom hari ini menampilkan data omzet tanggal lain (~Rp 5,4 Jt / 80%) saat hari berjalan belum memiliki input omzet.
     - Menjamin kolom hari berjalan (`KAM ★ (Hari Ini)`) menampilkan strip halus `-` jika belum ada laporan masuk, dan total realisasi mingguan di bawah grafik merefleksikan nilai riil murni tanpa penggelembungan fiktif.
+- **Penyelarasan Role & Gerai SPV pada Setting Akun Profil (v5.9.4):**
+  * **Pemisahan Role SPV di Halaman Pengaturan Akun (`initSettingPageView`)**:
+    - Menambahkan percabangan role `isSPV` sehingga profil akun SPV tidak lagi tertulis `ROLE: AREA MANAGER` secara keliru, melainkan otomatis menampilkan `ROLE: SUPERVISOR GERAI (SPV)`.
+    - Badge wilayah dan cakupan toko secara dinamis menampilkan gerai binaan SPV (`CBG-076 • Momoyo Babakan Ciparay`), dan kolom nomor WhatsApp disanitasi dari formula error `#ERROR!`.
 
   * **DILARANG KERAS MEMBUAT LINK / DEPLOYMENT ID BARU**: Dilarang menjalankan perintah bare `clasp deploy` tanpa flag `-i`, karena akan men-generate ID dan URL baru yang memutus koneksi Vercel dan seluruh klien.
   * **WAJIB REDEPLOY KE DEPLOYMENT ID RESMI**: Setiap deployment ke Apps Script WAJIB mere-deploy ke Deployment ID produksi aktif:
