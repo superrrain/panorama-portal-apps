@@ -14919,4 +14919,230 @@
   }
 
 /* ===== PANORAMA DARK THEME (AUTO-GENERATED) END ===== */
+
+/* ==========================================================================
+   UI/UX PRO MAX: MULTI-FILE UPLOAD ZONE & INTERACTIVE PREVIEW GRID (v5.9.7)
+   ========================================================================== */
+.file-upload-zone {
+  display: block;
+  border: 2px dashed #94A3B8;
+  border-radius: 12px;
+  background: var(--bg-surface, #F8FAFC);
+  padding: 22px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  user-select: none;
+}
+
+.file-upload-zone:hover {
+  border-color: #10B981;
+  background: rgba(16, 185, 129, 0.05);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.08);
+}
+
+.file-upload-zone:active {
+  transform: scale(0.995);
+}
+
+.file-upload-zone.dragover {
+  border-color: #059669;
+  background: rgba(5, 150, 105, 0.12);
+  transform: scale(1.01);
+}
+
+.file-upload-zone .upload-icon {
+  width: 48px;
+  height: 48px;
+  max-width: 48px;
+  max-height: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  margin: 0 auto 10px auto;
+  border-radius: 50%;
+  background: rgba(20, 74, 50, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--forest-800, #144A32);
+  transition: transform 0.25s ease, background 0.2s ease;
+  box-sizing: border-box;
+}
+
+.file-upload-zone:hover .upload-icon {
+  transform: translateY(-3px) scale(1.08);
+  background: rgba(16, 185, 129, 0.18);
+  color: #047857;
+}
+
+.file-upload-zone .upload-icon svg {
+  width: 24px;
+  height: 24px;
+  max-width: 24px;
+  max-height: 24px;
+  display: block;
+  stroke-width: 2.2;
+}
+
+.file-upload-zone .upload-text {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-main, #0F172A);
+  margin-bottom: 4px;
+}
+
+.file-upload-zone .upload-sub {
+  font-size: 11px;
+  color: var(--text-muted, #64748B);
+  line-height: 1.45;
+}
+
+/* Multi-File Preview Grid */
+.insiden-files-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(115px, 1fr));
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.insiden-file-card {
+  position: relative;
+  background: var(--bg-surface, #FFFFFF);
+  border: 1.5px solid var(--border-color, #E2E8F0);
+  border-radius: 10px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: all 0.2s ease;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.insiden-file-card:hover {
+  border-color: #10B981;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.insiden-file-thumb-wrap {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #F1F5F9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.insiden-file-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.25s ease;
+}
+
+.insiden-file-card:hover .insiden-file-thumb {
+  transform: scale(1.06);
+}
+
+.insiden-file-pdf-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #DC2626;
+  font-weight: 800;
+  font-size: 11px;
+}
+
+.insiden-file-name {
+  width: 100%;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-main, #1E293B);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  margin-top: 6px;
+}
+
+.insiden-file-size {
+  font-size: 10px;
+  color: var(--text-muted, #64748B);
+  margin-top: 2px;
+}
+
+.insiden-file-remove-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(220, 38, 38, 0.92);
+  color: #FFFFFF;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transition: all 0.15s ease;
+  z-index: 5;
+}
+
+.insiden-file-remove-btn:hover {
+  background: #B91C1C;
+  transform: scale(1.15);
+}
+
+.insiden-file-badge-ok {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(16, 185, 129, 0.95);
+  color: #FFFFFF;
+  font-size: 9px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  z-index: 4;
+}
+
+/* Dark mode overrides for upload zone */
+body.dark-mode .file-upload-zone {
+  border-color: #334155;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+body.dark-mode .file-upload-zone:hover {
+  border-color: #34D399;
+  background: rgba(52, 211, 153, 0.08);
+}
+
+body.dark-mode .file-upload-zone .upload-icon {
+  background: rgba(52, 211, 153, 0.14);
+  color: #34D399;
+}
+
+body.dark-mode .insiden-file-card {
+  background: #1E293B;
+  border-color: #334155;
+}
+
+body.dark-mode .insiden-file-thumb-wrap {
+  background: #0F172A;
+}
+
 </style>

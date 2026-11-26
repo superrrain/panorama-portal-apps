@@ -10409,9 +10409,16 @@ function submitSalesForm() {
 }
 
 // Buka Modal Lapor Insiden Baru
+// State Global Multi-File Upload Bukti Insiden (UI/UX Pro Max)
+window.PANORAMA_INSIDEN_FILES = [];
+
+// Buka Modal Lapor Insiden Baru
 function openLaporInsidenModal() {
   const d = window.PANORAMA_STATE.data;
+  const u = window.PANORAMA_STATE.user || {};
+  const roleInfo = (typeof getUserRoleInfo === 'function') ? getUserRoleInfo(u) : {};
   const selectCabang = document.getElementById('insidenInputCabang');
+
   if (selectCabang && d && d.cabang) {
     selectCabang.innerHTML = '';
     d.cabang.forEach(c => {
@@ -10420,42 +10427,209 @@ function openLaporInsidenModal() {
       opt.textContent = c.namaCabang + ' (' + c.areaId + ')';
       selectCabang.appendChild(opt);
     });
+
+    // Otomatis pilih dan kunci cabang jika login sebagai SPV
+    if (roleInfo.isSPV && u.cabangId) {
+      selectCabang.value = u.cabangId;
+    }
   }
+
   document.getElementById('insidenFormDeskripsi').value = '';
-  document.getElementById('insidenFormFile').value = '';
-  document.getElementById('fileNamePreview').textContent = 'Pilih file atau ambil foto kamera';
+  const fileInput = document.getElementById('insidenFormFile');
+  if (fileInput) fileInput.value = '';
+
+  // Reset daftar berkas bukti yang terpilih
+  window.PANORAMA_INSIDEN_FILES = [];
+  renderInsidenFilesPreview();
+
   openModal('modalLaporInsiden');
 }
 
-// Preview Nama File Upload
-function handleFileUploadChange(input) {
-  const preview = document.getElementById('fileNamePreview');
-  if (input.files && input.files[0]) {
-    preview.textContent = 'Terpilih: ' + input.files[0].name + ' (' + Math.round(input.files[0].size / 1024) + ' KB)';
-  } else {
-    preview.textContent = 'Pilih file atau ambil foto kamera';
+// Trigger Input File
+function triggerInsidenFileInput(e) {
+  if (e && e.stopPropagation) e.stopPropagation();
+  const fileInput = document.getElementById('insidenFormFile');
+  if (fileInput) fileInput.click();
+}
+
+// Drag & Drop Handlers untuk File Upload Zone
+function handleUploadZoneDragOver(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  const zone = document.getElementById('insidenDropZone');
+  if (zone) zone.classList.add('dragover');
+}
+
+function handleUploadZoneDragLeave(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  const zone = document.getElementById('insidenDropZone');
+  if (zone) zone.classList.remove('dragover');
+}
+
+function handleUploadZoneDrop(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  const zone = document.getElementById('insidenDropZone');
+  if (zone) zone.classList.remove('dragover');
+  if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+    processIncomingInsidenFiles(Array.from(e.dataTransfer.files));
   }
 }
 
-// Submit Laporan Insiden
+// Handle Pemilihan Multi-File dari Input File
+function handleInsidenMultiFileUpload(input) {
+  if (input.files && input.files.length > 0) {
+    processIncomingInsidenFiles(Array.from(input.files));
+    input.value = ''; // Reset agar bisa memilih file yang sama jika dihapus lalu dipilih ulang
+  }
+}
+
+// Proses Berkas Masuk & Baca Thumbnail Data URI
+function processIncomingInsidenFiles(filesArray) {
+  if (!Array.isArray(window.PANORAMA_INSIDEN_FILES)) {
+    window.PANORAMA_INSIDEN_FILES = [];
+  }
+
+  const validFiles = filesArray.filter(f => {
+    // Hindari duplikasi persis berdasarkan nama & ukuran
+    const exists = window.PANORAMA_INSIDEN_FILES.some(item => item.name === f.name && item.size === f.size);
+    return !exists;
+  });
+
+  if (validFiles.length === 0) return;
+
+  let loadedCount = 0;
+  validFiles.forEach(file => {
+    const isImage = file.type.startsWith('image/');
+    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+
+    const fileItem = {
+      file: file,
+      name: file.name,
+      size: file.size,
+      type: file.type || (isPdf ? 'application/pdf' : 'image/jpeg'),
+      isImage: isImage,
+      isPdf: isPdf,
+      dataUrl: ''
+    };
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      fileItem.dataUrl = e.target.result;
+      window.PANORAMA_INSIDEN_FILES.push(fileItem);
+      loadedCount++;
+      if (loadedCount === validFiles.length) {
+        renderInsidenFilesPreview();
+      }
+    };
+    reader.onerror = function() {
+      window.PANORAMA_INSIDEN_FILES.push(fileItem);
+      loadedCount++;
+      if (loadedCount === validFiles.length) {
+        renderInsidenFilesPreview();
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// Hapus Satu Berkas dari Daftar Terpilih
+function removeInsidenFile(index) {
+  if (!Array.isArray(window.PANORAMA_INSIDEN_FILES)) return;
+  window.PANORAMA_INSIDEN_FILES.splice(index, 1);
+  renderInsidenFilesPreview();
+}
+
+// Render Pratinjau Grid Berkas Terpilih
+function renderInsidenFilesPreview() {
+  const container = document.getElementById('insidenFilesPreviewContainer');
+  const grid = document.getElementById('insidenFilesGrid');
+  const previewText = document.getElementById('fileNamePreview');
+  const countBadge = document.getElementById('insidenFileCountBadge');
+  const countBadgeText = document.getElementById('insidenBadgeCountText');
+  const summaryText = document.getElementById('insidenPreviewSummary');
+
+  const files = window.PANORAMA_INSIDEN_FILES || [];
+  const totalCount = files.length;
+
+  if (totalCount === 0) {
+    if (container) container.style.display = 'none';
+    if (countBadge) countBadge.style.display = 'none';
+    if (previewText) previewText.textContent = 'Pilih foto atau ambil dari kamera';
+    return;
+  }
+
+  // Hitung total ukuran
+  let totalBytes = 0;
+  files.forEach(f => { totalBytes += (f.size || 0); });
+  const totalKB = Math.round(totalBytes / 1024);
+
+  if (container) container.style.display = 'block';
+  if (countBadge) countBadge.style.display = 'inline-flex';
+  if (countBadgeText) countBadgeText.textContent = totalCount + ' Foto';
+  if (previewText) previewText.innerHTML = '<span style="color:#059669; font-weight:700;">✓ ' + totalCount + ' berkas foto siap diunggah (' + totalKB + ' KB)</span>';
+  if (summaryText) summaryText.textContent = 'Foto Terpilih (' + totalCount + ' Berkas • ' + totalKB + ' KB):';
+
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  files.forEach((item, idx) => {
+    const card = document.createElement('div');
+    card.className = 'insiden-file-card';
+
+    const sizeStr = item.size > 1024 * 1024 
+      ? (item.size / (1024 * 1024)).toFixed(1) + ' MB' 
+      : Math.round(item.size / 1024) + ' KB';
+
+    let thumbHtml = '';
+    if (item.isImage && item.dataUrl) {
+      thumbHtml = '<img src="' + item.dataUrl + '" class="insiden-file-thumb" alt="' + escapeHtml(item.name) + '">';
+    } else {
+      thumbHtml = 
+        '<div class="insiden-file-pdf-icon">' +
+          '<svg class="p-ico" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>' +
+          '<span>PDF</span>' +
+        '</div>';
+    }
+
+    card.innerHTML = 
+      '<button type="button" class="insiden-file-remove-btn" onclick="removeInsidenFile(' + idx + ')" title="Hapus foto ini">✕</button>' +
+      '<div class="insiden-file-badge-ok">✓ Siap</div>' +
+      '<div class="insiden-file-thumb-wrap">' + thumbHtml + '</div>' +
+      '<div class="insiden-file-name" title="' + escapeHtml(item.name) + '">' + escapeHtml(item.name) + '</div>' +
+      '<div class="insiden-file-size">' + sizeStr + '</div>';
+
+    grid.appendChild(card);
+  });
+}
+
+// Backward-compatibility alias
+function handleFileUploadChange(input) {
+  handleInsidenMultiFileUpload(input);
+}
+
+// Submit Laporan Insiden (Mendukung Multi-Foto ke Google Drive)
 function submitInsidenForm() {
   const cabangId = document.getElementById('insidenInputCabang').value;
   const kategori = document.getElementById('insidenFormKategori').value;
   const urgensi = document.getElementById('insidenFormUrgensi').value;
   const deskripsi = document.getElementById('insidenFormDeskripsi').value;
-  const fileInput = document.getElementById('insidenFormFile');
 
   if (!deskripsi) {
     showToast('Mohon isi deskripsi kendala yang terjadi.', 'danger');
     return;
   }
 
-  const selectedCabang = window.PANORAMA_STATE.data.cabang.find(c => c.cabangId === cabangId);
+  const selectedCabang = (window.PANORAMA_STATE.data.cabang || []).find(c => c.cabangId === cabangId);
   const areaId = selectedCabang ? selectedCabang.areaId : 'AREA-01';
+  const reporterName = (window.PANORAMA_STATE.user && window.PANORAMA_STATE.user.namaLengkap) || 'SPV Toko';
 
-  showGlobalLoader(true, 'Menyimpan laporan insiden...');
+  const filesToUpload = window.PANORAMA_INSIDEN_FILES || [];
 
   function proceedSaveWithDriveUrl(driveUrl) {
+    showGlobalLoader(true, 'Menyimpan laporan insiden ke server...');
+
     const payload = {
       areaId: areaId,
       cabangId: cabangId,
@@ -10464,13 +10638,13 @@ function submitInsidenForm() {
       deskripsi: deskripsi,
       fileDriveUrl: driveUrl,
       tindakan: '',
-      reporter: window.PANORAMA_STATE.user.namaLengkap
+      reporter: reporterName
     };
 
     callPanoramaApi('apiSaveInsiden', payload, function(res) {
       showGlobalLoader(false);
       closeModal('modalLaporInsiden');
-      showToast(res && res.message ? res.message : 'Insiden berhasil dikirim ke Google Sheet!', (res && res.success) ? 'success' : 'info');
+      showToast(res && res.message ? res.message : 'Insiden berhasil dilaporkan dan tersimpan!', (res && res.success) ? 'success' : 'info');
       fetchOperationalData(true);
     }, function(err) {
       showGlobalLoader(false);
@@ -10496,34 +10670,91 @@ function submitInsidenForm() {
     });
   }
 
-  if (fileInput && fileInput.files && fileInput.files[0]) {
-    const file = fileInput.files[0];
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const b64 = e.target.result;
+  if (filesToUpload.length === 0) {
+    // Pengguna tidak melampirkan berkas bukti
+    proceedSaveWithDriveUrl('');
+    return;
+  }
+
+  // Upload berkas secara sekuensial dengan progress loader
+  const uploadedUrls = [];
+  let currentIndex = 0;
+
+  function uploadNextFile() {
+    if (currentIndex >= filesToUpload.length) {
+      // Semua berkas selesai diunggah
+      let finalDriveUrl = '';
+      if (uploadedUrls.length === 1) {
+        finalDriveUrl = uploadedUrls[0];
+      } else {
+        finalDriveUrl = JSON.stringify(uploadedUrls);
+      }
+      proceedSaveWithDriveUrl(finalDriveUrl);
+      return;
+    }
+
+    const curItem = filesToUpload[currentIndex];
+    showGlobalLoader(true, 'Mengunggah foto bukti (' + (currentIndex + 1) + ' dari ' + filesToUpload.length + ')...');
+
+    function sendToDriveApi(base64Data) {
       callPanoramaApi('apiUploadFileToDrive', {
-        base64Data: b64,
-        fileName: file.name,
-        mimeType: file.type || 'image/jpeg',
+        base64Data: base64Data,
+        fileName: curItem.name,
+        mimeType: curItem.type || 'image/jpeg',
         areaName: areaId,
         category: 'DataInsiden'
       }, function(upRes) {
-        proceedSaveWithDriveUrl((upRes && upRes.fileUrl) ? upRes.fileUrl : b64);
+        const fileUrl = (upRes && upRes.fileUrl) ? upRes.fileUrl : base64Data;
+        uploadedUrls.push(fileUrl);
+        currentIndex++;
+        uploadNextFile();
       }, function(upErr) {
         console.warn('Upload Drive fallback ke dataUri:', upErr);
-        proceedSaveWithDriveUrl(b64);
+        uploadedUrls.push(base64Data);
+        currentIndex++;
+        uploadNextFile();
       });
-    };
-    reader.onerror = function() {
-      proceedSaveWithDriveUrl('');
-    };
-    reader.readAsDataURL(file);
-  } else {
-    proceedSaveWithDriveUrl('');
+    }
+
+    if (curItem.dataUrl) {
+      sendToDriveApi(curItem.dataUrl);
+    } else if (curItem.file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        sendToDriveApi(e.target.result);
+      };
+      reader.onerror = function() {
+        currentIndex++;
+        uploadNextFile();
+      };
+      reader.readAsDataURL(curItem.file);
+    } else {
+      currentIndex++;
+      uploadNextFile();
+    }
   }
+
+  uploadNextFile();
 }
 
-// Pengelolaan Lampiran File / Bukti Insiden (Manager & SPV Upload, Master Inspect)
+// Helper untuk Mem-parsing Multi-URL Bukti Foto
+function parseIncidentProofUrls(rawUrl) {
+  if (!rawUrl) return [];
+  if (Array.isArray(rawUrl)) return rawUrl.filter(Boolean);
+  const str = String(rawUrl).trim();
+  if (!str) return [];
+  if (str.startsWith('[') && str.endsWith(']')) {
+    try {
+      const arr = JSON.parse(str);
+      if (Array.isArray(arr)) return arr.filter(Boolean);
+    } catch (e) {}
+  }
+  if (str.includes('\n')) {
+    return str.split('\n').map(s => s.trim()).filter(Boolean);
+  }
+  return [str];
+}
+
 function handleIncDetailFileChange(input) {
   const file = input.files && input.files[0];
   const preview = document.getElementById('detailIncFilePreview');
@@ -13931,6 +14162,15 @@ function openKendalaProof(docId) {
     if (isMaps) {
       isMapsIncidentSource = true;
       mapsSourceUrl = rawDrive;
+    }
+
+    const rawProofTarget = rawPenanganan || (rawDrive && !isMaps ? rawDrive : '');
+    const multiProofUrls = parseIncidentProofUrls(rawProofTarget);
+
+    if (multiProofUrls.length > 1) {
+      // Tampilkan galeri multi-foto langsung
+      renderMultiPhotoIncidentProof(item, multiProofUrls, targetId);
+      return;
     }
 
     if (rawPenanganan) {
@@ -25011,3 +25251,59 @@ function triggerCleanAllDummyTransactions() {
 
 
 </script>
+// Render Modal Galeri Pratinjau Multi-Foto Insiden
+function renderMultiPhotoIncidentProof(item, urls, targetId) {
+  const modalBody = document.getElementById('modalPreviewBuktiBody');
+  const modalTitle = document.getElementById('modalPreviewBuktiTitle');
+  const modalSub = document.getElementById('modalPreviewBuktiSub');
+  const btnDown = document.getElementById('btnDownloadBuktiKendala');
+
+  if (modalTitle) {
+    modalTitle.innerHTML = '<span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> Pratinjau ' + urls.length + ' Foto Bukti Insiden';
+  }
+
+  if (modalSub) {
+    modalSub.textContent = 'Insiden ' + (item.insidenId || targetId) + ' • ' + (item.kategori || 'Insiden') + ' • ' + (item.namaCabang || item.cabangId || '') + ' (' + urls.length + ' Foto Terlampir)';
+  }
+
+  let activePhotoIndex = 0;
+
+  function updateGalleryView(idx) {
+    activePhotoIndex = idx;
+    const curUrl = urls[idx];
+    const media = resolveDriveMedia(curUrl, 'Foto_' + (idx + 1) + '.jpg');
+
+    if (btnDown) {
+      btnDown.style.display = 'inline-block';
+      btnDown.href = media.downloadUrl || curUrl;
+      btnDown.target = '_blank';
+      btnDown.rel = 'noopener noreferrer';
+      btnDown.download = 'Foto_Insiden_' + (item.insidenId || targetId) + '_' + (idx + 1) + '.jpg';
+    }
+
+    let thumbsHtml = '<div class="proof-gallery-thumbs">';
+    urls.forEach((u, i) => {
+      const uMedia = resolveDriveMedia(u);
+      const isAct = (i === idx) ? ' active' : '';
+      thumbsHtml += '<div class="proof-gallery-thumb-item' + isAct + '" onclick="window.__switchGalleryPhoto(' + i + ')" title="Lihat Foto ' + (i + 1) + '">' +
+                      '<img src="' + (uMedia.directUrl || u) + '" alt="Foto ' + (i + 1) + '">' +
+                    '</div>';
+    });
+    thumbsHtml += '</div>';
+
+    modalBody.innerHTML = 
+      thumbsHtml +
+      '<div style="position:relative; width:100%; min-height:300px; max-height:60vh; border-radius:12px; overflow:hidden; border:1px solid var(--border-color); background:#0F172A; display:flex; align-items:center; justify-content:center;">' +
+        '<div id="multiPhotoLoading" style="position:absolute; color:#94A3B8; font-size:12px; display:flex; align-items:center; gap:8px;"><span>Memuat foto ' + (idx + 1) + ' dari ' + urls.length + '...</span></div>' +
+        '<img src="' + (media.directUrl || curUrl) + '" alt="Bukti Foto ' + (idx + 1) + '" style="max-width:100%; max-height:58vh; object-fit:contain; margin:0 auto; z-index:2; display:none;" onload="this.style.display=\'block\'; var l = document.getElementById(\'multiPhotoLoading\'); if(l) l.style.display=\'none\';" onerror="this.style.display=\'none\'; var l = document.getElementById(\'multiPhotoLoading\'); if(l) l.innerHTML=\'Foto ' + (idx + 1) + ' siap diunduh\';">' +
+      '</div>' +
+      '<div style="text-align:center; font-size:11.5px; color:var(--text-muted); margin-top:8px;">Menampilkan Foto ' + (idx + 1) + ' dari ' + urls.length + ' • Klik thumbnail di atas untuk berganti foto</div>';
+  }
+
+  window.__switchGalleryPhoto = function(idx) {
+    updateGalleryView(idx);
+  };
+
+  updateGalleryView(0);
+  openModal('modalPreviewBukti');
+}

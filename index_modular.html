@@ -4422,22 +4422,38 @@
             placeholder="Ceritakan detail kerusakan atau kendala yang dihadapi..."></textarea>
         </div>
 
-        <!-- File Upload to Google Drive -->
+        <!-- Multi-File Upload to Google Drive (UI/UX Pro Max) -->
         <div class="form-group">
-          <label class="form-label">Unggah Bukti Foto / Struk (Google Drive)</label>
-          <label class="file-upload-zone" for="insidenFormFile">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label class="form-label" style="margin-bottom: 0;">Unggah Bukti Foto / Struk (Bisa Lebih Dari 1 Foto)</label>
+            <span id="insidenFileCountBadge" class="badge" style="display: none; font-size: 11px; background: rgba(16, 185, 129, 0.12); color: #047857; font-weight: 700; border: 1px solid rgba(16, 185, 129, 0.3);">
+              <svg class="p-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> <span id="insidenBadgeCountText">0 Foto</span>
+            </span>
+          </div>
+
+          <div class="file-upload-zone" id="insidenDropZone" onclick="triggerInsidenFileInput(event)" ondragover="handleUploadZoneDragOver(event)" ondragleave="handleUploadZoneDragLeave(event)" ondrop="handleUploadZoneDrop(event)">
             <div class="upload-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                 <polyline points="17 8 12 3 7 8" />
                 <line x1="12" y1="3" x2="12" y2="15" />
               </svg>
             </div>
-            <div class="upload-text" id="fileNamePreview">Pilih file atau ambil foto kamera</div>
-            <div class="upload-sub">Format: JPG, PNG, PDF (Otomatis tersimpan di Google Drive per area)</div>
-            <input type="file" id="insidenFormFile" style="display: none;" accept="image/*,application/pdf"
-              capture="environment" onchange="handleFileUploadChange(this)">
-          </label>
+            <div class="upload-text" id="fileNamePreview">Pilih foto atau ambil dari kamera</div>
+            <div class="upload-sub">Klik di sini untuk memilih satu atau beberapa foto bukti sekaligus<br><span style="color:#059669; font-weight:600;">✓ Format JPG, PNG, PDF didukung • Otomatis tersimpan ke Google Drive</span></div>
+            <input type="file" id="insidenFormFile" multiple accept="image/*,application/pdf" capture="environment" style="display: none;" onchange="handleInsidenMultiFileUpload(this)">
+          </div>
+
+          <!-- Pratinjau Grid Multi-Foto Terpilih -->
+          <div id="insidenFilesPreviewContainer" style="display: none; margin-top: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-size: 12px; font-weight: 700; color: var(--text-main);" id="insidenPreviewSummary">Foto Terpilih:</span>
+              <button type="button" class="btn btn-outline" style="font-size: 11px; padding: 4px 10px; border-radius: 6px; font-weight: 700; color: var(--forest-800); border-color: var(--forest-600); background:#FFFFFF;" onclick="triggerInsidenFileInput(event)">
+                + Tambah Foto Lain
+              </button>
+            </div>
+            <div id="insidenFilesGrid" class="insiden-files-grid"></div>
+          </div>
         </div>
       </div>
       <div class="modal-footer">

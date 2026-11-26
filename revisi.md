@@ -144,3 +144,61 @@ Pengguna melaporkan kendala pada menu **Jadwal Kerja**:
 1. ✅ **Uji Sintaks JavaScript**: `vm.Script` pada `js.html` dan `PANORAMA_VERCEL/index.html` lolos 100% tanpa error.
 2. ✅ **Sinkronisasi Bundle**: Seluruh file bundle (`index.html`, `app.html`, `PANORAMA_VERCEL/index.html`, `PANORAMA_VERCEL/app.html`) terkompilasi penuh.
 3. ✅ **Regresi Guard**: Tampilan Master COO dan Area Manager tetap utuh tanpa efek samping.
+
+---
+
+# 📋 PAPAN REVISI & TRACKING PERBAIKAN ZETTBOT (v5.9.7)
+**Proyek**: PANORAMA Executive Operations Portal  
+**Lead Architect**: ZettBOT by Zettbos  
+**Keahlian Khusus**: UI/UX Pro Max Intelligence  
+**Tanggal**: 26 November 2026  
+**Status**: 🟢 SELESAI & TERTUJI PENUH (v5.9.7)  
+
+---
+
+## 🎯 Latar Belakang & Analisis Permintaan Pengguna
+Pengguna melaporkan kendala visual dan fungsional pada modal **Laporkan Insiden Operasional Toko**:
+> *"/ui-ux-pro-max logo upload nya kegedean spt nya, jadi tidak tau sudah terupload atau belum , upload foto juga bisa lebih dari satu"*  
+(Lampiran screenshot: Ikon SVG panah upload membengkak raksasa memenuhi layar modal hingga ~350px, tidak ada pratinjau foto/thumbnail yang jelas selain teks kecil, dan input hanya mendukung single-file).
+
+### Akar Masalah (Root Causes):
+1. **Unconstrained SVG pada Upload Zone**:
+   - Kelas `.file-upload-zone` dan `.upload-icon` belum didefinisikan sama sekali di `css.html`.
+   - SVG bawaan yang memiliki atribut `viewBox="0 0 24 24"` tanpa batasan dimensi CSS (`width`/`height`) melebar otomatis hingga 100% ukuran modal box, menutupi konten lain secara agresif.
+2. **Ketiadaan Feedback Visual (Perceived Quality & State Clarity)**:
+   - Tidak ada visual thumbnail / kartu pratinjau foto setelah file dipilih. Pengguna hanya disajikan teks kecil yang samar, sehingga membingungkan apakah foto sudah benar-benar terpilih atau belum.
+3. **Keterbatasan Single File**:
+   - Elemen `<input type="file">` tidak memiliki atribut `multiple`, dan fungsi handler hanya membaca `input.files[0]`. Dalam operasional gerai, insiden fisik (seperti mesin soft serve bocor, stopkontak terbakar, nota vendor) membutuhkan beberapa sudut pengambilan foto bukti sekaligus.
+
+---
+
+## 🛠️ Solusi Rekayasa & Desain (UI/UX Pro Max v5.9.7)
+
+### 1. Perancangan Ulang Dropzone (`.file-upload-zone` & `.upload-icon`):
+- **Dimensi Ikon Terkendali**: Ikon upload kini dibungkus dalam lingkaran modern berukuran proporsional $48 \times 48\text{ px}$ dengan ikon SVG $24 \times 24\text{ px}$ (warna hijau hutan khas PANORAMA), hover micro-interaction translasi $-3\text{ px}$ yang halus.
+- **Dashed Dropzone Modern**: Border putus-putus elegan `#94A3B8` dengan radius $12\text{ px}$, transisi warna hover hijau emerald saat kursor melintas, serta dukungan **Drag & Drop** langsung dari desktop.
+- **Dark Mode Native**: Terintegrasi penuh dengan tema gelap portal (`body.dark-mode`).
+
+### 2. Multi-File Selection & Interactive Preview Grid:
+- **Dukungan Banyak Foto**: Input berkas diperbarui menjadi `<input type="file" multiple>` dengan tombol **"+ Tambah Foto Lain"**, memungkinkan SPV/Manager memilih beberapa foto sekaligus atau menambah foto secara bertahap.
+- **Galeri Pratinjau Interaktif (`#insidenFilesGrid`)**:
+  - Tiap foto yang dipilih menampilkan **thumbnail gambar asli** ($1:1$ aspect ratio, `object-fit: cover`) via data URI pembacaan lokal.
+  - Untuk berkas dokumen PDF, menampilkan ikon dokumen PDF merah yang elegan.
+  - Informasi nama berkas (dengan teks elipsis rapi) dan ukuran file ($KB / MB$).
+  - Badge hijau **"✓ Siap"** di pojok kiri bawah thumbnail.
+  - Tombol **Hapus Individual ("✕")** di pojok kanan atas thumbnail, memudahkan pengguna membatalkan foto tertentu tanpa harus mengulang dari awal.
+  - Badge jumlah foto di header: *"✓ X Foto Terpilih"*.
+
+### 3. Multi-Upload Pipeline ke Google Drive:
+- Fungsi `submitInsidenForm()` mengunggah seluruh berkas yang ada di daftar `window.PANORAMA_INSIDEN_FILES` secara sekuensial ke endpoint Google Drive API per Area dengan progress loader dinamis: *"Mengunggah foto bukti (1 dari 3)..."*.
+- URL disimpan dalam format multi-URL (JSON array string) yang tetap 100% kompatibel dengan data tunggal lama.
+
+### 4. Pratinjau Multi-Foto di Peninjauan Insiden (`openKendalaProof`):
+- Saat tiket insiden yang memiliki lebih dari satu foto bukti dibuka, penampil pratinjau (`modalPreviewBukti`) otomatis menampilkan **Gallery Switcher**: deretan thumbnail horizontal di bagian atas dan pratinjau foto aktif di tengah, memudahkan COO atau Area Manager memeriksa seluruh foto bukti insiden secara detail.
+
+---
+
+## 🚦 Status Verifikasi (v5.9.7):
+1. ✅ **Uji Sintaks JavaScript**: `vm.Script` lolos 100% pada `js.html` dan `PANORAMA_VERCEL/index.html`.
+2. ✅ **Sinkronisasi Bundle**: Seluruh file bundle (`index.html`, `app.html`, `PANORAMA_VERCEL/index.html`, `PANORAMA_VERCEL/app.html`) terkompilasi penuh.
+3. ✅ **Regresi Guard**: Tidak ada dampak samping pada alur submit kendala lain atau modul penjualan.
