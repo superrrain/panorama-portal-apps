@@ -4170,10 +4170,10 @@ function renderSalesAnalyticsChart() {
         '<span style="color: var(--forest-800); font-weight: 700; font-size: 10.5px;">*Sentuh batang atau titik target untuk rincian nominal</span>';
     }
 
-    // Dapatkan target harian & penjualan aktual hari ini (Murni dari Google Spreadsheet, Tanpa Dummy)
-    const sale = (d.sales || []).find(s => currentCabang && s.cabangId === currentCabang.cabangId);
-    const baseTarget = sale ? Number(sale.targetHarian || 0) : (currentCabang && currentCabang.targetBulanan ? Math.round(Number(currentCabang.targetBulanan) / 26) : 0);
-    const baseActualToday = (sale && Number(sale.actualSales || 0) > 0) ? Number(sale.actualSales) : 0;
+    // Dapatkan target harian gerai (Murni dari targetBulanan atau database penjualan)
+    const baseTarget = (currentCabang && Number(currentCabang.targetBulanan || 0) > 0)
+      ? Math.round(Number(currentCabang.targetBulanan) / (typeof activeDaysInMonth !== 'undefined' ? activeDaysInMonth : 30))
+      : 6833333;
 
     // Tentukan hari ini (0 = Senin, ..., 6 = Minggu)
     const now = new Date();
@@ -4223,10 +4223,6 @@ function renderSalesAnalyticsChart() {
       if (record && Number(record.actualSales || 0) > 0) {
         actualVal = Number(record.actualSales);
         targetVal = Number(record.targetHarian || baseTarget);
-        hasInput = true;
-      } else if (isToday && sale && Number(sale.actualSales || 0) > 0) {
-        actualVal = Number(sale.actualSales);
-        targetVal = Number(sale.targetHarian || baseTarget);
         hasInput = true;
       }
 

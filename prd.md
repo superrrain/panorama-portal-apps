@@ -1968,6 +1968,10 @@ const COL_CONFIG = { KEY: 0, VALUE: 1, KETERANGAN: 2 };
     - Bagian `#salesDailyBreakdownSection` (*RINCIAN SALES HARIAN BULAN INI*) di dalam formulir pop-up `#modalInputSales` otomatis disembunyikan (`display: none`) untuk akun SPV.
     - Mencegah redundansi visual karena SPV sudah memiliki tabel kalender harian lengkap di layar utama, sehingga formulir modal input sales SPV menjadi ringkas, fokus, dan nyaman digunakan di ponsel maupun laptop.
     - Area Manager dan COO tetap memiliki opsi melihat tabel rincian saat membantu menginputkan penjualan cabang binaan.
+- **Perbaikan Integritas Data Hari Ini pada Grafik Kinerja Mingguan SPV (v5.9.3):**
+  * **Eliminasi Fallback Bocor Data Tanggal Lain**:
+    - Menghapus blok fallback lama `else if (isToday && sale)` pada `renderSalesTrendChart()` mode `SPV_WEEKLY` yang sebelumnya menyebabkan kolom hari ini menampilkan data omzet tanggal lain (~Rp 5,4 Jt / 80%) saat hari berjalan belum memiliki input omzet.
+    - Menjamin kolom hari berjalan (`KAM ★ (Hari Ini)`) menampilkan strip halus `-` jika belum ada laporan masuk, dan total realisasi mingguan di bawah grafik merefleksikan nilai riil murni tanpa penggelembungan fiktif.
 
   * **DILARANG KERAS MEMBUAT LINK / DEPLOYMENT ID BARU**: Dilarang menjalankan perintah bare `clasp deploy` tanpa flag `-i`, karena akan men-generate ID dan URL baru yang memutus koneksi Vercel dan seluruh klien.
   * **WAJIB REDEPLOY KE DEPLOYMENT ID RESMI**: Setiap deployment ke Apps Script WAJIB mere-deploy ke Deployment ID produksi aktif:

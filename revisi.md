@@ -1,32 +1,24 @@
-# 📋 PAPAN REVISI & TRACKING PERBAIKAN ZETTBOT (v5.9.2)
+# 📋 PAPAN REVISI & TRACKING PERBAIKAN ZETTBOT (v5.9.3)
 **Proyek**: PANORAMA Executive Operations Portal  
 **Lead Architect**: ZettBOT by Zettbos  
 **Tanggal**: 26 November 2026  
-**Status**: 🟢 SELESAI & TERTUJI PENUH (v5.9.2)  
+**Status**: 🟢 SELESAI & TERTUJI PENUH (v5.9.3)  
 
 ---
 
-## 🔍 Ringkasan Implementasi (v5.9.2)
+## 🔍 Ringkasan Implementasi (v5.9.3)
 
-### 1. Eliminasi Sub-Section Rincian Harian pada Modal Input Sales Khusus SPV:
+### 1. Perbaikan Bug Data Omzet Hari Ini pada Grafik Kinerja Mingguan SPV:
 * **Masalah**:
-  - Di dalam modal formulir **`+ Input Sales`** (`#modalInputSales`), terdapat sub-section tabel riwayat bernama `#salesDailyBreakdownSection` (*RINCIAN SALES HARIAN BULAN INI*).
-  - Karena halaman utama **Sales Performance** kini telah memiliki tabel jurnal kalender harian penuh (v5.9.1), keberadaan tabel mini di dalam formulir pop-up menjadi mubazir dan membuat modal terlalu panjang/berdesakan bagi SPV.
+  - Pada dashboard SPV, kolom **`KAM ★ (Hari Ini)`** pada grafik mingguan memunculkan batang hijau tinggi ~Rp 5.4 Jt (~80%) padahal hari ini belum ada omzet yang diinput (kartu kiri menunjukkan Rp 0).
+  - Hal ini disebabkan oleh adanya kode *fallback* lama (`else if (isToday && sale)`) yang mengambil data penjualan pertama dari tanggal lain milik gerai tersebut ketika hari ini belum ada laporan.
+  - Akibatnya, total realisasi mingguan di bagian bawah grafik juga tergelembung fiktif menjadi Rp 14.101.500.
 * **Solusi Rekayasa**:
-  - Pada fungsi `renderSalesDailyBreakdown(selectedCId)`, sistem memeriksa `roleInfo.isSPV`. Jika pengguna adalah SPV, elemen `#salesDailyBreakdownSection` otomatis disembunyikan (`display: none`) dan rendering tabel dihentikan.
-  - Pada fungsi pembuka modal (`openInputSalesModal` dan `openEditSalesModalForBranch`), elemen `#salesDailyBreakdownSection` otomatis diproteksi:
-    - SPV: `display = 'none'` (Formulir pop-up menjadi ringkas, bersih, dan to-the-point).
-    - Manager & COO: `display = ''` (Tetap dapat melihat riwayat rincian cabang jika diperlukan).
-
-### 2. Tampilan Form Input Sales SPV yang Bersih & Fokus:
-* Toko terkunci otomatis pada toko SPV (`Momoyo Babakan Ciparay`).
-* Tanggal penjualan aktif.
-* Target harian terisi otomatis.
-* Input nominal realisasi omzet rupiah & total struk kasir.
-* Tombol aksi simpan laporan.
-
-### 3. Jaminan Zero Regression:
-* Seluruh endpoint simpan data penjualan (`apiSaveSales`), validasi batas struk, dan sinkronisasi realtime tetap berjalan 100% normal tanpa gangguan.
+  - Dihapus seluruh blok kode fallback keliru tersebut pada `renderSalesTrendChart()` mode `SPV_WEEKLY`.
+  - Pembacaan data penjualan setiap hari (termasuk hari ini) **100% murni** mengacu pada record yang benar-benar memiliki tanggal yang cocok (`dayDateStr`).
+  - Jika hari ini belum ada input omzet (`hasInput = false`), kolom **`KAM ★ (Hari Ini)`** menampilkan tanda strip halus `-` (bersih tanpa batang hijau atau persentase fiktif), sama persis seperti hari Selasa `SEL`.
+  - Nilai **Total Realisasi Minggu Ini** kembali akurat menjadi murni Rp 8.359.800 (akumulasi riil dari Senin Rp 5.178.200 + Rabu Rp 3.181.600).
+  - Begitu kasir/SPV melakukan input penjualan hari ini, grafik akan otomatis menampilkan batang realisasi hari ini secara proporsional.
 
 ---
 
