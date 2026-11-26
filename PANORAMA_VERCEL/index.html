@@ -39,7 +39,7 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
 
   <!-- Server Parameter Injection from Google Apps Script -->
-  <div id="panoramaServerParams" data-params="" style="display:none;"></div>
+  <meta id="panoramaServerParams" name="panorama-server-params" data-params="">
   <script>
     window.PANORAMA_SERVER_PARAMS = (function () {
       try {
@@ -195,21 +195,39 @@
   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
   /* --- STANDALONE CUSTOMER REVIEW MODE (0-LATENCY CLEAN SCREEN) --- */
-  html.panorama-review-mode,
-  html.panorama-review-mode body {
-    background: #F8FAFC !important;
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    min-height: 100vh !important;
-    padding: 16px !important;
+  html.panorama-review-mode {
+    display: block !important;
+    width: 100% !important;
+    min-height: 100% !important;
+    padding: 0 !important;
     margin: 0 !important;
+    overflow-x: hidden !important;
+  }
+
+  html.panorama-review-mode body {
+    background: linear-gradient(180deg, #F1F5F9 0%, #E2E8F0 100%) !important;
+    color: #0F172A !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    min-height: 100vh !important;
+    min-height: 100dvh !important;
+    padding: 20px 16px !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
   }
 
   html.panorama-review-mode #loginEntranceOverlay,
+  html.panorama-review-mode #screenPendingApproval,
   html.panorama-review-mode .app-wrapper,
+  html.panorama-review-mode #globalLoader,
   html.panorama-review-mode #globalAppLoader,
+  html.panorama-review-mode #mobileSidebarBackdrop,
   html.panorama-review-mode #mobileSidebar,
+  html.panorama-review-mode #presentationPrintContainer,
+  html.panorama-review-mode #panoramaPrintUtilityContainer,
   html.panorama-logged-in #loginEntranceOverlay {
     display: none !important;
   }
@@ -15330,6 +15348,383 @@ body.dark-mode .insiden-file-card {
 
 body.dark-mode .insiden-file-thumb-wrap {
   background: #0F172A;
+}
+
+/* ==========================================================================
+   STANDALONE CUSTOMER REVIEW FORM (LIGHT + DARK MODE & RESPONSIVE v5.9.8)
+   ========================================================================== */
+:is(html.panorama-review-mode[data-theme="dark"], html.panorama-review-mode.theme-dark) body {
+  background: radial-gradient(circle at 50% 10%, #102A1E 0%, #09120E 100%) !important;
+  color: #E8EFEB !important;
+}
+
+.review-standalone-wrap {
+  width: 100%;
+  max-width: 460px;
+  margin: auto;
+  flex-shrink: 0;
+  background: #FFFFFF;
+  color: #0F172A;
+  border-radius: 22px;
+  box-shadow: 0 20px 45px -12px rgba(15, 23, 42, 0.14), 0 4px 12px rgba(15, 23, 42, 0.05);
+  overflow: hidden;
+  border: 1px solid #E2E8F0;
+  box-sizing: border-box;
+}
+
+.review-standalone-header {
+  background: linear-gradient(135deg, #0B2B1D 0%, #144A32 100%);
+  padding: 24px 20px;
+  color: #FFFFFF;
+  text-align: center;
+}
+
+.review-brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.14);
+  padding: 5px 12px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #6EE7B7;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.review-store-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #FFFFFF;
+  margin-top: 10px;
+  line-height: 1.3;
+}
+
+.review-store-sub {
+  font-size: 12px;
+  color: #D1FAE5;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.review-standalone-body {
+  padding: 22px 20px;
+}
+
+.review-section-heading {
+  font-size: 13.5px;
+  font-weight: 800;
+  margin-bottom: 10px;
+  color: #0F172A;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.review-stars-row {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin: 10px 0 8px;
+}
+
+.review-stars-row .star-btn {
+  background: none;
+  border: none;
+  min-width: 46px;
+  min-height: 46px;
+  font-size: 38px;
+  line-height: 1;
+  color: #CBD5E1;
+  cursor: pointer;
+  transition: transform 0.15s ease, color 0.15s ease;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.review-stars-row .star-btn.active {
+  color: #F59E0B;
+}
+
+.review-stars-row .star-btn:hover {
+  transform: scale(1.12);
+}
+
+.review-rating-label {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #059669;
+  margin-bottom: 18px;
+}
+
+.review-field-label {
+  font-size: 12px;
+  font-weight: 800;
+  display: block;
+  margin-bottom: 6px;
+  color: #0F172A;
+}
+
+.review-chips-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.review-standalone-wrap .chip {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 13px;
+  border-radius: 99px;
+  background: #F1F5F9;
+  color: #475569;
+  border: 1px solid #E2E8F0;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+}
+
+.review-standalone-wrap .chip:hover {
+  border-color: #94A3B8;
+}
+
+.review-standalone-wrap .chip.selected {
+  background: #ECFDF5;
+  color: #065F46;
+  border-color: #10B981;
+  font-weight: 700;
+}
+
+.review-input,
+.review-textarea {
+  width: 100%;
+  background: #FFFFFF;
+  color: #0F172A;
+  border: 1.5px solid #CBD5E1;
+  border-radius: 11px;
+  padding: 11px 13px;
+  font-size: 13.5px;
+  font-family: inherit;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.review-textarea {
+  min-height: 90px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.review-input {
+  min-height: 44px;
+}
+
+.review-input:focus,
+.review-textarea:focus {
+  border-color: #144A32;
+  box-shadow: 0 0 0 3px rgba(20, 74, 50, 0.12);
+}
+
+.review-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.review-submit-btn {
+  width: 100%;
+  min-height: 48px;
+  background: #144A32;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 14.5px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(20, 74, 50, 0.28);
+  transition: transform 0.12s ease, background-color 0.15s ease;
+}
+
+.review-submit-btn:hover {
+  background: #0D3322;
+}
+
+.review-submit-btn:active {
+  transform: scale(0.985);
+}
+
+.review-footnote {
+  text-align: center;
+  font-size: 11.5px;
+  color: #64748B;
+  margin-top: 12px;
+  line-height: 1.45;
+}
+
+.review-success-view {
+  display: none;
+  padding: 32px 22px;
+  text-align: center;
+}
+
+.review-success-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0F172A;
+  margin-bottom: 8px;
+}
+
+.review-success-desc {
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.review-gmaps-card {
+  display: none;
+  background: #FEF3C7;
+  border: 2px dashed #F59E0B;
+  border-radius: 16px;
+  padding: 18px;
+  margin: 16px 0;
+  text-align: center;
+}
+
+.review-gmaps-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #92400E;
+  margin-bottom: 6px;
+}
+
+.review-gmaps-desc {
+  font-size: 12px;
+  color: #B45309;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.review-success-sign {
+  margin-top: 24px;
+  font-size: 11.5px;
+  color: #64748B;
+}
+
+.review-success-sign strong {
+  color: #334155;
+}
+
+/* Dark Theme overrides for standalone review card */
+:is(html[data-theme="dark"], html.theme-dark) .review-standalone-wrap {
+  background: #151E1A !important;
+  color: #E8EFEB !important;
+  border-color: #26362E !important;
+  box-shadow: 0 24px 54px -12px rgba(0, 0, 0, 0.72) !important;
+}
+
+:is(html[data-theme="dark"], html.theme-dark) .review-section-heading,
+:is(html[data-theme="dark"], html.theme-dark) .review-field-label,
+:is(html[data-theme="dark"], html.theme-dark) .review-success-title {
+  color: #F1F5F9 !important;
+}
+
+:is(html[data-theme="dark"], html.theme-dark) .review-footnote,
+:is(html[data-theme="dark"], html.theme-dark) .review-success-desc,
+:is(html[data-theme="dark"], html.theme-dark) .review-success-sign {
+  color: #9AA8A1 !important;
+}
+
+:is(html[data-theme="dark"], html.theme-dark) .review-success-sign strong {
+  color: #CBD5E1 !important;
+}
+
+:is(html[data-theme="dark"], html.theme-dark) .review-standalone-wrap .chip {
+  background: #1D2923 !important;
+  color: #CBD5E1 !important;
+  border-color: #2E4037 !important;
+}
+
+:is(html[data-theme="dark"], html.theme-dark) .review-standalone-wrap .chip.selected {
+  background: rgba(16, 185, 129, 0.18) !important;
+  color: #6EE7B7 !important;
+  border-color: #10B981 !important;
+}
+
+:is(html[data-theme="dark"], html.theme-dark) .review-input,
+:is(html[data-theme="dark"], html.theme-dark) .review-textarea {
+  background: #0E1512 !important;
+  color: #F8FAFC !important;
+  border-color: #304239 !important;
+}
+
+:is(html[data-theme="dark"], html.theme-dark) .review-input:focus,
+:is(html[data-theme="dark"], html.theme-dark) .review-textarea:focus {
+  border-color: #34D399 !important;
+  box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.16) !important;
+}
+
+:is(html[data-theme="dark"], html.theme-dark) .review-stars-row .star-btn {
+  color: #3A4B42;
+}
+
+:is(html[data-theme="dark"], html.theme-dark) .review-stars-row .star-btn.active {
+  color: #FBBF24;
+}
+
+:is(html[data-theme="dark"], html.theme-dark) .review-gmaps-card {
+  background: rgba(245, 158, 11, 0.12) !important;
+  border-color: rgba(251, 191, 36, 0.5) !important;
+}
+
+:is(html[data-theme="dark"], html.theme-dark) .review-gmaps-title {
+  color: #FCD34D !important;
+}
+
+:is(html[data-theme="dark"], html.theme-dark) .review-gmaps-desc {
+  color: #FDE68A !important;
+}
+
+@media (max-width: 440px) {
+  html.panorama-review-mode body {
+    padding: 12px 10px !important;
+  }
+
+  .review-standalone-wrap {
+    border-radius: 18px;
+  }
+
+  .review-standalone-body {
+    padding: 18px 15px;
+  }
+
+  .review-form-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .review-input,
+  .review-textarea {
+    font-size: 16px;
+  }
 }
 
 </style>
@@ -46595,14 +46990,18 @@ function printQrStandeeCard() {
 function renderStandaloneCustomerReview(cabangParam) {
   if (document.querySelector('.review-standalone-wrap')) return;
 
-  const appWrapper = document.querySelector('.app-wrapper');
-  if (appWrapper) appWrapper.style.display = 'none';
-  const overlay = document.getElementById('loginEntranceOverlay');
-  if (overlay) overlay.style.display = 'none';
-  const sidebar = document.getElementById('mobileSidebar');
-  if (sidebar) sidebar.style.display = 'none';
-  const loader = document.getElementById('globalAppLoader');
-  if (loader) loader.style.display = 'none';
+  if (document.documentElement) {
+    document.documentElement.classList.add('panorama-review-mode');
+  }
+
+  ['.app-wrapper'].forEach(sel => {
+    const el = document.querySelector(sel);
+    if (el) el.style.display = 'none';
+  });
+  ['loginEntranceOverlay', 'screenPendingApproval', 'mobileSidebarBackdrop', 'mobileSidebar', 'globalLoader', 'globalAppLoader', 'presentationPrintContainer', 'panoramaPrintUtilityContainer'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
 
   if (window._PANORAMA_AUTO_SYNC_POLLER) {
     clearInterval(window._PANORAMA_AUTO_SYNC_POLLER);
@@ -46650,98 +47049,90 @@ function renderStandaloneCustomerReview(cabangParam) {
   if (urlKota) b.kota = urlKota;
   if (urlMaps) b.mapsUrl = urlMaps;
 
+  const esc = (typeof escapeHtml === 'function')
+    ? escapeHtml
+    : function(s) {
+        return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      };
+
   const slashSlash = '/' + '/';
   let defaultMapsUrl = b.mapsUrl || ('https:' + slashSlash + 'maps.google.com/?q=' + encodeURIComponent((b.namaCabang || 'Gerai') + ' ' + (b.kota || '')));
 
-  document.body.style.background = '#F8FAFC';
-  document.body.style.display = 'flex';
-  document.body.style.justifyContent = 'center';
-  document.body.style.alignItems = 'center';
-  document.body.style.padding = '16px';
-  document.body.style.minHeight = '100vh';
-
   const container = document.createElement('div');
   container.className = 'review-standalone-wrap';
-  container.style.maxWidth = '440px';
-  container.style.width = '100%';
-  container.style.background = '#FFFFFF';
-  container.style.borderRadius = '20px';
-  container.style.boxShadow = '0 10px 25px -5px rgba(0,0,0,0.06), 0 8px 10px -6px rgba(0,0,0,0.04)';
-  container.style.overflow = 'hidden';
-  container.style.border = '1px solid #E2E8F0';
 
   container.innerHTML = 
-    '<div style="background: linear-gradient(135deg, #0B2B1D 0%, #144A32 100%); padding: 24px 20px; color: #FFF; text-align: center;">' +
-      '<div id="clientBrandBadge" style="display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,0.15); padding:4px 12px; border-radius:99px; font-size:11px; font-weight:700; color:#6EE7B7; text-transform:uppercase;"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> ' + (b.brand || 'Outlet').toUpperCase() + ' Operations</div>' +
-      '<h1 id="clientStoreTitle" style="font-size:20px; font-weight:800; color:#FFF; margin-top:8px; line-height:1.3;">' + (b.namaCabang || 'Gerai Resmi') + '</h1>' +
-      '<div id="clientStoreSub" style="font-size:12px; color:#D1FAE5; margin-top:4px;"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg> ' + (b.kota || 'Indonesia') + ' • Survei Kepuasan Pelanggan</div>' +
+    '<div class="review-standalone-header">' +
+      '<div id="clientBrandBadge" class="review-brand-badge"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> ' + esc((b.brand || 'Outlet').toUpperCase()) + ' Operations</div>' +
+      '<h1 id="clientStoreTitle" class="review-store-title">' + esc(b.namaCabang || 'Gerai Resmi') + '</h1>' +
+      '<div id="clientStoreSub" class="review-store-sub"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg> ' + esc(b.kota || 'Indonesia') + ' • Survei Kepuasan Pelanggan</div>' +
     '</div>' +
-    '<div style="padding: 22px 20px;" id="clientFormView">' +
-      '<div style="font-size:13.5px; font-weight:800; margin-bottom:10px; color:#0F172A;"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> Berikan Penilaian Pengalaman Anda:</div>' +
-      '<div style="display:flex; justify-content:center; gap:8px; margin:12px 0;" id="clientStarsContainer">' +
-        '<button type="button" class="star-btn" data-val="1" style="background:none; border:none; font-size:38px; color:#CBD5E1; cursor:pointer; transition:transform 0.15s, color 0.15s;">★</button>' +
-        '<button type="button" class="star-btn" data-val="2" style="background:none; border:none; font-size:38px; color:#CBD5E1; cursor:pointer; transition:transform 0.15s, color 0.15s;">★</button>' +
-        '<button type="button" class="star-btn" data-val="3" style="background:none; border:none; font-size:38px; color:#CBD5E1; cursor:pointer; transition:transform 0.15s, color 0.15s;">★</button>' +
-        '<button type="button" class="star-btn" data-val="4" style="background:none; border:none; font-size:38px; color:#CBD5E1; cursor:pointer; transition:transform 0.15s, color 0.15s;">★</button>' +
-        '<button type="button" class="star-btn active" data-val="5" style="background:none; border:none; font-size:38px; color:#F59E0B; cursor:pointer; transition:transform 0.15s, color 0.15s;">★</button>' +
+    '<div class="review-standalone-body" id="clientFormView">' +
+      '<div class="review-section-heading"><svg class="p-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> Berikan Penilaian Pengalaman Anda:</div>' +
+      '<div class="review-stars-row" id="clientStarsContainer">' +
+        '<button type="button" class="star-btn active" data-val="1" aria-label="1 Bintang">★</button>' +
+        '<button type="button" class="star-btn active" data-val="2" aria-label="2 Bintang">★</button>' +
+        '<button type="button" class="star-btn active" data-val="3" aria-label="3 Bintang">★</button>' +
+        '<button type="button" class="star-btn active" data-val="4" aria-label="4 Bintang">★</button>' +
+        '<button type="button" class="star-btn active" data-val="5" aria-label="5 Bintang">★</button>' +
       '</div>' +
-      '<div style="text-align:center; font-size:13px; font-weight:700; color:#059669; margin-bottom:18px;" id="clientRatingLabel">🌟 Luar Biasa! Sangat Puas</div>' +
+      '<div class="review-rating-label" id="clientRatingLabel">🌟 Luar Biasa! Sangat Puas</div>' +
       
       '<div style="margin-bottom:16px;">' +
-        '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">' +
-          '<label style="font-size:12px; font-weight:800; color:#0F172A;"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Aspek Layanan (Bisa pilih manual atau terdeteksi otomatis):</label>' +
+        '<div style="display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; margin-bottom:8px;">' +
+          '<label class="review-field-label" style="margin-bottom:0;"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Aspek Layanan (Bisa pilih manual atau terdeteksi otomatis):</label>' +
           '<span id="clientAiDetectedBadge" style="display:none; font-size:10.5px; font-weight:700; color:#059669; background:#ECFDF5; border:1px solid #6EE7B7; border-radius:99px; padding:2px 8px;">✨ AI Aktif</span>' +
         '</div>' +
-        '<div style="display:flex; flex-wrap:wrap; gap:6px;" id="clientChipsContainer">' +
-          '<span class="chip" data-topic="rasa" style="font-size:11.5px; font-weight:600; padding:7px 12px; border-radius:99px; background:#F1F5F9; color:#475569; border:1px solid #E2E8F0; cursor:pointer; transition:all 0.15s; user-select:none;">🍦 Rasa & Kualitas Menu</span>' +
-          '<span class="chip" data-topic="kecepatan" style="font-size:11.5px; font-weight:600; padding:7px 12px; border-radius:99px; background:#F1F5F9; color:#475569; border:1px solid #E2E8F0; cursor:pointer; transition:all 0.15s; user-select:none;">⚡ Kecepatan Kasir / Saji</span>' +
-          '<span class="chip" data-topic="kebersihan" style="font-size:11.5px; font-weight:600; padding:7px 12px; border-radius:99px; background:#F1F5F9; color:#475569; border:1px solid #E2E8F0; cursor:pointer; transition:all 0.15s; user-select:none;">🧹 Kebersihan Meja & Toko</span>' +
-          '<span class="chip" data-topic="kenyamanan" style="font-size:11.5px; font-weight:600; padding:7px 12px; border-radius:99px; background:#F1F5F9; color:#475569; border:1px solid #E2E8F0; cursor:pointer; transition:all 0.15s; user-select:none;">❄️ Kenyamanan & Suasana</span>' +
-          '<span class="chip" data-topic="keramahan" style="font-size:11.5px; font-weight:600; padding:7px 12px; border-radius:99px; background:#F1F5F9; color:#475569; border:1px solid #E2E8F0; cursor:pointer; transition:all 0.15s; user-select:none;">🤝 Keramahan Tim Kru</span>' +
+        '<div class="review-chips-wrap" id="clientChipsContainer">' +
+          '<span class="chip" data-topic="rasa">🍦 Rasa & Kualitas Menu</span>' +
+          '<span class="chip" data-topic="kecepatan">⚡ Kecepatan Kasir / Saji</span>' +
+          '<span class="chip" data-topic="kebersihan">🧹 Kebersihan Meja & Toko</span>' +
+          '<span class="chip" data-topic="kenyamanan">❄️ Kenyamanan & Suasana</span>' +
+          '<span class="chip" data-topic="keramahan">🤝 Keramahan Tim Kru</span>' +
         '</div>' +
       '</div>' +
 
       '<div style="margin-bottom:16px;">' +
-        '<label style="font-size:12px; font-weight:800; display:block; margin-bottom:6px; color:#0F172A;">Kritik, Saran, atau Pengalaman Spesial Anda <span style="color:#DC2626;">* (Wajib diisi)</span>:</label>' +
-        '<textarea id="clientKomentar" style="width:100%; border:1.5px solid #CBD5E1; border-radius:12px; padding:12px; font-size:13px; outline:none; min-height:85px; font-family:inherit; transition:border-color 0.2s;" placeholder="Tuliskan pengalaman jujur Anda untuk kami..."></textarea>' +
+        '<label for="clientKomentar" class="review-field-label">Kritik, Saran, atau Pengalaman Spesial Anda <span style="color:#DC2626;">* (Wajib diisi)</span>:</label>' +
+        '<textarea id="clientKomentar" class="review-textarea" placeholder="Tuliskan pengalaman jujur Anda untuk kami..."></textarea>' +
       '</div>' +
 
-      '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px;">' +
+      '<div class="review-form-grid">' +
         '<div>' +
-          '<label style="font-size:12px; font-weight:800; display:block; margin-bottom:6px; color:#0F172A;">Nama Anda <span style="color:#DC2626;">* (Wajib)</span>:</label>' +
-          '<input type="text" id="clientNama" style="width:100%; border:1.5px solid #CBD5E1; border-radius:10px; padding:10px 12px; font-size:12.5px; font-family:inherit; outline:none; transition:border-color 0.2s;" placeholder="Nama Anda">' +
+          '<label for="clientNama" class="review-field-label">Nama Anda <span style="color:#DC2626;">* (Wajib)</span>:</label>' +
+          '<input type="text" id="clientNama" class="review-input" placeholder="Nama Anda">' +
         '</div>' +
         '<div>' +
-          '<label style="font-size:12px; font-weight:800; display:block; margin-bottom:6px; color:#0F172A;">No. WhatsApp / HP <span style="color:#DC2626;">* (Wajib)</span>:</label>' +
-          '<input type="tel" id="clientNoWa" style="width:100%; border:1.5px solid #CBD5E1; border-radius:10px; padding:10px 12px; font-size:12.5px; font-family:inherit; outline:none; transition:border-color 0.2s;" placeholder="08xxxxxxxxxx">' +
+          '<label for="clientNoWa" class="review-field-label">No. WhatsApp / HP <span style="color:#DC2626;">* (Wajib)</span>:</label>' +
+          '<input type="tel" id="clientNoWa" class="review-input" placeholder="08xxxxxxxxxx">' +
         '</div>' +
       '</div>' +
 
-      '<button type="button" id="btnClientSubmit" style="width:100%; background:#144A32; color:#FFF; border:none; border-radius:12px; padding:14px; font-size:14px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 14px rgba(20,74,50,0.3); transition:all 0.15s;">' +
+      '<button type="button" id="btnClientSubmit" class="review-submit-btn">' +
         '<span>Kirim Ulasan Saya</span> ➔' +
       '</button>' +
-      '<div style="text-align:center; font-size:11px; color:#64748B; margin-top:12px; line-height:1.4;">' +
+      '<div class="review-footnote">' +
         'Masukan Anda langsung dianalisis oleh sistem operasional gerai untuk memastikan standar pelayanan terbaik.' +
       '</div>' +
     '</div>' +
 
     '<!-- SUCCESS SCREEN -->' +
-    '<div id="clientSuccessView" style="display:none; padding:32px 22px; text-align:center;">' +
+    '<div id="clientSuccessView" class="review-success-view">' +
       '<div style="font-size:52px; margin-bottom:12px;" id="clientSuccessIcon">🎉</div>' +
-      '<h2 style="font-size:20px; font-weight:800; color:#0F172A; margin-bottom:8px;" id="clientSuccessTitle">Terima Kasih Banyak!</h2>' +
-      '<div style="font-size:13px; color:#64748B; line-height:1.6; margin-bottom:20px;" id="clientSuccessDesc">Ulasan dan masukan Anda telah kami terima untuk terus meningkatkan pelayanan gerai.</div>' +
+      '<h2 class="review-success-title" id="clientSuccessTitle">Terima Kasih Banyak!</h2>' +
+      '<div class="review-success-desc" id="clientSuccessDesc">Ulasan dan masukan Anda telah kami terima untuk terus meningkatkan pelayanan gerai.</div>' +
 
       '<!-- GMAPS REDIRECT CARD UNTUK BINTANG 4 & 5 -->' +
-      '<div id="clientGmapsCard" style="display:none; background:#FEF3C7; border:2px dashed #F59E0B; border-radius:16px; padding:18px; margin:16px 0; text-align:center;">' +
-        '<div style="font-size:13px; font-weight:800; color:#92400E; margin-bottom:6px;">🌟 MENGALIHKAN KE GOOGLE MAPS RESMI...</div>' +
-        '<p style="font-size:12px; color:#B45309; line-height:1.5; margin-bottom:12px;">Bintang <span id="clientSuccessStarNum">5</span>★ Anda sangat berarti! Anda akan otomatis dialihkan ke halaman ulasan Google dalam <b id="redirectCountdown" style="color:#DC2626; font-size:14px;">2</b> detik untuk membagikan bintang Anda:</p>' +
-        '<a id="clientGmapsDirectBtn" href="' + defaultMapsUrl + '" target="_blank" rel="noopener noreferrer" style="display:inline-flex; align-items:center; justify-content:center; gap:8px; background:#EA4335; color:#FFF; text-decoration:none; font-size:13.5px; font-weight:800; padding:12px 20px; border-radius:12px; width:100%; box-shadow:0 4px 14px rgba(234,67,53,0.35);">' +
+      '<div id="clientGmapsCard" class="review-gmaps-card">' +
+        '<div class="review-gmaps-title">🌟 MENGALIHKAN KE GOOGLE MAPS RESMI...</div>' +
+        '<p class="review-gmaps-desc">Bintang <span id="clientSuccessStarNum">5</span>★ Anda sangat berarti! Anda akan otomatis dialihkan ke halaman ulasan Google dalam <b id="redirectCountdown" style="color:#DC2626; font-size:14px;">2</b> detik untuk membagikan bintang Anda:</p>' +
+        '<a id="clientGmapsDirectBtn" href="' + esc(defaultMapsUrl) + '" target="_blank" rel="noopener noreferrer" style="display:inline-flex; align-items:center; justify-content:center; gap:8px; background:#EA4335; color:#FFF; text-decoration:none; font-size:13.5px; font-weight:800; padding:12px 20px; border-radius:12px; width:100%; box-shadow:0 4px 14px rgba(234,67,53,0.35);">' +
           '<span>📍</span> Buka Google Maps Resmi Sekarang' +
         '</a>' +
       '</div>' +
 
-      '<div style="margin-top:24px; font-size:11.5px; color:#94A3B8;">' +
-        'Salam Hangat,<br><b style="color:#475569;" id="clientSuccessStoreSign">Tim Manajemen Operasional ' + (b.namaCabang || 'Gerai') + '</b>' +
+      '<div class="review-success-sign">' +
+        'Salam Hangat,<br><strong id="clientSuccessStoreSign">Tim Manajemen Operasional ' + esc(b.namaCabang || 'Gerai') + '</strong>' +
       '</div>' +
     '</div>';
 
@@ -46761,12 +47152,12 @@ function renderStandaloneCustomerReview(cabangParam) {
         if (res.brand) {
           b.brand = res.brand;
           const brandBadge = container.querySelector('#clientBrandBadge');
-          if (brandBadge) brandBadge.innerHTML = '🍨 ' + res.brand.toUpperCase() + ' Operations';
+          if (brandBadge) brandBadge.innerHTML = '🍨 ' + esc(res.brand.toUpperCase()) + ' Operations';
         }
         if (res.kota) {
           b.kota = res.kota;
           const storeSub = container.querySelector('#clientStoreSub');
-          if (storeSub) storeSub.innerHTML = '📍 ' + res.kota + ' • Survei Kepuasan Pelanggan';
+          if (storeSub) storeSub.innerHTML = '📍 ' + esc(res.kota) + ' • Survei Kepuasan Pelanggan';
         }
         if (res.mapsUrl) {
           b.mapsUrl = res.mapsUrl;
@@ -46793,7 +47184,7 @@ function renderStandaloneCustomerReview(cabangParam) {
       clientRating = parseInt(this.getAttribute('data-val'), 10);
       stars.forEach(s => {
         const v = parseInt(s.getAttribute('data-val'), 10);
-        s.style.color = (v <= clientRating) ? '#F59E0B' : '#CBD5E1';
+        s.classList.toggle('active', v <= clientRating);
       });
       const lbl = container.querySelector('#clientRatingLabel');
       if (lbl) {
@@ -46828,10 +47219,7 @@ function renderStandaloneCustomerReview(cabangParam) {
   ];
 
   function setChipStyle(chipEl, isSelected) {
-    chipEl.style.background = isSelected ? '#ECFDF5' : '#F1F5F9';
-    chipEl.style.color = isSelected ? '#065F46' : '#475569';
-    chipEl.style.borderColor = isSelected ? '#6EE7B7' : '#E2E8F0';
-    chipEl.style.fontWeight = isSelected ? '700' : '600';
+    chipEl.classList.toggle('selected', Boolean(isSelected));
   }
 
   const chips = container.querySelectorAll('.chip');
@@ -47093,8 +47481,6 @@ function triggerCleanAllDummyTransactions() {
   confirmCleanDummyData();
 }
 
-
-</script>
 // Render Modal Galeri Pratinjau Multi-Foto Insiden
 function renderMultiPhotoIncidentProof(item, urls, targetId) {
   const modalBody = document.getElementById('modalPreviewBuktiBody');
@@ -47151,6 +47537,7 @@ function renderMultiPhotoIncidentProof(item, urls, targetId) {
   updateGalleryView(0);
   openModal('modalPreviewBukti');
 }
+</script>
 
 
 
