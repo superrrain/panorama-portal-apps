@@ -322,3 +322,19 @@ Pengguna melaporkan kendala tampilan saat halaman digulir (*scroll*) pada iPhone
 3. **Summary Sales 3-Tier, Dashboard Hero, Presentasi PDF Slide 3 & Export Excel (`js.html`, `css.html`)**:
    - Agregasi 6 channel + `legacyUnclassified` terpusat pada `getPeriodFilteredSalesData` untuk konsistensi **SPV → Area Manager → COO Nasional**.
    - Penambahan **Stacked Channel Composition Bar + Channel Cards/Chips** di Dashboard Hero, Sales Performance (SPV, Area Manager, COO), modal riwayat harian, Slide 3 Presentasi PDF, dan **Export Excel Eksekutif** (Matriks Area 17 kolom + Rincian Gerai 20 kolom).
+
+
+---
+
+## v5.10.1 — Fitur Edit & Ajukan Ulang Jadwal Kerja Area Manager (`VISIT_AREA`)
+**Tanggal:** 2026-11-26  
+**Status:** Implementasi Lengkap & Terverifikasi  
+
+### Ringkasan Perubahan
+1. **Backend Upsert Revisi Jadwal Manager (`Jadwal.gs`, `code.gs`)**:
+   - Menambahkan endpoint **`apiUpdateJadwal`** (beserta alias global `updateJadwal` & rute `doPost`) untuk memperbarui baris jadwal Area Manager eksisting secara *in-place* berdasarkan `JadwalID` (tanpa membuat baris baru), mengembalikan status ke `MENUNGGU_COO`, memperbarui `DETAIL_JSON`, serta mengirim push notification pengajuan ulang ke Master COO.
+   - Proteksi backend menolak pengubahan jadwal yang sudah berstatus `DISETUJUI` maupun jadwal non-Manager (`ROSTER_CABANG` / SPV).
+2. **UI Edit Kalender Pra-Isi & Indikator Revisi (`index_modular.html`, `js.html`, `css.html`)**:
+   - Menambahkan helper otorisasi `canEditManagerJadwal(j, user)` (ketat khusus akun Area Manager untuk jadwal `MA_TO_COO`/`VISIT_AREA` yang belum berstatus ACC).
+   - Menampilkan tombol **Edit / Edit Revisi** pada tabel desktop, kartu mobile, dan footer modal detail (`openModalDetailJadwal`).
+   - `openEditManagerJadwal(jadwalId)` membuka kembali `#modalAjukanJadwal` dengan seluruh tanggal, status hari, cabang kunjungan, agenda, periode bulan, dan catatan yang sudah pernah diisi sebelumnya beserta banner instruksi revisi dari Master COO (`#calRevisionFeedbackBanner`), lalu `submitPengajuanJadwalKalender` memperbarui jadwal eksisting tersebut via `apiUpdateJadwal`.

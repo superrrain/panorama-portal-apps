@@ -18,6 +18,7 @@ var COL_PERUBAHAN_JADWAL = { ID: 0, TANGGAL_PENGAJUAN: 1, AREA_ID: 2, CABANG_ID:
 
 // Global Aliases untuk Dukungan Pemanggilan google.script.run
 function submitJadwal(payload, user) { return apiSubmitJadwal(payload, user); }
+function updateJadwal(payload, user) { return apiUpdateJadwal(payload, user); }
 function approveJadwal(jadwalId, status, feedback, user) { return apiApproveJadwal(jadwalId, status, feedback, user); }
 function deleteJadwal(jadwalId) { return apiDeleteJadwal(jadwalId); }
 function submitKendala(payload, user) { return apiSubmitKendala(payload, user); }
@@ -109,6 +110,103 @@ function apiSubmitJadwal(payload, user) {
     return {
       success: false,
       message: 'Gagal menyimpan jadwal kerja: ' + err.message
+    };
+  }
+}
+
+/**
+ * API: Edit & Ajukan Ulang Jadwal Kerja Area Manager (Khusus Jadwal Belum ACC / Perlu Revisi)
+ */
+function apiUpdateJadwal(payload, user) {
+  try {
+    if (!payload || !payload.jadwalId) {
+      return { success: false, message: 'ID Jadwal wajib disertakan untuk mode edit.' };
+    }
+    var sheet = getSheet(TAB.JADWAL);
+    var lastRow = sheet.getLastRow();
+    if (lastRow <= 1) {
+      return { success: false, message: 'Data jadwal di spreadsheet masih kosong.' };
+    }
+
+    var targetId = String(payload.jadwalId).trim();
+    var idRange = sheet.getRange(2, COL_JADWAL.ID + 1, lastRow - 1, 1).getValues();
+    var rowIndex = -1;
+    for (var i = 0; i < idRange.length; i++) {
+      if (String(idRange[i][0] || '').trim() === targetId) {
+        rowIndex = i + 2;
+        break;
+      }
+    }
+    if (rowIndex === -1) {
+      return { success: false, message: 'Jadwal ' + targetId + ' tidak ditemukan di database.' };
+    }
+
+    var totalCols = Math.max(sheet.getLastColumn(), COL_JADWAL.DETAIL_JSON + 1);
+    var rowValues = sheet.getRange(rowIndex, 1, 1, totalCols).getValues()[0];
+    var existingStatus = String(rowValues[COL_JADWAL.STATUS] || '').trim().toUpperCase();
+    var existingTipe = String(rowValues[COL_JADWAL.TIPE] || '').trim().toUpperCase();
+    var existingLevel = String(rowValues[COL_JADWAL.LEVEL] || '').trim().toUpperCase();
+
+    if (existingStatus === 'DISETUJUI' || existingStatus === 'APPROVED') {
+      return { success: false, message: 'Jadwal yang sudah disetujui (ACC) tidak dapat diubah melalui mode edit.' };
+    }
+    if (existingTipe !== 'VISIT_AREA' && existingLevel !== 'MA_TO_COO') {
+      return { success: false, message: 'Fitur edit kalender dikhususkan untuk jadwal kerja Area Manager.' };
+    }
+
+    var nowStr = Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyyy-MM-dd HH:mm:ss');
+    var existingDetail = {};
+    try {
+      if (rowValues[COL_JADWAL.DETAIL_JSON]) {
+        existingDetail = JSON.parse(String(rowValues[COL_JADWAL.DETAIL_JSON]));
+      }
+    } catch (eParse) {}
+
+    var detailPayload = {
+      fileUrl: payload.fileUrl || existingDetail.fileUrl || '',
+      fileName: payload.fileName || existingDetail.fileName || '',
+      fileType: payload.fileType || existingDetail.fileType || '',
+      detailHari: payload.detailHari || existingDetail.detailHari || null,
+      calendarMeta: payload.calendarMeta || existingDetail.calendarMeta || null,
+      detailKru: payload.detailKru || existingDetail.detailKru || null
+    };
+
+    sheet.getRange(rowIndex, COL_JADWAL.PERIODE + 1).setValue(payload.periode || rowValues[COL_JADWAL.PERIODE]);
+    sheet.getRange(rowIndex, COL_JADWAL.TOTAL_KRU + 1).setValue(payload.totalKru || rowValues[COL_JADWAL.TOTAL_KRU] || 8);
+    sheet.getRange(rowIndex, COL_JADWAL.TOTAL_SHIFT + 1).setValue(Number(payload.totalShift || 0));
+    sheet.getRange(rowIndex, COL_JADWAL.STATUS + 1).setValue('MENUNGGU_COO');
+    if (payload.catatan !== undefined) {
+      sheet.getRange(rowIndex, COL_JADWAL.CATATAN + 1).setValue(payload.catatan);
+    }
+    sheet.getRange(rowIndex, COL_JADWAL.APPROVER + 1).setValue(payload.approver || 'Master Administrator');
+    sheet.getRange(rowIndex, COL_JADWAL.FEEDBACK + 1).setValue('');
+    sheet.getRange(rowIndex, COL_JADWAL.CREATED_AT + 1).setValue(nowStr);
+    sheet.getRange(rowIndex, COL_JADWAL.DETAIL_JSON + 1).setValue(JSON.stringify(detailPayload));
+
+    try {
+      var pengajuName = String(payload.pengaju || rowValues[COL_JADWAL.PENGAJU] || 'Area Manager').trim();
+      var areaName = String(payload.areaId || rowValues[COL_JADWAL.AREA_ID] || '').trim();
+      triggerOperationalPushAlert(
+        'JADWAL',
+        '📅 REVISI JADWAL KERJA DIAJUKAN ULANG',
+        pengajuName + ' (' + (areaName || 'Area') + ') telah memperbarui jadwal ' + targetId + ' (' + (payload.periode || '') + '). Menunggu otorisasi Master COO.',
+        'COO'
+      );
+    } catch (ePushEdit) {
+      Logger.log('Push update jadwal notice: ' + ePushEdit.message);
+    }
+
+    return {
+      success: true,
+      isEdited: true,
+      jadwalId: targetId,
+      createdAt: nowStr,
+      message: 'Revisi jadwal ' + targetId + ' berhasil disimpan & diajukan ulang ke Master COO.'
+    };
+  } catch (err) {
+    return {
+      success: false,
+      message: 'Gagal memperbarui jadwal kerja: ' + err.message
     };
   }
 }

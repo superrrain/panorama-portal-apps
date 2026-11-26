@@ -227,6 +227,11 @@ function handleApiRequest(action, params) {
         result = apiSubmitJadwal(params.jadwalData || params, user);
         break;
 
+      case 'updateJadwal':
+      case 'apiUpdateJadwal':
+        result = apiUpdateJadwal(params.jadwalData || params.payload || params, user);
+        break;
+
       case 'submitKendala':
       case 'apiSubmitKendala':
         result = apiSubmitKendala(params.kendalaData || params, user);

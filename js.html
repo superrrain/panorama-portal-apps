@@ -13036,6 +13036,85 @@ function testKirimNotifikasiHp() {
   });
 }
 
+function canEditManagerJadwal(j, user) {
+  if (!j || !user) return false;
+  const roleInfo = (typeof getUserRoleInfo === 'function') ? getUserRoleInfo(user) : {};
+  if (!roleInfo.isManager || roleInfo.isSPV || roleInfo.isCOO || roleInfo.isMaster || roleInfo.isGuest) return false;
+  const tipeUpper = String(j.tipe || '').trim().toUpperCase();
+  const levelUpper = String(j.level || '').trim().toUpperCase();
+  const isManagerSchedule = (levelUpper === 'MA_TO_COO' || tipeUpper === 'VISIT_AREA');
+  if (!isManagerSchedule) return false;
+  const st = String(j.status || '').trim().toUpperCase();
+  if (st === 'DISETUJUI' || st === 'APPROVED') return false;
+  const userArea = String(user.areaId || '').trim().toUpperCase();
+  const itemArea = String(j.areaId || '').trim().toUpperCase();
+  return !userArea || userArea === 'ALL' || itemArea === userArea;
+}
+
+function resolveJadwalYearMonth(j) {
+  let year = 2026;
+  let month = 11;
+  if (j && j.calendarMeta && j.calendarMeta.year) {
+    year = parseInt(j.calendarMeta.year, 10) || 2026;
+    month = parseInt(j.calendarMeta.month, 10) || 11;
+    return { year: year, month: month };
+  }
+  const periodeStr = (j && j.periode) ? String(j.periode) : '';
+  const isoMatch = periodeStr.match(/(\d{4})-(\d{1,2})/);
+  if (isoMatch) {
+    year = parseInt(isoMatch[1], 10) || 2026;
+    month = parseInt(isoMatch[2], 10) || 11;
+  } else {
+    const blnMap = { 'januari':1, 'februari':2, 'maret':3, 'april':4, 'mei':5, 'juni':6, 'juli':7, 'agustus':8, 'september':9, 'oktober':10, 'november':11, 'desember':12 };
+    const lowerP = periodeStr.toLowerCase();
+    for (let bName in blnMap) {
+      if (lowerP.includes(bName)) {
+        month = blnMap[bName];
+        break;
+      }
+    }
+    const yrMatch = periodeStr.match(/\b(202\d)\b/);
+    if (yrMatch) year = parseInt(yrMatch[1], 10);
+  }
+  return { year: year, month: month };
+}
+
+function reconstructManagerCalendarDetail(j) {
+  const ym = resolveJadwalYearMonth(j);
+  const year = ym.year;
+  const month = ym.month;
+  const totalDays = new Date(year, month, 0).getDate();
+  const reconstructed = {};
+  let masukCount = 0;
+
+  for (let day = 1; day <= totalDays; day++) {
+    const dayOfWeek = new Date(year, month - 1, day).getDay();
+    if (dayOfWeek === 0) {
+      reconstructed[day] = {
+        status: 'LIBUR',
+        cabangId: 'ALL',
+        namaCabang: 'Hari Libur Operasional',
+        cabangNama: 'Hari Libur Operasional',
+        agenda: 'Libur Mingguan'
+      };
+    } else {
+      reconstructed[day] = {
+        status: 'MASUK',
+        cabangId: 'ALL',
+        namaCabang: 'Supervisi Operasional & Visit Wilayah',
+        cabangNama: 'Supervisi Operasional & Visit Wilayah',
+        agenda: 'Kunjungan Supervisi Lapangan Wilayah ' + (j.areaId || '') + ' (' + (j.pengaju || 'Manager') + ')'
+      };
+      masukCount++;
+    }
+  }
+  return {
+    detailHari: reconstructed,
+    calendarMeta: { year: year, month: month },
+    masukCount: masukCount
+  };
+}
+
 function renderJadwalView() {
   const d = window.PANORAMA_STATE.data;
   const u = window.PANORAMA_STATE.user;
@@ -13169,13 +13248,14 @@ function renderJadwalView() {
         const canApprove = (isCOO && j.status === 'MENUNGGU_COO') || (roleInfo.isManager && j.status === 'MENUNGGU_MA' && j.areaId === targetArea);
 
         let statusBadge = '';
-        if (j.status === 'DISETUJUI') {
+        const jStatusUp = String(j.status || '').trim().toUpperCase();
+        if (jStatusUp === 'DISETUJUI' || jStatusUp === 'APPROVED') {
           statusBadge = '<span class="status-pill-disetujui">DISETUJUI</span>';
-        } else if (j.status === 'DITOLAK') {
+        } else if (jStatusUp === 'DITOLAK' || jStatusUp === 'REVISI' || jStatusUp === 'REVISION') {
           statusBadge = '<span class="status-pill-revisi">PERLU REVISI</span>';
-        } else if (j.status === 'MENUNGGU_MA') {
+        } else if (jStatusUp === 'MENUNGGU_MA') {
           statusBadge = '<span class="status-pill-menunggu">MENUNGGU MA</span>';
-        } else if (j.status === 'MENUNGGU_COO') {
+        } else if (jStatusUp === 'MENUNGGU_COO') {
           statusBadge = '<span class="status-pill-menunggu">MENUNGGU COO</span>';
         } else {
           statusBadge = '<span class="status-pill-menunggu">MENUNGGU APPROVAL</span>';
@@ -13186,6 +13266,7 @@ function renderJadwalView() {
           : '<span class="badge-role-manager" style="background:#F3F4F6; color:var(--text-body); border-color:#E5E7EB;">SPV Toko</span>';
 
         let actionCell = '';
+        const canEditMgr = canEditManagerJadwal(j, u);
         const btnLabel = j.fileUrl ? '<svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Cek File' : '<svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg> Cek Kalender';
         if (canApprove) {
           actionCell = `
@@ -13196,10 +13277,12 @@ function renderJadwalView() {
             </div>
           `;
         } else {
-          const isAcc = (String(j.status || '').toUpperCase() === 'DISETUJUI' || String(j.status || '').toUpperCase() === 'APPROVED');
+          const isAcc = (jStatusUp === 'DISETUJUI' || jStatusUp === 'APPROVED');
+          const editBtnText = (jStatusUp === 'DITOLAK' || jStatusUp === 'REVISI' || jStatusUp === 'REVISION') ? 'Edit Revisi' : 'Edit';
           actionCell = `
-            <div style="display: flex; justify-content: flex-end; align-items: center; gap: 5px;">
+            <div style="display: flex; justify-content: flex-end; align-items: center; gap: 5px; flex-wrap: nowrap;">
               ${isAcc ? `<button type="button" class="btn-table-review" style="background:#F0FDF4; color:#166534; border-color:#86EFAC; font-weight:700;" title="Cetak Jadwal (Sudah ACC)" onclick="printJadwalCalendar('${escapeHtml(j.jadwalId)}')"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Cetak</button>` : ''}
+              ${canEditMgr ? `<button type="button" class="btn-table-edit-jadwal" title="Edit Jadwal Ini (Tanpa Buat Ulang Dari Awal)" onclick="openEditManagerJadwal('${escapeHtml(j.jadwalId)}')"><svg class="p-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> ${editBtnText}</button>` : ''}
               <button type="button" class="btn-table-review" title="Buka Detail Jadwal" onclick="openModalDetailJadwal('${escapeHtml(j.jadwalId)}')">${btnLabel}</button>
             </div>
           `;
@@ -13284,9 +13367,10 @@ function renderJadwalView() {
         const canApprove = (isCOO && j.status === 'MENUNGGU_COO') || (roleInfo.isManager && j.status === 'MENUNGGU_MA' && j.areaId === targetArea);
 
         let statusBadge = '';
-        if (j.status === 'DISETUJUI') {
+        const mobStatusUp = String(j.status || '').trim().toUpperCase();
+        if (mobStatusUp === 'DISETUJUI' || mobStatusUp === 'APPROVED') {
           statusBadge = '<span class="status-pill-disetujui">DISETUJUI</span>';
-        } else if (j.status === 'DITOLAK') {
+        } else if (mobStatusUp === 'DITOLAK' || mobStatusUp === 'REVISI' || mobStatusUp === 'REVISION') {
           statusBadge = '<span class="status-pill-revisi">PERLU REVISI</span>';
         } else {
           statusBadge = '<span class="status-pill-menunggu">MENUNGGU APPROVAL</span>';
@@ -13297,6 +13381,7 @@ function renderJadwalView() {
           : '<span class="badge-role-manager" style="background:#F3F4F6; color:var(--text-body); border-color:#E5E7EB;">SPV Toko</span>';
 
         let actionBtns = '';
+        const canEditMgrMob = canEditManagerJadwal(j, u);
         const mobileBtnLabel = j.fileUrl ? '<svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Cek File Jadwal' : '<svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg> Buka & Cek Jadwal';
         if (canApprove) {
           actionBtns = `
@@ -13307,10 +13392,13 @@ function renderJadwalView() {
             </div>
           `;
         } else {
-          const isAcc = (String(j.status || '').toUpperCase() === 'DISETUJUI' || String(j.status || '').toUpperCase() === 'APPROVED');
+          const isAcc = (mobStatusUp === 'DISETUJUI' || mobStatusUp === 'APPROVED');
+          const hasTwoCols = isAcc || canEditMgrMob;
+          const mobEditLabel = (mobStatusUp === 'DITOLAK' || mobStatusUp === 'REVISI' || mobStatusUp === 'REVISION') ? 'Edit Revisi' : 'Edit Jadwal';
           actionBtns = `
-            <div class="card-action-bar" style="display:grid; grid-template-columns:${isAcc ? '1fr 1fr' : '1fr'}; gap:6px;">
+            <div class="card-action-bar" style="display:grid; grid-template-columns:${hasTwoCols ? '1fr 1fr' : '1fr'}; gap:6px;">
               ${isAcc ? `<button type="button" class="btn btn-outline" style="font-size:11.5px; padding:6px 10px; color:#166534; border-color:#86EFAC; background:#F0FDF4; font-weight:700; justify-content:center; display:inline-flex; align-items:center; gap:5px;" onclick="printJadwalCalendar('${escapeHtml(j.jadwalId)}')"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Cetak</button>` : ''}
+              ${canEditMgrMob ? `<button type="button" class="btn-card-edit-jadwal" onclick="openEditManagerJadwal('${escapeHtml(j.jadwalId)}')"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> ${mobEditLabel}</button>` : ''}
               <button type="button" class="btn btn-outline" style="font-size:11.5px; padding:6px 12px; width:100%; justify-content:center;" onclick="openModalDetailJadwal('${escapeHtml(j.jadwalId)}')">${mobileBtnLabel}</button>
             </div>
           `;
@@ -13389,6 +13477,7 @@ window.PANORAMA_CALENDAR = {
   month: 11, // 1-indexed (November)
   selectedDay: 1,
   currentStatus: 'MASUK',
+  editingJadwalId: null,
   daysData: {} // day: { status, cabangId, namaCabang, agenda }
 };
 
@@ -14129,7 +14218,37 @@ function onSpvMonthChange(val) {
   // Listener saat bulan roster SPV diubah
 }
 
-function openModalAjukanJadwal(tipeDefault) {
+function openEditManagerJadwal(jadwalId) {
+  const d = window.PANORAMA_STATE.data;
+  const u = window.PANORAMA_STATE.user;
+  if (!d || !u) return;
+
+  const j = (d.jadwal || []).find(item => String(item.jadwalId) === String(jadwalId));
+  if (!j) {
+    showToast('Data jadwal tidak ditemukan.', 'danger');
+    return;
+  }
+  if (!canEditManagerJadwal(j, u)) {
+    showToast('Hanya jadwal Area Manager yang belum disetujui (ACC) yang dapat diedit.', 'warning');
+    return;
+  }
+
+  // Pulihkan detail kalender dari local cache atau rekonstruksi jika baris lama belum memiliki detailHari
+  const cached = getCachedJadwalDetail(j.jadwalId);
+  if (cached) {
+    if (!j.detailHari && cached.detailHari) j.detailHari = cached.detailHari;
+    if (!j.calendarMeta && cached.calendarMeta) j.calendarMeta = cached.calendarMeta;
+  }
+  if (!j.detailHari) {
+    const rec = reconstructManagerCalendarDetail(j);
+    j.detailHari = rec.detailHari;
+    j.calendarMeta = rec.calendarMeta;
+  }
+
+  openModalAjukanJadwal('VISIT_AREA', j);
+}
+
+function openModalAjukanJadwal(tipeDefault, editJadwalObj) {
   const u = window.PANORAMA_STATE.user;
   const d = window.PANORAMA_STATE.data;
   if (!u || !d) return;
@@ -14145,6 +14264,7 @@ function openModalAjukanJadwal(tipeDefault) {
 
   // Tentukan apakah mode SPV (Upload Berkas PDF/Excel Roster Cabang) atau Manager (Kalender Visit Area)
   const isSpvMode = isSPV || tipeDefault === 'ROSTER_CABANG';
+  const isEditMode = !isSpvMode && !!(editJadwalObj && editJadwalObj.jadwalId);
 
   const mgrContainer = document.getElementById('calManagerVisitContainer');
   const spvContainer = document.getElementById('calSpvRosterContainer');
@@ -14153,8 +14273,16 @@ function openModalAjukanJadwal(tipeDefault) {
   const btnSubmit = document.getElementById('btnSubmitJadwalModal');
   const selectTipe = document.getElementById('formJadwalTipe');
   const pengajuEl = document.getElementById('formJadwalPengaju');
+  const editIdInput = document.getElementById('formJadwalEditId');
+  const catatanInput = document.getElementById('formJadwalCatatan');
+  const revBannerEl = document.getElementById('calRevisionFeedbackBanner');
 
   if (isSpvMode) {
+    window.PANORAMA_CALENDAR.editingJadwalId = null;
+    if (editIdInput) editIdInput.value = '';
+    if (revBannerEl) { revBannerEl.style.display = 'none'; revBannerEl.innerHTML = ''; }
+    if (catatanInput) catatanInput.value = '';
+
     // Mode SPV: Upload Berkas PDF / Excel Roster Toko
     if (mgrContainer) mgrContainer.style.display = 'none';
     if (spvContainer) spvContainer.style.display = 'block';
@@ -14184,16 +14312,12 @@ function openModalAjukanJadwal(tipeDefault) {
 
     openModal('modalAjukanJadwal');
   } else {
-    // Mode Manager: Visit Area Calendar
+    // Mode Manager: Visit Area Calendar (Baru atau Edit/Revisi Eksisting)
     if (mgrContainer) mgrContainer.style.display = 'block';
     if (spvContainer) spvContainer.style.display = 'none';
 
-    if (titleEl) titleEl.textContent = 'Ajukan Jadwal Kerja Wilayah ke Master COO';
-    if (subEl) subEl.textContent = 'Otorisasi Kalender Bulanan Rencana Kerja & Kunjungan Wilayah';
-    if (btnSubmit) btnSubmit.innerHTML = '<svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Ajukan Jadwal ke Master COO';
-
     if (selectTipe) selectTipe.value = 'VISIT_AREA';
-    if (pengajuEl) pengajuEl.value = u.namaLengkap || 'Area Manager';
+    if (pengajuEl) pengajuEl.value = (isEditMode && editJadwalObj.pengaju) ? editJadwalObj.pengaju : (u.namaLengkap || 'Area Manager');
 
     // Populate branch select with strict isolation
     const cbgSelect = document.getElementById('calEditorCabangSelect');
@@ -14209,17 +14333,74 @@ function openModalAjukanJadwal(tipeDefault) {
       cbgSelect.innerHTML = optHtml;
     }
 
-    // Set default month: 2026-11 (November 2026)
     const monthPicker = document.getElementById('calMonthPicker');
-    if (monthPicker) monthPicker.value = '2026-11';
 
-    // Inisialisasi kalender data untuk 2026-11 (Dimulai dari tanggal kosong)
-    initCalendarData(2026, 11, true);
+    if (isEditMode) {
+      window.PANORAMA_CALENDAR.editingJadwalId = editJadwalObj.jadwalId;
+      if (editIdInput) editIdInput.value = editJadwalObj.jadwalId;
+
+      if (titleEl) titleEl.textContent = 'Edit Jadwal Kerja Wilayah (' + editJadwalObj.jadwalId + ')';
+      if (subEl) subEl.textContent = 'Ubah tanggal atau cabang tujuan dari pengajuan sebelumnya tanpa membuat ulang dari awal';
+      if (btnSubmit) btnSubmit.innerHTML = '<svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Simpan Perubahan & Ajukan Ulang';
+
+      if (catatanInput) catatanInput.value = editJadwalObj.catatan || '';
+      if (revBannerEl) {
+        if (editJadwalObj.feedback && String(editJadwalObj.feedback).trim()) {
+          revBannerEl.innerHTML =
+            '<svg class="p-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-top:1px;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' +
+            '<div><strong>Catatan Reviewer Master COO:</strong> ' + escapeHtml(editJadwalObj.feedback) + '</div>';
+          revBannerEl.style.display = 'flex';
+        } else {
+          revBannerEl.style.display = 'none';
+          revBannerEl.innerHTML = '';
+        }
+      }
+
+      const ym = resolveJadwalYearMonth(editJadwalObj);
+      const monthStrIso = ym.year + '-' + ('0' + ym.month).slice(-2);
+      if (monthPicker) monthPicker.value = monthStrIso;
+
+      initCalendarData(ym.year, ym.month, true);
+      const srcDays = editJadwalObj.detailHari || {};
+      const totalDaysInMo = new Date(ym.year, ym.month, 0).getDate();
+      for (let dayNum = 1; dayNum <= totalDaysInMo; dayNum++) {
+        const srcDay = srcDays[dayNum] || srcDays[String(dayNum)];
+        if (srcDay) {
+          const resolvedName = srcDay.namaCabang || srcDay.cabangNama || '';
+          window.PANORAMA_CALENDAR.daysData[dayNum] = {
+            status: srcDay.status || 'KOSONG',
+            cabangId: srcDay.cabangId || 'ALL',
+            namaCabang: resolvedName,
+            cabangNama: resolvedName,
+            agenda: srcDay.agenda || ''
+          };
+        }
+      }
+      const firstFilledDay = Object.keys(window.PANORAMA_CALENDAR.daysData)
+        .map(Number)
+        .find(dayNum => {
+          const st = window.PANORAMA_CALENDAR.daysData[dayNum] && window.PANORAMA_CALENDAR.daysData[dayNum].status;
+          return st && st !== 'KOSONG';
+        }) || 1;
+      window.PANORAMA_CALENDAR.selectedDay = firstFilledDay;
+    } else {
+      window.PANORAMA_CALENDAR.editingJadwalId = null;
+      if (editIdInput) editIdInput.value = '';
+      if (catatanInput) catatanInput.value = '';
+      if (revBannerEl) { revBannerEl.style.display = 'none'; revBannerEl.innerHTML = ''; }
+
+      if (titleEl) titleEl.textContent = 'Ajukan Jadwal Kerja Wilayah ke Master COO';
+      if (subEl) subEl.textContent = 'Otorisasi Kalender Bulanan Rencana Kerja & Kunjungan Wilayah';
+      if (btnSubmit) btnSubmit.innerHTML = '<svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Ajukan Jadwal ke Master COO';
+
+      if (monthPicker) monthPicker.value = '2026-11';
+      initCalendarData(2026, 11, true);
+    }
 
     handleJadwalTipeChange();
 
     renderCalendarGrid('calendarGridDays');
-    selectCalendarDate(1);
+    selectCalendarDate(window.PANORAMA_CALENDAR.selectedDay || 1);
 
     openModal('modalAjukanJadwal');
 
@@ -16204,14 +16385,20 @@ function submitPengajuanJadwalKalender() {
     const monthStr = monthNames[cal.month - 1] + ' ' + cal.year;
     const periodeStr = `${monthStr} (${summary.totalKerja} Hari Kerja)`;
 
-    const newJadwalId = 'SCH-' + cal.year + ('0' + cal.month).slice(-2) + '-' + ('00' + ((d.jadwal ? d.jadwal.length : 0) + 1)).slice(-3);
+    const editIdInput = document.getElementById('formJadwalEditId');
+    const editingJadwalId = ((editIdInput && editIdInput.value) || cal.editingJadwalId || '').trim();
+    const existingItem = editingJadwalId && Array.isArray(d.jadwal)
+      ? d.jadwal.find(item => String(item.jadwalId) === String(editingJadwalId))
+      : null;
 
-    let namaCabang = `Jadwal Wilayah ${u.areaId || 'Area'} (${u.namaLengkap || 'Area Manager'})`;
-    let cabangId = 'ALL';
-    let areaId = u.areaId || 'AREA-01';
+    const targetJadwalId = editingJadwalId || ('SCH-' + cal.year + ('0' + cal.month).slice(-2) + '-' + ('00' + ((d.jadwal ? d.jadwal.length : 0) + 1)).slice(-3));
 
-    const newJadwal = {
-      jadwalId: newJadwalId,
+    let namaCabang = (existingItem && existingItem.namaCabang) || `Jadwal Wilayah ${u.areaId || 'Area'} (${u.namaLengkap || 'Area Manager'})`;
+    let cabangId = (existingItem && existingItem.cabangId) || 'ALL';
+    let areaId = (existingItem && existingItem.areaId) || u.areaId || 'AREA-01';
+
+    const jadwalPayload = {
+      jadwalId: targetJadwalId,
       tipe: tipe,
       level: 'MA_TO_COO',
       areaId: areaId,
@@ -16219,7 +16406,7 @@ function submitPengajuanJadwalKalender() {
       namaCabang: namaCabang,
       pengaju: pengaju,
       periode: periodeStr,
-      totalKru: 8,
+      totalKru: (existingItem && existingItem.totalKru) || 8,
       totalShift: summary.totalKerja * 2,
       totalHariKerja: summary.totalKerja,
       masukCount: summary.masuk,
@@ -16241,25 +16428,63 @@ function submitPengajuanJadwalKalender() {
       }
     };
 
-    cacheJadwalDetail(newJadwalId, newJadwal);
+    const resetEditFlags = function() {
+      cal.editingJadwalId = null;
+      if (editIdInput) editIdInput.value = '';
+    };
 
-    callPanoramaApi('apiSubmitJadwal', newJadwal, function(res) {
+    const syncLocalUpdatedJadwal = function(res) {
       if (!d.jadwal) d.jadwal = [];
-      if (res && res.jadwalId) newJadwal.jadwalId = res.jadwalId;
-      d.jadwal.unshift(newJadwal);
-      cacheJadwalDetail(newJadwal.jadwalId, newJadwal);
-      showGlobalLoader(false);
-      closeModal('modalAjukanJadwal');
-      renderActiveView();
-      showToast(res && res.message ? res.message : `Pengajuan jadwal kalender ${newJadwalId} berhasil disimpan ke Google Sheet!`, 'success');
-    }, function(err) {
-      if (!d.jadwal) d.jadwal = [];
-      d.jadwal.unshift(newJadwal);
-      showGlobalLoader(false);
-      closeModal('modalAjukanJadwal');
-      renderActiveView();
-      showToast(`Pengajuan jadwal ${newJadwalId} tersimpan di layar: ` + (err ? err.message : ''), 'warning');
-    });
+      if (editingJadwalId) {
+        const idx = d.jadwal.findIndex(item => String(item.jadwalId) === String(targetJadwalId));
+        if (idx >= 0) {
+          Object.assign(d.jadwal[idx], jadwalPayload);
+        } else {
+          d.jadwal.unshift(jadwalPayload);
+        }
+        cacheJadwalDetail(targetJadwalId, jadwalPayload);
+      } else {
+        if (res && res.jadwalId) jadwalPayload.jadwalId = res.jadwalId;
+        d.jadwal.unshift(jadwalPayload);
+        cacheJadwalDetail(jadwalPayload.jadwalId, jadwalPayload);
+      }
+    };
+
+    if (editingJadwalId) {
+      cacheJadwalDetail(targetJadwalId, jadwalPayload);
+      callPanoramaApi('apiUpdateJadwal', jadwalPayload, function(res) {
+        syncLocalUpdatedJadwal(res);
+        resetEditFlags();
+        showGlobalLoader(false);
+        closeModal('modalAjukanJadwal');
+        renderActiveView();
+        showToast(res && res.message ? res.message : `Revisi jadwal ${targetJadwalId} berhasil disimpan & diajukan ulang ke Master COO!`, 'success');
+      }, function(err) {
+        syncLocalUpdatedJadwal(null);
+        resetEditFlags();
+        showGlobalLoader(false);
+        closeModal('modalAjukanJadwal');
+        renderActiveView();
+        showToast(`Perubahan jadwal ${targetJadwalId} tersimpan di layar: ` + (err ? err.message : ''), 'warning');
+      });
+    } else {
+      cacheJadwalDetail(targetJadwalId, jadwalPayload);
+      callPanoramaApi('apiSubmitJadwal', jadwalPayload, function(res) {
+        syncLocalUpdatedJadwal(res);
+        resetEditFlags();
+        showGlobalLoader(false);
+        closeModal('modalAjukanJadwal');
+        renderActiveView();
+        showToast(res && res.message ? res.message : `Pengajuan jadwal kalender ${jadwalPayload.jadwalId} berhasil disimpan ke Google Sheet!`, 'success');
+      }, function(err) {
+        syncLocalUpdatedJadwal(null);
+        resetEditFlags();
+        showGlobalLoader(false);
+        closeModal('modalAjukanJadwal');
+        renderActiveView();
+        showToast(`Pengajuan jadwal ${targetJadwalId} tersimpan di layar: ` + (err ? err.message : ''), 'warning');
+      });
+    }
   }
 }
 
@@ -16732,67 +16957,20 @@ function openModalDetailJadwal(jadwalId) {
   // 2. Self-Healing: Jika jadwal Manager dan detailHari belum ada (misal tersimpan di spreadsheet versi lama),
   // rekonstruksi kalender jadwal otomatis berdasarkan periode bulan agar BISA DICEK / DITINJAU SECARA LENGKAP!
   if (!j.detailHari && (j.tipe === 'VISIT_AREA' || j.level === 'MA_TO_COO' || !j.fileUrl)) {
-    let year = 2026;
-    let month = 11;
-    if (j.calendarMeta && j.calendarMeta.year) {
-      year = j.calendarMeta.year;
-      month = j.calendarMeta.month || 11;
-    } else if (j.periode) {
-      const match = j.periode.match(/(\d{4})-(\d{1,2})/);
-      if (match) {
-        year = parseInt(match[1], 10);
-        month = parseInt(match[2], 10);
-      } else {
-        const blnMap = { 'januari':1, 'februari':2, 'maret':3, 'april':4, 'mei':5, 'juni':6, 'juli':7, 'agustus':8, 'september':9, 'oktober':10, 'november':11, 'desember':12 };
-        for (let bName in blnMap) {
-          if (j.periode.toLowerCase().includes(bName)) {
-            month = blnMap[bName];
-            break;
-          }
-        }
-        const yrMatch = j.periode.match(/\b(202\d)\b/);
-        if (yrMatch) year = parseInt(yrMatch[1], 10);
-      }
-    }
-
-    const totalDays = new Date(year, month, 0).getDate();
-    const reconstructed = {};
-    let masukCount = 0;
-    let liburCount = 0;
-
-    for (let day = 1; day <= totalDays; day++) {
-      const dayOfWeek = new Date(year, month - 1, day).getDay(); // 0 is Sunday
-      if (dayOfWeek === 0) {
-        reconstructed[day] = {
-          status: 'LIBUR',
-          cabangId: 'ALL',
-          cabangNama: 'Hari Libur Operasional',
-          agenda: 'Libur Mingguan'
-        };
-        liburCount++;
-      } else {
-        reconstructed[day] = {
-          status: 'MASUK',
-          cabangId: 'ALL',
-          cabangNama: 'Supervisi Operasional & Visit Wilayah',
-          agenda: 'Kunjungan Supervisi Lapangan Wilayah ' + (j.areaId || '') + ' (' + (j.pengaju || 'Manager') + ')'
-        };
-        masukCount++;
-      }
-    }
-
-    j.detailHari = reconstructed;
-    j.calendarMeta = { year: year, month: month };
-    j.totalHariKerja = j.totalHariKerja || masukCount;
-    j.masukCount = j.masukCount || masukCount;
+    const rec = reconstructManagerCalendarDetail(j);
+    j.detailHari = rec.detailHari;
+    j.calendarMeta = rec.calendarMeta;
+    j.totalHariKerja = j.totalHariKerja || rec.masukCount;
+    j.masukCount = j.masukCount || rec.masukCount;
     j.lapanganCount = j.lapanganCount || 0;
-    cacheJadwalDetail(jadwalId, { detailHari: reconstructed, calendarMeta: { year: year, month: month } });
+    cacheJadwalDetail(jadwalId, { detailHari: rec.detailHari, calendarMeta: rec.calendarMeta });
   }
 
   const isCOO = (u.role === 'COO' || u.role === 'MASTER' || u.areaId === 'ALL');
   const isAtasan = isCOO || (j.level === 'SPV_TO_MA' && (j.areaId === u.areaId || !u.areaId || u.areaId === 'ALL'));
-  const canApprove = isAtasan && j.status !== 'DISETUJUI' && j.status !== 'DITOLAK';
-  const isAcc = (String(j.status || '').trim().toUpperCase() === 'DISETUJUI' || String(j.status || '').trim().toUpperCase() === 'APPROVED');
+  const stUpper = String(j.status || '').trim().toUpperCase();
+  const canApprove = isAtasan && stUpper !== 'DISETUJUI' && stUpper !== 'APPROVED' && stUpper !== 'DITOLAK' && stUpper !== 'REVISI' && stUpper !== 'REVISION';
+  const isAcc = (stUpper === 'DISETUJUI' || stUpper === 'APPROVED');
 
   const titleEl = document.getElementById('detailJadwalTitle');
   const subEl = document.getElementById('detailJadwalSubtitle');
@@ -17069,10 +17247,16 @@ function openModalDetailJadwal(jadwalId) {
         </div>
       `;
     } else {
+      const canEditDetMgr = canEditManagerJadwal(j, u);
       footerEl.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; width:100%; flex-wrap:wrap; gap:8px;">
           <button type="button" class="btn btn-outline" style="color:#DC2626; border-color:#FCA5A5; background:#FEF2F2;" onclick="confirmDeleteJadwal('${escapeHtml(j.jadwalId)}')"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg> Hapus Jadwal</button>
-          <div style="display:flex; align-items:center; gap:8px;">
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            ${canEditDetMgr ? `
+              <button type="button" class="btn-card-edit-jadwal" style="padding:7px 14px; font-size:12px;" onclick="closeModal('modalDetailJadwal'); openEditManagerJadwal('${escapeHtml(j.jadwalId)}')">
+                <svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Edit &amp; Ajukan Ulang
+              </button>
+            ` : ''}
             ${isAcc ? `
               <button type="button" class="btn btn-outline" style="font-size:12px; padding:7px 12px; display:inline-flex; align-items:center; gap:6px; color:#166534; border-color:#86EFAC; background:#F0FDF4; font-weight:700;" onclick="printJadwalCalendar('${escapeHtml(j.jadwalId)}')">
                 <svg class="p-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Cetak Jadwal Resmi
