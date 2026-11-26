@@ -752,6 +752,46 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   }
 
+  .date-filter-select-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+  }
+
+  .select-period-date {
+    appearance: none;
+    -webkit-appearance: none;
+    padding: 5px 24px 5px 12px;
+    max-width: 175px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    line-height: 1.25;
+  }
+
+  .select-period-date:hover {
+    color: var(--forest-800);
+  }
+
+  .select-period-date.active {
+    background-color: #FFFFFF;
+    color: var(--forest-800);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+
+  .date-selector-chevron {
+    position: absolute;
+    right: 8px;
+    pointer-events: none;
+    color: var(--text-muted);
+    transition: color 0.18s ease;
+  }
+
+  .select-period-date.active + .date-selector-chevron {
+    color: var(--forest-800);
+  }
+
   .select-filter {
     padding: 7px 14px;
     font-size: 12px;
@@ -5320,6 +5360,12 @@
       border: 1px solid var(--border-color);
     }
 
+    .pill-group-full .date-filter-select-wrap {
+      flex: 1.18;
+      display: flex;
+      min-width: 0;
+    }
+
     .pill-group-full .pill-btn {
       flex: 1;
       text-align: center;
@@ -5329,6 +5375,14 @@
       cursor: pointer;
       touch-action: manipulation;
       -webkit-tap-highlight-color: rgba(20, 74, 50, 0.1);
+    }
+
+    .pill-group-full .select-period-date {
+      width: 100%;
+      max-width: none;
+      padding: 7px 20px 7px 8px;
+      text-align: center;
+      text-align-last: center;
     }
 
     .filter-select-wrapper {
@@ -12292,7 +12346,9 @@
   :is(html[data-theme="dark"], html.theme-dark) .header-search-box:focus-within { background-color: #151E1A; }
   :is(html[data-theme="dark"], html.theme-dark) .header-search-shortcut { background-color: #151E1A; }
   :is(html[data-theme="dark"], html.theme-dark) .executive-filter-strip { background: linear-gradient(135deg, #151E1A 0%, #1A2520 100%) !important; border: 1.2px solid #3A4A42 !important; }
-  :is(html[data-theme="dark"], html.theme-dark) .pill-btn.active { background-color: #151E1A; }
+  :is(html[data-theme="dark"], html.theme-dark) .pill-btn.active { background-color: #151E1A; color: #4ADE80; }
+  :is(html[data-theme="dark"], html.theme-dark) .select-period-date.active { background-color: #151E1A; color: #4ADE80; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45); }
+  :is(html[data-theme="dark"], html.theme-dark) .select-period-date.active + .date-selector-chevron { color: #4ADE80; }
   :is(html[data-theme="dark"], html.theme-dark) .select-filter { background-color: #151E1A; }
   :is(html[data-theme="dark"], html.theme-dark) .select-month-filter:hover { background-color: #151E1A; }
   :is(html[data-theme="dark"], html.theme-dark) .kinetic-shimmer-badge.badge-warning { background: linear-gradient(90deg, #D97706 0%, #F59E0B 30%, rgba(245,158,11,0.28) 50%, #F59E0B 70%, #D97706 100%); }

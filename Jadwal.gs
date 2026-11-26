@@ -26,6 +26,60 @@ function updateKendalaStatus(payload, user) { return apiUpdateKendalaStatus(payl
 function deleteKendala(payload, user) { return apiDeleteKendala(payload, user); }
 function apiCreateSheetPerubahanJadwal() { return createDataPerubahanJadwalSheet(); }
 
+/**
+ * Menghitung ringkasan hari kerja aktif (Masuk + Lapangan) dari detailHari atau payload kalender.
+ */
+function computeJadwalDetailCounts_(detailHari, src, fallback) {
+  var counts = {
+    totalHariKerja: 0,
+    masukCount: 0,
+    lapanganCount: 0,
+    liburCount: 0,
+    phCount: 0,
+    cutiCount: 0,
+    sakitCount: 0
+  };
+  var hasDetailDays = false;
+  if (detailHari && typeof detailHari === 'object') {
+    var keys = Object.keys(detailHari);
+    for (var kIdx = 0; kIdx < keys.length; kIdx++) {
+      var info = detailHari[keys[kIdx]];
+      if (!info || typeof info !== 'object') continue;
+      var st = String(info.status || '').trim().toUpperCase();
+      if (!st || st === 'KOSONG') continue;
+      hasDetailDays = true;
+      if (st === 'MASUK') counts.masukCount++;
+      else if (st === 'LAPANGAN' || st === 'VISIT') counts.lapanganCount++;
+      else if (st === 'LIBUR') counts.liburCount++;
+      else if (st === 'PH') counts.phCount++;
+      else if (st === 'CUTI' || st === 'IZIN') counts.cutiCount++;
+      else if (st === 'SAKIT') counts.sakitCount++;
+      else counts.masukCount++;
+    }
+  }
+  if (hasDetailDays) {
+    counts.totalHariKerja = counts.masukCount + counts.lapanganCount;
+    return counts;
+  }
+  var pickNum = function(key) {
+    if (src && src[key] !== undefined && src[key] !== null && src[key] !== '') return Number(src[key]) || 0;
+    if (fallback && fallback[key] !== undefined && fallback[key] !== null && fallback[key] !== '') return Number(fallback[key]) || 0;
+    return 0;
+  };
+  counts.masukCount = pickNum('masukCount');
+  counts.lapanganCount = pickNum('lapanganCount');
+  counts.liburCount = pickNum('liburCount');
+  counts.phCount = pickNum('phCount');
+  counts.cutiCount = pickNum('cutiCount');
+  counts.sakitCount = pickNum('sakitCount');
+  var explicitTotal = pickNum('totalHariKerja');
+  counts.totalHariKerja = explicitTotal > 0 ? explicitTotal : (counts.masukCount + counts.lapanganCount);
+  if (counts.totalHariKerja > 0 && counts.masukCount === 0 && counts.lapanganCount === 0) {
+    counts.masukCount = counts.totalHariKerja;
+  }
+  return counts;
+}
+
 // ================================================================================
 // BAGIAN 1: PENGAJUAN & APPROVAL ROSTER JADWAL KERJA BULANAN
 // ================================================================================
@@ -77,13 +131,21 @@ function apiSubmitJadwal(payload, user) {
 
     newRow[COL_JADWAL.FILE_URL] = finalFileUrl;
 
+    var submitCounts = computeJadwalDetailCounts_(payload.detailHari || null, payload, null);
     var detailPayload = {
       fileUrl: finalFileUrl,
       fileName: payload.fileName || '',
       fileType: payload.fileType || '',
       detailHari: payload.detailHari || null,
       calendarMeta: payload.calendarMeta || null,
-      detailKru: payload.detailKru || null
+      detailKru: payload.detailKru || null,
+      totalHariKerja: submitCounts.totalHariKerja,
+      masukCount: submitCounts.masukCount,
+      lapanganCount: submitCounts.lapanganCount,
+      liburCount: submitCounts.liburCount,
+      phCount: submitCounts.phCount,
+      cutiCount: submitCounts.cutiCount,
+      sakitCount: submitCounts.sakitCount
     };
     newRow[COL_JADWAL.DETAIL_JSON] = JSON.stringify(detailPayload);
 
@@ -162,13 +224,22 @@ function apiUpdateJadwal(payload, user) {
       }
     } catch (eParse) {}
 
+    var nextDetailHari = payload.detailHari || existingDetail.detailHari || null;
+    var updateCounts = computeJadwalDetailCounts_(nextDetailHari, payload, existingDetail);
     var detailPayload = {
       fileUrl: payload.fileUrl || existingDetail.fileUrl || '',
       fileName: payload.fileName || existingDetail.fileName || '',
       fileType: payload.fileType || existingDetail.fileType || '',
-      detailHari: payload.detailHari || existingDetail.detailHari || null,
+      detailHari: nextDetailHari,
       calendarMeta: payload.calendarMeta || existingDetail.calendarMeta || null,
-      detailKru: payload.detailKru || existingDetail.detailKru || null
+      detailKru: payload.detailKru || existingDetail.detailKru || null,
+      totalHariKerja: updateCounts.totalHariKerja,
+      masukCount: updateCounts.masukCount,
+      lapanganCount: updateCounts.lapanganCount,
+      liburCount: updateCounts.liburCount,
+      phCount: updateCounts.phCount,
+      cutiCount: updateCounts.cutiCount,
+      sakitCount: updateCounts.sakitCount
     };
 
     sheet.getRange(rowIndex, COL_JADWAL.PERIODE + 1).setValue(payload.periode || rowValues[COL_JADWAL.PERIODE]);

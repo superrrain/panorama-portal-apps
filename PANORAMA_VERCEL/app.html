@@ -940,6 +940,46 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   }
 
+  .date-filter-select-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+  }
+
+  .select-period-date {
+    appearance: none;
+    -webkit-appearance: none;
+    padding: 5px 24px 5px 12px;
+    max-width: 175px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    line-height: 1.25;
+  }
+
+  .select-period-date:hover {
+    color: var(--forest-800);
+  }
+
+  .select-period-date.active {
+    background-color: #FFFFFF;
+    color: var(--forest-800);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+
+  .date-selector-chevron {
+    position: absolute;
+    right: 8px;
+    pointer-events: none;
+    color: var(--text-muted);
+    transition: color 0.18s ease;
+  }
+
+  .select-period-date.active + .date-selector-chevron {
+    color: var(--forest-800);
+  }
+
   .select-filter {
     padding: 7px 14px;
     font-size: 12px;
@@ -5508,6 +5548,12 @@
       border: 1px solid var(--border-color);
     }
 
+    .pill-group-full .date-filter-select-wrap {
+      flex: 1.18;
+      display: flex;
+      min-width: 0;
+    }
+
     .pill-group-full .pill-btn {
       flex: 1;
       text-align: center;
@@ -5517,6 +5563,14 @@
       cursor: pointer;
       touch-action: manipulation;
       -webkit-tap-highlight-color: rgba(20, 74, 50, 0.1);
+    }
+
+    .pill-group-full .select-period-date {
+      width: 100%;
+      max-width: none;
+      padding: 7px 20px 7px 8px;
+      text-align: center;
+      text-align-last: center;
     }
 
     .filter-select-wrapper {
@@ -12480,7 +12534,9 @@
   :is(html[data-theme="dark"], html.theme-dark) .header-search-box:focus-within { background-color: #151E1A; }
   :is(html[data-theme="dark"], html.theme-dark) .header-search-shortcut { background-color: #151E1A; }
   :is(html[data-theme="dark"], html.theme-dark) .executive-filter-strip { background: linear-gradient(135deg, #151E1A 0%, #1A2520 100%) !important; border: 1.2px solid #3A4A42 !important; }
-  :is(html[data-theme="dark"], html.theme-dark) .pill-btn.active { background-color: #151E1A; }
+  :is(html[data-theme="dark"], html.theme-dark) .pill-btn.active { background-color: #151E1A; color: #4ADE80; }
+  :is(html[data-theme="dark"], html.theme-dark) .select-period-date.active { background-color: #151E1A; color: #4ADE80; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45); }
+  :is(html[data-theme="dark"], html.theme-dark) .select-period-date.active + .date-selector-chevron { color: #4ADE80; }
   :is(html[data-theme="dark"], html.theme-dark) .select-filter { background-color: #151E1A; }
   :is(html[data-theme="dark"], html.theme-dark) .select-month-filter:hover { background-color: #151E1A; }
   :is(html[data-theme="dark"], html.theme-dark) .kinetic-shimmer-badge.badge-warning { background: linear-gradient(90deg, #D97706 0%, #F59E0B 30%, rgba(245,158,11,0.28) 50%, #F59E0B 70%, #D97706 100%); }
@@ -17434,8 +17490,17 @@ body.dark-mode .insiden-file-thumb-wrap {
             <span class="filter-label">Periode:</span>
             <div class="period-controls-wrap">
               <div class="pill-group pill-group-full">
-                <button class="pill-btn filter-period-btn active" data-period="today"
-                  onclick="setPeriodFilter('today')">Hari Ini</button>
+                <div class="date-filter-select-wrap" id="dateFilterSelectWrap">
+                  <select class="pill-btn select-period-date active" id="dateFilterSelect"
+                    onchange="onPeriodDateSelectChange(this.value)"
+                    aria-label="Filter Per Tanggal Kalender">
+                    <option value="">Pilih Tgl</option>
+                  </select>
+                  <svg class="date-selector-chevron" width="11" height="11" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.6">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </div>
                 <button class="pill-btn filter-period-btn" data-period="week" onclick="setPeriodFilter('week')">Minggu
                   Ini</button>
                 <button class="pill-btn filter-period-btn" data-period="month" onclick="setPeriodFilter('month')">Bulan
@@ -22945,8 +23010,9 @@ window.PANORAMA_STATE = {
     namaCoo: 'Pimpinan / Direktur Operasional'
   }, safeGetJsonStorage('PANORAMA_OPERATIONAL_CONFIG', {})),
   filters: {
-    period: 'today',   // 'today', 'week', 'month', 'custom-month'
+    period: 'date',   // 'date', 'today', 'week', 'month', 'custom-month'
     calendarMonth: 'CURRENT', // 'CURRENT', '2026-10', '2026-11', dll.
+    selectedDate: '', // 'YYYY-MM-DD' saat mode per tanggal aktif
     areaId: 'ALL',     // 'ALL', 'AREA-01', 'AREA-02' ... 'AREA-14'
     brand: 'ALL',      // 'ALL' atau nama brand pengguna
     searchQuery: ''
@@ -23428,6 +23494,12 @@ function initMonthSelectorOptions() {
   select.innerHTML = html;
   if (window.PANORAMA_STATE.filters && window.PANORAMA_STATE.filters.calendarMonth) {
     select.value = window.PANORAMA_STATE.filters.calendarMonth;
+  }
+  if (typeof syncDateFilterDropdown === 'function') {
+    syncDateFilterDropdown(
+      (window.PANORAMA_STATE.filters && window.PANORAMA_STATE.filters.calendarMonth) || 'CURRENT',
+      (window.PANORAMA_STATE.filters && window.PANORAMA_STATE.filters.selectedDate) || ''
+    );
   }
 }
 
@@ -25319,17 +25391,22 @@ function resetFiltersToRoleDefault() {
     areaSelect.value = defaultArea;
   }
 
-  // 2. Reset Filter Periode ke 'today' (Hari Ini) & Kalender ke 'CURRENT'
-  window.PANORAMA_STATE.filters.period = 'today';
+  // 2. Reset Filter Periode ke tanggal Hari Ini & Kalender ke 'CURRENT'
+  const todayIsoReset = (typeof getTodayIsoDate === 'function') ? getTodayIsoDate() : new Date().toISOString().slice(0, 10);
+  window.PANORAMA_STATE.filters.period = 'date';
   window.PANORAMA_STATE.filters.calendarMonth = 'CURRENT';
+  window.PANORAMA_STATE.filters.selectedDate = todayIsoReset;
   const monthSel = document.getElementById('monthFilterSelect');
   if (monthSel) {
     monthSel.value = 'CURRENT';
     monthSel.classList.remove('active-custom-month');
   }
   document.querySelectorAll('.filter-period-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.getAttribute('data-period') === 'today');
+    btn.classList.remove('active');
   });
+  if (typeof syncDateFilterDropdown === 'function') {
+    syncDateFilterDropdown('CURRENT', todayIsoReset);
+  }
 
   // 3. Reset Filter Multi-Brand ke 'ALL'
   window.PANORAMA_STATE.filters.brand = 'ALL';
@@ -26029,8 +26106,16 @@ function getPeriodFilteredSalesData(d, period, calMonth, areaFilter, brandFilter
   let filteredSales = [];
   let periodMultiplier = 1;
   const monthlyCoeff = 1.0;
+  const isSingleDateMode = (period === 'today' || period === 'date');
+  const targetDateIso = isSingleDateMode ? getActiveFilterDateIso(calMonth) : todayStr;
+  const isFullMonthlyMode = !isSingleDateMode && (period === 'month' || isHistoricalMonth);
 
-  if (isHistoricalMonth) {
+  if (isSingleDateMode) {
+    periodMultiplier = 1;
+    const formattedDate = formatDateShortWithYear(targetDateIso);
+    periodLabel = (targetDateIso === todayStr) ? ('Hari Ini (' + formattedDate + ')') : formattedDate;
+    filteredSales = dedupSales.filter(s => normalizeDateStr(s.tanggal) === targetDateIso);
+  } else if (isHistoricalMonth) {
     periodMultiplier = activeDaysInMonth;
     periodLabel = getMonthLabel(calMonth);
     filteredSales = dedupSales.filter(s => normalizeDateStr(s.tanggal).startsWith(calMonth));
@@ -26043,15 +26128,10 @@ function getPeriodFilteredSalesData(d, period, calMonth, areaFilter, brandFilter
       const dt = normalizeDateStr(s.tanggal);
       return dt >= weekStartStr && dt <= todayStr;
     });
-  } else if (period === 'month') {
+  } else {
     periodMultiplier = activeDaysInMonth;
     periodLabel = 'Bulan Ini (' + activeDaysInMonth + ' Hari)';
     filteredSales = dedupSales.filter(s => normalizeDateStr(s.tanggal).startsWith(currentMonthPrefix));
-  } else {
-    // DEFAULT: 'today' (MURNI TRANSAKSI TANGGAL HARI INI SAJA)
-    periodMultiplier = 1;
-    periodLabel = 'Hari Ini';
-    filteredSales = dedupSales.filter(s => normalizeDateStr(s.tanggal) === todayStr);
   }
 
   // 4. Hitung Target & Realisasi + Breakdown 6 Channel
@@ -26065,7 +26145,7 @@ function getPeriodFilteredSalesData(d, period, calMonth, areaFilter, brandFilter
 
   cabangList.forEach(c => {
     const dailyTgt = c.targetHarian ? Number(c.targetHarian) : (c.targetBulanan ? Math.round(Number(c.targetBulanan) / activeDaysInMonth) : 5000000);
-    const branchTargetForPeriod = (period === 'month' || isHistoricalMonth) 
+    const branchTargetForPeriod = isFullMonthlyMode 
       ? (Number(c.targetBulanan) || (dailyTgt * activeDaysInMonth))
       : (dailyTgt * periodMultiplier);
 
@@ -26115,7 +26195,7 @@ function getPeriodFilteredSalesData(d, period, calMonth, areaFilter, brandFilter
       cabangAgg[s.cabangId].trx += trx;
       cabangAgg[s.cabangId].hasInput = true;
       addChannelBuckets(cabangAgg[s.cabangId].channels, rowChannels);
-      if (period === 'today' && sTgt > 0) {
+      if (isSingleDateMode && sTgt > 0) {
         cabangAgg[s.cabangId].target = sTgt;
       }
     }
@@ -26136,7 +26216,7 @@ function getPeriodFilteredSalesData(d, period, calMonth, areaFilter, brandFilter
   cabangList.forEach(c => {
     const cTgt = (cabangAgg[c.cabangId] && cabangAgg[c.cabangId].target > 0)
       ? cabangAgg[c.cabangId].target
-      : (period === 'month' || isHistoricalMonth
+      : (isFullMonthlyMode
           ? (Number(c.targetBulanan) || (5000000 * activeDaysInMonth))
           : (5000000 * periodMultiplier));
     totalTarget += cTgt;
@@ -26150,6 +26230,7 @@ function getPeriodFilteredSalesData(d, period, calMonth, areaFilter, brandFilter
 
   return {
     period: period,
+    selectedDate: isSingleDateMode ? targetDateIso : '',
     periodLabel: periodLabel,
     periodMultiplier: periodMultiplier,
     monthlyCoeff: monthlyCoeff,
@@ -26215,10 +26296,120 @@ function getMonthLabel(monthKey) {
 }
 
 /**
+ * Helper: Format tanggal 'YYYY-MM-DD' -> '14 Okt 2026'
+ */
+function formatDateShortWithYear(yyyyMmDd) {
+  if (!yyyyMmDd) return '';
+  const clean = normalizeDateStr(yyyyMmDd) || String(yyyyMmDd).slice(0, 10);
+  const shortDisp = (typeof formatDateDisplay === 'function') ? formatDateDisplay(clean) : clean;
+  const yr = clean.length >= 4 ? clean.slice(0, 4) : '';
+  return yr && !shortDisp.includes(yr) ? (shortDisp + ' ' + yr) : shortDisp;
+}
+
+/**
+ * Helper: Resolve prefix bulan 'YYYY-MM' dari calendarMonth ('CURRENT' atau '2026-10')
+ */
+function getActiveFilterMonthPrefix(overrideCalMonth) {
+  const calM = overrideCalMonth !== undefined
+    ? overrideCalMonth
+    : ((window.PANORAMA_STATE && window.PANORAMA_STATE.filters && window.PANORAMA_STATE.filters.calendarMonth) || 'CURRENT');
+  if (calM && calM !== 'CURRENT' && String(calM).length >= 7) {
+    return String(calM).slice(0, 7);
+  }
+  const todayIso = (typeof getTodayIsoDate === 'function') ? getTodayIsoDate() : new Date().toISOString().slice(0, 10);
+  return todayIso.slice(0, 7);
+}
+
+/**
+ * Helper: Resolve tanggal ISO 'YYYY-MM-DD' yang sedang dipilih untuk filter per tanggal
+ */
+function getActiveFilterDateIso(overrideCalMonth) {
+  const filters = (window.PANORAMA_STATE && window.PANORAMA_STATE.filters) || {};
+  const monthPrefix = getActiveFilterMonthPrefix(overrideCalMonth);
+  const todayIso = (typeof getTodayIsoDate === 'function') ? getTodayIsoDate() : new Date().toISOString().slice(0, 10);
+  const savedDate = normalizeDateStr(filters.selectedDate || '');
+  if (savedDate && savedDate.startsWith(monthPrefix)) {
+    return savedDate;
+  }
+  if (todayIso.startsWith(monthPrefix)) {
+    return todayIso;
+  }
+  return monthPrefix + '-01';
+}
+
+/**
+ * Sinkronkan daftar opsi tanggal 1..N pada dropdown #dateFilterSelect sesuai bulan aktif
+ */
+function syncDateFilterDropdown(activeMonthVal, preferredDateIso) {
+  const dateSelect = document.getElementById('dateFilterSelect');
+  if (!dateSelect) return;
+
+  const calVal = activeMonthVal || ((window.PANORAMA_STATE && window.PANORAMA_STATE.filters && window.PANORAMA_STATE.filters.calendarMonth) || 'CURRENT');
+  const monthPrefix = getActiveFilterMonthPrefix(calVal);
+  const parts = monthPrefix.split('-');
+  const yr = parseInt(parts[0], 10) || new Date().getFullYear();
+  const mo = parseInt(parts[1], 10) || (new Date().getMonth() + 1);
+  const daysInMonth = getDaysInMonth(monthPrefix);
+  const todayIso = (typeof getTodayIsoDate === 'function') ? getTodayIsoDate() : new Date().toISOString().slice(0, 10);
+  const monthShortNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+  const mShort = monthShortNames[mo - 1] || String(mo).padStart(2, '0');
+
+  let html = '<option value="" disabled hidden>Pilih Tgl</option>';
+  for (let day = 1; day <= daysInMonth; day++) {
+    const iso = yr + '-' + String(mo).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+    const optLabel = (iso === todayIso)
+      ? (day + ' ' + mShort + ' (Hari Ini)')
+      : ('Tgl ' + day + ' ' + mShort + ' ' + yr);
+    html += '<option value="' + iso + '">' + optLabel + '</option>';
+  }
+  dateSelect.innerHTML = html;
+
+  const activePeriod = (window.PANORAMA_STATE && window.PANORAMA_STATE.filters && window.PANORAMA_STATE.filters.period) || 'date';
+  const isSingleDate = (activePeriod === 'today' || activePeriod === 'date');
+  if (isSingleDate) {
+    const targetIso = (preferredDateIso && String(preferredDateIso).startsWith(monthPrefix))
+      ? preferredDateIso
+      : getActiveFilterDateIso(calVal);
+    dateSelect.value = targetIso;
+    dateSelect.classList.add('active');
+  } else {
+    dateSelect.value = '';
+    dateSelect.classList.remove('active');
+  }
+}
+
+/**
+ * Handler Perubahan Dropdown Tanggal Per Hari (Menggantikan Pill 'Hari Ini')
+ */
+function onPeriodDateSelectChange(dateIso) {
+  const cleanIso = normalizeDateStr(dateIso);
+  if (!cleanIso) return;
+  window.PANORAMA_STATE.filters.period = 'date';
+  window.PANORAMA_STATE.filters.selectedDate = cleanIso;
+
+  document.querySelectorAll('.filter-period-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  const dateSelect = document.getElementById('dateFilterSelect');
+  if (dateSelect) {
+    dateSelect.value = cleanIso;
+    dateSelect.classList.add('active');
+  }
+
+  const todayIso = (typeof getTodayIsoDate === 'function') ? getTodayIsoDate() : new Date().toISOString().slice(0, 10);
+  const label = (cleanIso === todayIso)
+    ? ('Hari Ini (' + formatDateShortWithYear(cleanIso) + ')')
+    : formatDateShortWithYear(cleanIso);
+  showToast('Filter tanggal aktif: ' + label, 'info');
+  renderActiveView();
+}
+
+/**
  * Filter Controller Periode Bulan Kalender Historis (Apple & Samsung Fluid Standard)
  */
 function setMonthCalendarFilter(monthVal) {
   window.PANORAMA_STATE.filters.calendarMonth = monthVal;
+  window.PANORAMA_STATE.filters.selectedDate = '';
   const select = document.getElementById('monthFilterSelect');
   if (select) select.value = monthVal;
 
@@ -26238,6 +26429,7 @@ function setMonthCalendarFilter(monthVal) {
     if (select) select.classList.remove('active-custom-month');
     showToast('Periode aktif: Bulan Berjalan (Real-time)', 'info');
   }
+  syncDateFilterDropdown(monthVal, '');
   if (typeof recalculateLeaderboardLive === 'function') {
     try { recalculateLeaderboardLive(); } catch (eLb) {}
   }
@@ -26245,25 +26437,39 @@ function setMonthCalendarFilter(monthVal) {
 }
 
 /**
- * Filter Controller (Hari Ini / Minggu Ini / Bulan Ini)
+ * Filter Controller (Tanggal Tertentu / Minggu Ini / Bulan Ini)
  */
 function setPeriodFilter(period) {
-  window.PANORAMA_STATE.filters.period = period;
-  if (period !== 'custom-month') {
+  const isSingleDate = (period === 'today' || period === 'date');
+  window.PANORAMA_STATE.filters.period = isSingleDate ? 'date' : period;
+  if (period !== 'custom-month' && period !== 'date') {
     window.PANORAMA_STATE.filters.calendarMonth = 'CURRENT';
+    window.PANORAMA_STATE.filters.selectedDate = isSingleDate ? getTodayIsoDate() : '';
     const select = document.getElementById('monthFilterSelect');
     if (select) {
       select.value = 'CURRENT';
       select.classList.remove('active-custom-month');
     }
+  } else if (isSingleDate) {
+    window.PANORAMA_STATE.filters.selectedDate = getActiveFilterDateIso(window.PANORAMA_STATE.filters.calendarMonth);
+  } else {
+    window.PANORAMA_STATE.filters.selectedDate = '';
   }
+
   document.querySelectorAll('.filter-period-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.getAttribute('data-period') === period);
+    btn.classList.toggle('active', !isSingleDate && btn.getAttribute('data-period') === period);
   });
+  syncDateFilterDropdown(
+    window.PANORAMA_STATE.filters.calendarMonth || 'CURRENT',
+    window.PANORAMA_STATE.filters.selectedDate || ''
+  );
+
   const weekInfo = getWeekPeriodDaysInfo();
   const activeDaysInMonth = getDaysInMonth('CURRENT');
+  const activeDateIso = getActiveFilterDateIso();
   const labelMap = {
-    'today': 'Hari Ini',
+    'today': 'Hari Ini (' + formatDateShortWithYear(getTodayIsoDate()) + ')',
+    'date': formatDateShortWithYear(activeDateIso),
     'week': weekInfo.label,
     'month': 'Bulan Ini (' + activeDaysInMonth + ' Hari)'
   };
@@ -27140,16 +27346,23 @@ function renderSalesAnalyticsChart() {
   }
 
   // Multiplier periode untuk grafik & kalender bulan
-  const period = window.PANORAMA_STATE.filters.period || 'today';
+  const period = window.PANORAMA_STATE.filters.period || 'date';
   const calMonth = window.PANORAMA_STATE.filters.calendarMonth || 'CURRENT';
   const isHistoricalMonth = (calMonth && calMonth !== 'CURRENT');
   const activeDaysInMonth = getDaysInMonth(isHistoricalMonth ? calMonth : 'CURRENT');
+  const isSingleDateMode = (period === 'today' || period === 'date');
+  const todayStrChart = (typeof getTodayIsoDate === 'function') ? getTodayIsoDate() : new Date().toISOString().slice(0, 10);
+  const targetDateChart = isSingleDateMode ? getActiveFilterDateIso(calMonth) : todayStrChart;
 
   let periodMultiplier = 1;
   let periodLabel = 'Hari Ini';
   const monthlyCoeff = 1.0;
 
-  if (isHistoricalMonth) {
+  if (isSingleDateMode) {
+    periodMultiplier = 1;
+    const shortDate = formatDateShortWithYear(targetDateChart);
+    periodLabel = (targetDateChart === todayStrChart) ? ('Hari Ini (' + shortDate + ')') : shortDate;
+  } else if (isHistoricalMonth) {
     periodMultiplier = activeDaysInMonth;
     periodLabel = getMonthLabel(calMonth);
   } else if (period === 'week') {
@@ -28070,6 +28283,8 @@ function renderSpvDailySalesView(d, user, calMonth, period) {
   }
 
   const todayStr = getTodayIsoDate();
+  const isSpvSingleDateMode = (period === 'today' || period === 'date');
+  const selectedSpvDateIso = isSpvSingleDateMode ? getActiveFilterDateIso(calMonth) : '';
   const dayNamesIndo = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
   let totalMonthActual = 0;
   let totalMonthTrx = 0;
@@ -28085,6 +28300,7 @@ function renderSpvDailySalesView(d, user, calMonth, period) {
     const dateObj = new Date(yr, mo - 1, day);
     const dayOfWeek = dayNamesIndo[dateObj.getDay()];
     const isToday = (dateIso === todayStr);
+    const isSelectedDate = (isSpvSingleDateMode && dateIso === selectedSpvDateIso);
     const isFuture = (dateIso > todayStr);
 
     const sEntry = spvSalesMap[dateIso];
@@ -28111,6 +28327,7 @@ function renderSpvDailySalesView(d, user, calMonth, period) {
       dayOfWeek: dayOfWeek,
       dateDisplay: dayOfWeek + ', ' + day + ' ' + monthShort + ' ' + yr,
       isToday: isToday,
+      isSelectedDate: isSelectedDate,
       isFuture: isFuture,
       hasInput: hasInput,
       actual: actual,
@@ -28192,9 +28409,9 @@ function renderSpvDailySalesView(d, user, calMonth, period) {
     dailyRows.forEach(row => {
       const card = document.createElement('div');
       card.className = 'sales-branch-card';
-      if (row.isToday) {
-        card.style.borderColor = 'var(--forest-500)';
-        card.style.boxShadow = '0 0 0 1px var(--forest-500)';
+      if (row.isToday || row.isSelectedDate) {
+        card.style.borderColor = row.isToday ? 'var(--forest-500)' : '#0EA5E9';
+        card.style.boxShadow = row.isToday ? '0 0 0 1px var(--forest-500)' : '0 0 0 1px #0EA5E9';
       }
 
       let statusBadge = '';
@@ -28286,6 +28503,9 @@ function renderSpvDailySalesView(d, user, calMonth, period) {
       if (row.isToday) {
         tr.style.backgroundColor = 'rgba(16, 185, 129, 0.08)';
         tr.style.fontWeight = '600';
+      } else if (row.isSelectedDate) {
+        tr.style.backgroundColor = 'rgba(14, 165, 233, 0.08)';
+        tr.style.fontWeight = '600';
       }
 
       let statusBadge = '';
@@ -28320,7 +28540,9 @@ function renderSpvDailySalesView(d, user, calMonth, period) {
         ? '<span style="font-weight:700; color:' + gapColor + ';">' + gapSign + 'Rp ' + formatCompactRupiah(row.gap) + '</span>'
         : '<span style="color:var(--text-muted); font-size:12px;">-</span>';
 
-      let todayBadge = row.isToday ? ' <span class="badge badge-success" style="font-size:9.5px; padding:1px 5px; margin-left:4px;">Hari Ini ★</span>' : '';
+      let todayBadge = row.isToday
+        ? ' <span class="badge badge-success" style="font-size:9.5px; padding:1px 5px; margin-left:4px;">Hari Ini ★</span>'
+        : (row.isSelectedDate ? ' <span class="badge badge-info" style="font-size:9.5px; padding:1px 5px; margin-left:4px;">Tgl Dipilih</span>' : '');
 
       tr.innerHTML = 
         '<td style="text-align:center; font-weight:700; color:var(--text-muted);">' + (idx + 1) + '</td>' +
@@ -28383,12 +28605,19 @@ function renderSalesView() {
   }
   const isHistoricalMonth = (calMonth && calMonth !== 'CURRENT');
   const activeDaysInMonth = getDaysInMonth(isHistoricalMonth ? calMonth : 'CURRENT');
+  const isSingleDateMode = (period === 'today' || period === 'date');
+  const isFullMonthlyMode = !isSingleDateMode && (period === 'month' || isHistoricalMonth);
+  const todayStrSales = (typeof getTodayIsoDate === 'function') ? getTodayIsoDate() : new Date().toISOString().slice(0, 10);
+  const targetDateIso = isSingleDateMode ? getActiveFilterDateIso(calMonth) : todayStrSales;
+  const isTodaySelected = isSingleDateMode && (targetDateIso === todayStrSales);
 
   const weekInfo = getWeekPeriodDaysInfo();
-  let periodMultiplier = (period === 'week') ? weekInfo.daysCount : ((period === 'month' || isHistoricalMonth) ? activeDaysInMonth : 1);
-  let periodLabel = isHistoricalMonth 
-    ? getMonthLabel(calMonth) 
-    : ((period === 'week') ? weekInfo.label : ((period === 'month') ? ('Bulan Ini (' + activeDaysInMonth + ' Hari)') : 'Hari Ini'));
+  let periodMultiplier = (period === 'week') ? weekInfo.daysCount : (isFullMonthlyMode ? activeDaysInMonth : 1);
+  let periodLabel = isSingleDateMode
+    ? (isTodaySelected ? ('Hari Ini (' + formatDateShortWithYear(targetDateIso) + ')') : formatDateShortWithYear(targetDateIso))
+    : (isHistoricalMonth
+        ? getMonthLabel(calMonth)
+        : ((period === 'week') ? weekInfo.label : ('Bulan Ini (' + activeDaysInMonth + ' Hari)')));
 
   const monthlyCoeff = 1.0;
 
@@ -28457,7 +28686,7 @@ function renderSalesView() {
     let cTarget;
     if (agg && agg.target > 0) {
       cTarget = agg.target;
-    } else if (period === 'month' || isHistoricalMonth) {
+    } else if (isFullMonthlyMode) {
       cTarget = hasBranchMonthlyTarget ? Number(c.targetBulanan) : (baseDailyTarget * activeDaysInMonth);
     } else if (period === 'week') {
       cTarget = baseDailyTarget * weekInfo.daysCount;
@@ -28655,11 +28884,13 @@ function renderSalesView() {
         const card = document.createElement('div');
         card.className = 'sales-branch-card';
 
-        const isTodayNoInput = (period === 'today' && !cb.hasInput);
+        const isTodayNoInput = (isSingleDateMode && !cb.hasInput);
+        const noInputLabelMob = isTodaySelected ? 'Belum Lapor Hari Ini' : ('Belum Lapor (' + formatDateDisplay(targetDateIso) + ')');
+        const noInputTargetMob = isTodaySelected ? ('Target Hari Ini: Rp ' + formatRupiah(cb.target)) : ('Target ' + formatDateDisplay(targetDateIso) + ': Rp ' + formatRupiah(cb.target));
 
         let statusBadge = '';
         if (isTodayNoInput) {
-          statusBadge = '<span class="sales-area-status-pill bar-neutral-badge" style="background:#F1F5F9; color:#475569; border:1px solid #CBD5E1; font-weight:700; display:inline-flex; align-items:center; gap:4px;">' + getPanoramaSvgIcon('clock', 11) + ' Belum Lapor Hari Ini</span>';
+          statusBadge = '<span class="sales-area-status-pill bar-neutral-badge" style="background:#F1F5F9; color:#475569; border:1px solid #CBD5E1; font-weight:700; display:inline-flex; align-items:center; gap:4px;">' + getPanoramaSvgIcon('clock', 11) + ' ' + noInputLabelMob + '</span>';
         } else if (cb.persen >= 100) {
           statusBadge = '<span class="sales-area-status-pill bar-success-badge" style="display:inline-flex; align-items:center; gap:4px;">' + getPanoramaSvgIcon('check', 11) + ' ' + cb.persen + '% Capai Target</span>';
         } else if (cb.persen >= 85) {
@@ -28682,7 +28913,7 @@ function renderSalesView() {
           if (cb.lastReport && cb.lastReport.date) {
             metricTargetHtml = '<span class="sales-metric-target" style="color:var(--text-sub); font-size:11px;">Terakhir: ' + formatDateDisplay(cb.lastReport.date) + ' (Rp ' + formatCompactRupiah(cb.lastReport.actual) + ')</span>';
           } else {
-            metricTargetHtml = '<span class="sales-metric-target">Target Hari Ini: Rp ' + formatRupiah(cb.target) + '</span>';
+            metricTargetHtml = '<span class="sales-metric-target">' + noInputTargetMob + '</span>';
           }
           gapHtml = '<span class="sales-area-gap-text" style="color:var(--text-muted);">Target: Rp ' + formatCompactRupiah(cb.target) + '</span>';
         } else {
@@ -28716,7 +28947,7 @@ function renderSalesView() {
               gapHtml +
             '</div>' +
           '</div>' +
-          '<div class="sales-area-bar-wrap" title="' + (isTodayNoInput ? 'Belum lapor hari ini' : cb.persen + '% Capaian') + '">' +
+          '<div class="sales-area-bar-wrap" title="' + (isTodayNoInput ? noInputLabelMob : cb.persen + '% Capaian') + '">' +
             '<div class="sales-area-bar-fill" style="width:' + barFillWidth + '%; background:' + barColor + ';"></div>' +
           '</div>';
 
@@ -28845,7 +29076,8 @@ function renderSalesView() {
       tbody.innerHTML = '';
       activeArea.cabangList.forEach((cb, idx) => {
         const tr = document.createElement('tr');
-        const isTodayNoInput = (period === 'today' && !cb.hasInput);
+        const isTodayNoInput = (isSingleDateMode && !cb.hasInput);
+        const noInputTitleDesk = isTodaySelected ? 'Belum lapor hari ini' : ('Belum lapor tgl ' + formatDateDisplay(targetDateIso));
         const statusBadge = isTodayNoInput
           ? '<span class="badge" style="background:#F1F5F9; color:#475569; border:1px solid #CBD5E1; font-size:10px; display:inline-flex; align-items:center; gap:3px;">' + getPanoramaSvgIcon('clock', 11) + ' Belum Lapor</span>'
           : (cb.persen >= 100
@@ -28884,7 +29116,7 @@ function renderSalesView() {
           '<td>Rp ' + formatRupiah(cb.target) + '</td>' +
           '<td>' + actualCellHtml + '</td>' +
           '<td>' +
-            '<div class="sales-area-bar-wrap" style="height:8px;" title="' + (isTodayNoInput ? 'Belum lapor hari ini' : cb.persen + '%') + '">' +
+            '<div class="sales-area-bar-wrap" style="height:8px;" title="' + (isTodayNoInput ? noInputTitleDesk : cb.persen + '%') + '">' +
               '<div class="sales-area-bar-fill" style="width:' + barFillWidth + '%; background:' + barColor + ';"></div>' +
             '</div>' +
           '</td>' +
@@ -29010,36 +29242,19 @@ function recalculateLeaderboardLive() {
   const roleInfo = getUserRoleInfo(u);
   const isManagerMode = (roleInfo.isManager || (d.leaderboard && d.leaderboard.type === 'CABANG')) && !roleInfo.isMaster && u.role !== 'COO';
 
-  // Baca filter periode aktif agar Leaderboard sinkron dengan Filter Hari / Bulan
-  const period = (window.PANORAMA_STATE.filters && window.PANORAMA_STATE.filters.period) || 'today';
+  // Evaluasi Leaderboard 5 Pilar selalu mengikuti bulan kalender penuh terpilih
   const calMonth = (window.PANORAMA_STATE.filters && window.PANORAMA_STATE.filters.calendarMonth) || 'CURRENT';
   const isHistoricalMonth = (calMonth && calMonth !== 'CURRENT');
   const activeDaysInMonth = getDaysInMonth(isHistoricalMonth ? calMonth : 'CURRENT');
   const todayStr = getTodayIsoDate();
-  const currentMonthPrefix = todayStr.substring(0, 7);
+  const activeMonthPrefix = isHistoricalMonth ? String(calMonth).substring(0, 7) : todayStr.substring(0, 7);
 
-  const weekInfo = getWeekPeriodDaysInfo();
   function isSalesInActivePeriod(sDate) {
     if (!sDate) return false;
-    if (isHistoricalMonth) {
-      return sDate.startsWith(calMonth);
-    } else if (period === 'week') {
-      return sDate >= weekInfo.startDateStr && sDate <= todayStr;
-    } else if (period === 'month') {
-      return sDate.startsWith(currentMonthPrefix);
-    } else {
-      return sDate === todayStr;
-    }
+    return sDate.startsWith(activeMonthPrefix);
   }
 
-  let periodDays = 1;
-  if (period === 'month' || isHistoricalMonth) {
-    periodDays = activeDaysInMonth;
-  } else if (period === 'week') {
-    periodDays = weekInfo.daysCount;
-  } else {
-    periodDays = 1;
-  }
+  const periodDays = activeDaysInMonth;
 
   if (isManagerMode) {
     const targetAreaId = u.areaId || (d.leaderboard && d.leaderboard.areaId) || 'AREA-01';
@@ -29051,9 +29266,7 @@ function recalculateLeaderboardLive() {
       const cId = String(c.cabangId || '').trim();
       const cNamaClean = resolveBranchName(cId, c.namaCabang);
       const baseMonthly = Number(c.targetBulanan || c.targetSalesBulanan || 0);
-      const branchTargetPeriod = (period === 'month' || isHistoricalMonth)
-        ? (baseMonthly || (Number(c.targetHarian || 5000000) * activeDaysInMonth))
-        : (baseMonthly > 0 ? Math.round((baseMonthly / activeDaysInMonth) * periodDays) : (Number(c.targetHarian || 5000000) * periodDays));
+      const branchTargetPeriod = baseMonthly || (Number(c.targetHarian || 5000000) * activeDaysInMonth);
 
       cabangMap[cId] = {
         cabangId: cId,
@@ -29263,12 +29476,9 @@ function recalculateLeaderboardLive() {
       areaMap[aId].monthlyBranchTargetSum += Number(c.targetBulanan || c.targetSalesBulanan || (Number(c.targetHarian || 0) * activeDaysInMonth) || 0);
     });
 
-    // Tetapkan totalTarget per wilayah sesuai periode aktif (Full Monthly jika Bulan, proporsional jika Hari/Minggu)
+    // Tetapkan totalTarget per wilayah sesuai bulan aktif penuh
     Object.keys(areaMap).forEach(aId => {
-      const baseMonthly = areaMap[aId].monthlyBranchTargetSum;
-      areaMap[aId].totalTarget = (period === 'month' || isHistoricalMonth)
-        ? baseMonthly
-        : Math.round((baseMonthly / activeDaysInMonth) * periodDays);
+      areaMap[aId].totalTarget = areaMap[aId].monthlyBranchTargetSum;
     });
 
     // Agregasi Sales Periode Aktif
@@ -29449,10 +29659,8 @@ function renderLeaderboardView() {
 
   const isCabang = (d.leaderboard.type === 'CABANG');
   const u = d.user || {};
-  const period = (window.PANORAMA_STATE.filters && window.PANORAMA_STATE.filters.period) || 'today';
   const calMonth = (window.PANORAMA_STATE.filters && window.PANORAMA_STATE.filters.calendarMonth) || 'CURRENT';
-  const weekInfo = (typeof getWeekPeriodDaysInfo === 'function') ? getWeekPeriodDaysInfo() : { label: 'Minggu Ini' };
-  const periodLabel = (calMonth && calMonth !== 'CURRENT') ? getMonthLabel(calMonth) : (period === 'month' ? 'Bulan Ini' : (period === 'week' ? weekInfo.label : 'Hari Ini'));
+  const periodLabel = (calMonth && calMonth !== 'CURRENT') ? getMonthLabel(calMonth) : getMonthLabel('CURRENT');
 
   if (isCabang) {
     if (titleEl) titleEl.textContent = 'Peringkat Cabang & SPV Toko Binaan (' + (u.areaId || '') + ' - ' + (u.namaLengkap || '') + ')';
@@ -35926,6 +36134,101 @@ function canEditManagerJadwal(j, user) {
   return !userArea || userArea === 'ALL' || itemArea === userArea;
 }
 
+function canPrintManagerJadwal(j, user) {
+  if (!j || !user) return false;
+  const roleInfo = (typeof getUserRoleInfo === 'function') ? getUserRoleInfo(user) : {};
+  if (roleInfo.isSPV) return false;
+  const st = String(j.status || '').trim().toUpperCase();
+  if (st !== 'DISETUJUI' && st !== 'APPROVED') return false;
+  const tipeUpper = String(j.tipe || '').trim().toUpperCase();
+  const levelUpper = String(j.level || '').trim().toUpperCase();
+  const isSpvSchedule = (levelUpper === 'SPV_TO_MA' || tipeUpper === 'ROSTER_CABANG' || Boolean(j.fileUrl));
+  if (isSpvSchedule) return false;
+  return (levelUpper === 'MA_TO_COO' || tipeUpper === 'VISIT_AREA');
+}
+
+function computeJadwalWorkSummary(j) {
+  const empty = { totalKerja: 0, masuk: 0, lapangan: 0, libur: 0, ph: 0, cuti: 0, sakit: 0 };
+  if (!j) return empty;
+  const cached = (typeof getCachedJadwalDetail === 'function' && j.jadwalId) ? getCachedJadwalDetail(j.jadwalId) : null;
+  const detailHari = j.detailHari || (cached && cached.detailHari) || null;
+  if (detailHari && typeof detailHari === 'object') {
+    let masuk = 0, lapangan = 0, libur = 0, ph = 0, cuti = 0, sakit = 0, validCount = 0;
+    Object.keys(detailHari).forEach(k => {
+      const info = detailHari[k];
+      if (!info || typeof info !== 'object') return;
+      const st = String(info.status || '').trim().toUpperCase();
+      if (!st || st === 'KOSONG') return;
+      validCount++;
+      if (st === 'MASUK') masuk++;
+      else if (st === 'LAPANGAN' || st === 'VISIT') lapangan++;
+      else if (st === 'LIBUR') libur++;
+      else if (st === 'PH') ph++;
+      else if (st === 'CUTI' || st === 'IZIN') cuti++;
+      else if (st === 'SAKIT') sakit++;
+      else masuk++;
+    });
+    if (validCount > 0) {
+      return {
+        totalKerja: masuk + lapangan,
+        masuk: masuk,
+        lapangan: lapangan,
+        libur: libur,
+        ph: ph,
+        cuti: cuti,
+        sakit: sakit
+      };
+    }
+  }
+  const savedMasuk = Number(j.masukCount || 0);
+  const savedLapangan = Number(j.lapanganCount || 0);
+  const savedTotal = Number(j.totalHariKerja || 0);
+  if (savedTotal > 0 || savedMasuk > 0 || savedLapangan > 0) {
+    const totalKerja = savedTotal > 0 ? savedTotal : (savedMasuk + savedLapangan);
+    const masuk = (savedMasuk > 0 || savedLapangan > 0) ? savedMasuk : totalKerja;
+    return {
+      totalKerja: totalKerja,
+      masuk: masuk,
+      lapangan: savedLapangan,
+      libur: Number(j.liburCount || 0),
+      ph: Number(j.phCount || 0),
+      cuti: Number(j.cutiCount || 0),
+      sakit: Number(j.sakitCount || 0)
+    };
+  }
+  const periodeMatch = String(j.periode || '').match(/\((\d+)\s*Hari\s*Kerja\)/i);
+  if (periodeMatch) {
+    const parsedKerja = parseInt(periodeMatch[1], 10) || 0;
+    if (parsedKerja > 0) {
+      return { totalKerja: parsedKerja, masuk: parsedKerja, lapangan: 0, libur: 0, ph: 0, cuti: 0, sakit: 0 };
+    }
+  }
+  const tipeUpper = String(j.tipe || '').trim().toUpperCase();
+  const levelUpper = String(j.level || '').trim().toUpperCase();
+  if ((levelUpper === 'MA_TO_COO' || tipeUpper === 'VISIT_AREA') && !j.fileUrl) {
+    if (Number(j.totalShift || 0) > 0) {
+      const fromShift = Math.round(Number(j.totalShift) / 2);
+      return { totalKerja: fromShift, masuk: fromShift, lapangan: 0, libur: 0, ph: 0, cuti: 0, sakit: 0 };
+    }
+    if (typeof reconstructManagerCalendarDetail === 'function') {
+      const rec = reconstructManagerCalendarDetail(j);
+      return { totalKerja: rec.masukCount, masuk: rec.masukCount, lapangan: 0, libur: 0, ph: 0, cuti: 0, sakit: 0 };
+    }
+  }
+  return empty;
+}
+
+function formatJadwalTotalAgendaText(j) {
+  const s = computeJadwalWorkSummary(j);
+  if (s.lapangan > 0 && s.masuk > 0) {
+    return `${s.totalKerja} Hari Kerja (${s.masuk} Masuk, ${s.lapangan} Lapangan)`;
+  }
+  if (s.lapangan > 0) {
+    return `${s.totalKerja} Hari Kerja (${s.lapangan} Lapangan)`;
+  }
+  return `${s.totalKerja} Hari Kerja (${s.masuk} Masuk)`;
+}
+
 function resolveJadwalYearMonth(j) {
   let year = 2026;
   let month = 11;
@@ -36152,11 +36455,11 @@ function renderJadwalView() {
             </div>
           `;
         } else {
-          const isAcc = (jStatusUp === 'DISETUJUI' || jStatusUp === 'APPROVED');
+          const canPrintMgr = canPrintManagerJadwal(j, u);
           const editBtnText = (jStatusUp === 'DITOLAK' || jStatusUp === 'REVISI' || jStatusUp === 'REVISION') ? 'Edit Revisi' : 'Edit';
           actionCell = `
             <div style="display: flex; justify-content: flex-end; align-items: center; gap: 5px; flex-wrap: nowrap;">
-              ${isAcc ? `<button type="button" class="btn-table-review" style="background:#F0FDF4; color:#166534; border-color:#86EFAC; font-weight:700;" title="Cetak Jadwal (Sudah ACC)" onclick="printJadwalCalendar('${escapeHtml(j.jadwalId)}')"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Cetak</button>` : ''}
+              ${canPrintMgr ? `<button type="button" class="btn-table-review" style="background:#F0FDF4; color:#166534; border-color:#86EFAC; font-weight:700;" title="Cetak Jadwal (Sudah ACC)" onclick="printJadwalCalendar('${escapeHtml(j.jadwalId)}')"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Cetak</button>` : ''}
               ${canEditMgr ? `<button type="button" class="btn-table-edit-jadwal" title="Edit Jadwal Ini (Tanpa Buat Ulang Dari Awal)" onclick="openEditManagerJadwal('${escapeHtml(j.jadwalId)}')"><svg class="p-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> ${editBtnText}</button>` : ''}
               <button type="button" class="btn-table-review" title="Buka Detail Jadwal" onclick="openModalDetailJadwal('${escapeHtml(j.jadwalId)}')">${btnLabel}</button>
             </div>
@@ -36164,7 +36467,7 @@ function renderJadwalView() {
         }
 
         const monthStr = j.calendarMeta ? (`${j.calendarMeta.year}-${('0' + j.calendarMeta.month).slice(-2)}`) : (extractJadwalUploadMonthPrefix(j) || getActiveCycleMonthInfo().targetMonthPrefix);
-        let totalAgendaStr = `${j.totalHariKerja || 21} Hari Kerja (Masuk)`;
+        let totalAgendaStr = formatJadwalTotalAgendaText(j);
         if (j.fileUrl) {
           const isPdf = (j.fileName || '').toLowerCase().endsWith('.pdf');
           const isExcel = (j.fileName || '').toLowerCase().endsWith('.xlsx') || (j.fileName || '').toLowerCase().endsWith('.xls');
@@ -36267,12 +36570,12 @@ function renderJadwalView() {
             </div>
           `;
         } else {
-          const isAcc = (mobStatusUp === 'DISETUJUI' || mobStatusUp === 'APPROVED');
-          const hasTwoCols = isAcc || canEditMgrMob;
+          const canPrintMgrMob = canPrintManagerJadwal(j, u);
+          const hasTwoCols = canPrintMgrMob || canEditMgrMob;
           const mobEditLabel = (mobStatusUp === 'DITOLAK' || mobStatusUp === 'REVISI' || mobStatusUp === 'REVISION') ? 'Edit Revisi' : 'Edit Jadwal';
           actionBtns = `
             <div class="card-action-bar" style="display:grid; grid-template-columns:${hasTwoCols ? '1fr 1fr' : '1fr'}; gap:6px;">
-              ${isAcc ? `<button type="button" class="btn btn-outline" style="font-size:11.5px; padding:6px 10px; color:#166534; border-color:#86EFAC; background:#F0FDF4; font-weight:700; justify-content:center; display:inline-flex; align-items:center; gap:5px;" onclick="printJadwalCalendar('${escapeHtml(j.jadwalId)}')"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Cetak</button>` : ''}
+              ${canPrintMgrMob ? `<button type="button" class="btn btn-outline" style="font-size:11.5px; padding:6px 10px; color:#166534; border-color:#86EFAC; background:#F0FDF4; font-weight:700; justify-content:center; display:inline-flex; align-items:center; gap:5px;" onclick="printJadwalCalendar('${escapeHtml(j.jadwalId)}')"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Cetak</button>` : ''}
               ${canEditMgrMob ? `<button type="button" class="btn-card-edit-jadwal" onclick="openEditManagerJadwal('${escapeHtml(j.jadwalId)}')"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> ${mobEditLabel}</button>` : ''}
               <button type="button" class="btn btn-outline" style="font-size:11.5px; padding:6px 12px; width:100%; justify-content:center;" onclick="openModalDetailJadwal('${escapeHtml(j.jadwalId)}')">${mobileBtnLabel}</button>
             </div>
@@ -36281,6 +36584,7 @@ function renderJadwalView() {
 
         const monthStr = j.calendarMeta ? (`${j.calendarMeta.year}-${('0' + j.calendarMeta.month).slice(-2)}`) : (extractJadwalUploadMonthPrefix(j) || getActiveCycleMonthInfo().targetMonthPrefix);
         const tglPengajuanMob = normalizeDateStr(j.tanggalPengajuan || j.createdAt) || (j.tanggalPengajuan || '-');
+        const totalAgendaMobStr = formatJadwalTotalAgendaText(j);
 
         cardsHtml += `
           <div class="jadwal-mobile-card">
@@ -36296,7 +36600,7 @@ function renderJadwalView() {
             <div class="jadwal-card-meta-grid">
               <div>
                 <div class="jadwal-meta-item-label">${j.fileUrl ? 'Berkas Dokumen' : 'Total Agenda'}</div>
-                <div class="jadwal-meta-item-val">${j.fileUrl ? ('<svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> ' + escapeHtml(j.fileName || 'File Terlampir')) : ((j.totalHariKerja || 21) + ' Hari Kerja (Masuk)')}</div>
+                <div class="jadwal-meta-item-val">${j.fileUrl ? ('<svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> ' + escapeHtml(j.fileName || 'File Terlampir')) : totalAgendaMobStr}</div>
               </div>
               <div>
                 <div class="jadwal-meta-item-label">Tgl Pengajuan</div>
@@ -39449,25 +39753,21 @@ function printJadwalCalendar(jadwalId) {
     showToast('Rencana jadwal belum di-ACC (disetujui). Dokumen jadwal resmi baru dapat dicetak setelah disetujui atasan resmi.', 'warning');
     return;
   }
+  const activeUser = window.PANORAMA_STATE.user || {};
+  if (!canPrintManagerJadwal(j, activeUser)) {
+    showToast('Fitur cetak kalender resmi hanya untuk jadwal kerja Area Manager. Jadwal SPV menggunakan berkas PDF/Excel terlampir.', 'info');
+    return;
+  }
 
   const detailHari = j.detailHari || {};
   const dayKeys = Object.keys(detailHari).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+  const printSummary = computeJadwalWorkSummary(j);
 
-  let countMasuk = 0;
-  let countLibur = 0;
-  let countPH = 0;
-  let countLapangan = 0;
-  let countCuti = 0;
-
-  dayKeys.forEach(k => {
-    const st = (detailHari[k].status || '').toUpperCase();
-    if (st === 'MASUK') countMasuk++;
-    else if (st === 'LIBUR') countLibur++;
-    else if (st === 'PH') countPH++;
-    else if (st === 'LAPANGAN' || st === 'VISIT') countLapangan++;
-    else if (st === 'CUTI' || st === 'SAKIT' || st === 'IZIN') countCuti++;
-    else countMasuk++;
-  });
+  const countMasuk = printSummary.masuk;
+  const countLibur = printSummary.libur;
+  const countPH = printSummary.ph;
+  const countLapangan = printSummary.lapangan;
+  const countCuti = printSummary.cuti + printSummary.sakit;
 
   const year = (j.calendarMeta && j.calendarMeta.year) || 2026;
   const month = (j.calendarMeta && j.calendarMeta.month) || 10;
@@ -39619,7 +39919,7 @@ function printJadwalCalendar(jadwalId) {
         </div>
         <div class="jadwal-print-meta-card">
           <div style="font-size:10px; color:#64748B; font-weight:700; text-transform:uppercase;">Total Hari Kerja</div>
-          <div style="font-size:13.5px; font-weight:800; color:#0F172A; margin-top:2px;">${j.totalHariKerja || countMasuk || 22} Hari Kerja</div>
+          <div style="font-size:13.5px; font-weight:800; color:#0F172A; margin-top:2px;">${printSummary.totalKerja} Hari Kerja</div>
         </div>
       </div>
 
@@ -39831,7 +40131,8 @@ function openModalDetailJadwal(jadwalId) {
 
   // 2. Self-Healing: Jika jadwal Manager dan detailHari belum ada (misal tersimpan di spreadsheet versi lama),
   // rekonstruksi kalender jadwal otomatis berdasarkan periode bulan agar BISA DICEK / DITINJAU SECARA LENGKAP!
-  if (!j.detailHari && (j.tipe === 'VISIT_AREA' || j.level === 'MA_TO_COO' || !j.fileUrl)) {
+  const isSpvJadwalRow = (String(j.level || '').trim().toUpperCase() === 'SPV_TO_MA' || String(j.tipe || '').trim().toUpperCase() === 'ROSTER_CABANG');
+  if (!j.detailHari && !j.fileUrl && (j.tipe === 'VISIT_AREA' || j.level === 'MA_TO_COO' || !isSpvJadwalRow)) {
     const rec = reconstructManagerCalendarDetail(j);
     j.detailHari = rec.detailHari;
     j.calendarMeta = rec.calendarMeta;
@@ -39845,7 +40146,7 @@ function openModalDetailJadwal(jadwalId) {
   const isAtasan = isCOO || (j.level === 'SPV_TO_MA' && (j.areaId === u.areaId || !u.areaId || u.areaId === 'ALL'));
   const stUpper = String(j.status || '').trim().toUpperCase();
   const canApprove = isAtasan && stUpper !== 'DISETUJUI' && stUpper !== 'APPROVED' && stUpper !== 'DITOLAK' && stUpper !== 'REVISI' && stUpper !== 'REVISION';
-  const isAcc = (stUpper === 'DISETUJUI' || stUpper === 'APPROVED');
+  const canPrintDetMgr = canPrintManagerJadwal(j, u);
 
   const titleEl = document.getElementById('detailJadwalTitle');
   const subEl = document.getElementById('detailJadwalSubtitle');
@@ -39946,6 +40247,8 @@ function openModalDetailJadwal(jadwalId) {
     const year = (j.calendarMeta && j.calendarMeta.year) || 2026;
     const month = (j.calendarMeta && j.calendarMeta.month) || 11;
     const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    const detSummary = computeJadwalWorkSummary(j);
+    const detBadgeDetail = detSummary.lapangan > 0 ? `${detSummary.masuk} Masuk, ${detSummary.lapangan} Lapangan` : `${detSummary.masuk} Masuk`;
 
     calendarSectionHtml = `
       <div style="margin-top:14px; background:#ffffff; border:1px solid var(--border-color); border-radius:12px; padding:14px; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
@@ -39960,9 +40263,9 @@ function openModalDetailJadwal(jadwalId) {
           </div>
           <div style="display:flex; align-items:center; gap:8px;">
             <div class="cal-summary-badge" style="font-size:11px; padding:4px 10px;">
-              ${j.totalHariKerja || 22} Hari Kerja (${j.masukCount || 22} Masuk)
+              ${detSummary.totalKerja} Hari Kerja (${detBadgeDetail})
             </div>
-            ${isAcc ? `
+            ${canPrintDetMgr ? `
               <button type="button" class="btn btn-outline" style="font-size:11px; padding:4px 10px; color:#166534; border-color:#86EFAC; background:#F0FDF4; font-weight:700;" onclick="printJadwalCalendar('${escapeHtml(j.jadwalId)}')">
                 <svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Cetak Jadwal (ACC)
               </button>
@@ -40132,7 +40435,7 @@ function openModalDetailJadwal(jadwalId) {
                 <svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Edit &amp; Ajukan Ulang
               </button>
             ` : ''}
-            ${isAcc ? `
+            ${canPrintDetMgr ? `
               <button type="button" class="btn btn-outline" style="font-size:12px; padding:7px 12px; display:inline-flex; align-items:center; gap:6px; color:#166534; border-color:#86EFAC; background:#F0FDF4; font-weight:700;" onclick="printJadwalCalendar('${escapeHtml(j.jadwalId)}')">
                 <svg class="p-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Cetak Jadwal Resmi
               </button>
@@ -46062,15 +46365,21 @@ function exportSalesAnalysisToExcel() {
     return;
   }
 
-  const period = (window.PANORAMA_STATE.filters && window.PANORAMA_STATE.filters.period) || 'today';
+  const period = (window.PANORAMA_STATE.filters && window.PANORAMA_STATE.filters.period) || 'date';
   const calMonth = (window.PANORAMA_STATE.filters && window.PANORAMA_STATE.filters.calendarMonth) || 'CURRENT';
   const isHistoricalMonth = (calMonth && calMonth !== 'CURRENT');
+  const isSingleDateMode = (period === 'today' || period === 'date');
+  const isFullMonthlyMode = !isSingleDateMode && (period === 'month' || isHistoricalMonth);
   const activeDaysInMonth = (typeof getDaysInMonth === 'function') ? getDaysInMonth(isHistoricalMonth ? calMonth : 'CURRENT') : 30;
   const weekInfo = (typeof getWeekPeriodDaysInfo === 'function') ? getWeekPeriodDaysInfo() : { daysCount: 7, label: '7 Hari Terakhir' };
+  const todayIsoExp = (typeof getTodayIsoDate === 'function') ? getTodayIsoDate() : new Date().toISOString().slice(0, 10);
+  const targetDateIsoExp = isSingleDateMode ? ((typeof getActiveFilterDateIso === 'function') ? getActiveFilterDateIso(calMonth) : todayIsoExp) : todayIsoExp;
 
-  let periodLabel = isHistoricalMonth 
-    ? (typeof getMonthLabel === 'function' ? getMonthLabel(calMonth) : calMonth)
-    : ((period === 'week') ? weekInfo.label : ((period === 'month') ? ('Bulan Ini (' + activeDaysInMonth + ' Hari)') : 'Hari Ini'));
+  let periodLabel = isSingleDateMode
+    ? ((targetDateIsoExp === todayIsoExp) ? ('Hari Ini (' + formatDateShortWithYear(targetDateIsoExp) + ')') : formatDateShortWithYear(targetDateIsoExp))
+    : (isHistoricalMonth
+        ? (typeof getMonthLabel === 'function' ? getMonthLabel(calMonth) : calMonth)
+        : ((period === 'week') ? weekInfo.label : ('Bulan Ini (' + activeDaysInMonth + ' Hari)')));
 
   // 1. Ambil Agregasi Sales Transaksi Riil Nasional
   const salesAgg = (typeof getPeriodFilteredSalesData === 'function') 
@@ -46142,7 +46451,7 @@ function exportSalesAnalysisToExcel() {
     let cTarget;
     if (agg && agg.target > 0) {
       cTarget = agg.target;
-    } else if (period === 'month' || isHistoricalMonth) {
+    } else if (isFullMonthlyMode) {
       cTarget = hasBranchMonthlyTarget ? Number(c.targetBulanan) : (baseDailyTarget * activeDaysInMonth);
     } else if (period === 'week') {
       cTarget = baseDailyTarget * weekInfo.daysCount;

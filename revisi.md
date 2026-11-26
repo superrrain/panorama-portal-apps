@@ -338,3 +338,21 @@ Pengguna melaporkan kendala tampilan saat halaman digulir (*scroll*) pada iPhone
    - Menambahkan helper otorisasi `canEditManagerJadwal(j, user)` (ketat khusus akun Area Manager untuk jadwal `MA_TO_COO`/`VISIT_AREA` yang belum berstatus ACC).
    - Menampilkan tombol **Edit / Edit Revisi** pada tabel desktop, kartu mobile, dan footer modal detail (`openModalDetailJadwal`).
    - `openEditManagerJadwal(jadwalId)` membuka kembali `#modalAjukanJadwal` dengan seluruh tanggal, status hari, cabang kunjungan, agenda, periode bulan, dan catatan yang sudah pernah diisi sebelumnya beserta banner instruksi revisi dari Master COO (`#calRevisionFeedbackBanner`), lalu `submitPengajuanJadwalKalender` memperbarui jadwal eksisting tersebut via `apiUpdateJadwal`.
+
+
+
+---
+
+## v5.10.2 — Akurasi Total Agenda Jadwal, Penghapusan Tombol Cetak SPV, & Filter Per Tanggal Dropdown
+**Tanggal:** 26 November 2026  
+**Status:** Implementasi Lengkap & Terverifikasi  
+
+### Ringkasan Perubahan
+1. **Akurasi Kolom `TOTAL AGENDA` Jadwal Kerja (`Jadwal.gs`, `code.gs`, `js.html`)**:
+   - Menambahkan helper `computeJadwalDetailCounts_` di `Jadwal.gs` dan menyimpannya ke dalam `DETAIL_JSON` saat `apiSubmitJadwal` dan `apiUpdateJadwal`, serta mengembalikannya secara akurat pada `apiGetAllData` di `code.gs` (termasuk *fallback recovery* dari `detailHari`, label `periode`, maupun `totalShift` untuk data lama).
+   - Menambahkan helper frontend terpusat `computeJadwalWorkSummary` dan `formatJadwalTotalAgendaText` untuk menggantikan nilai statis `21`/`22` pada tabel desktop, kartu mobile, modal rincian kalender, dan dokumen cetak (menampilkan hitungan aktual, misalnya `24 Hari Kerja (19 Masuk, 5 Lapangan)`).
+2. **Penghapusan Tombol `Cetak` untuk Jadwal & Akun SPV (`js.html`)**:
+   - Menambahkan guard `canPrintManagerJadwal(j, user)` agar tombol `Cetak`, `Cetak Jadwal (ACC)`, dan `Cetak Jadwal Resmi` hanya tampil pada jadwal kalender Area Manager yang disetujui (tidak pernah tampil pada jadwal SPV `SPV_TO_MA` / `ROSTER_CABANG` / berkas lampiran PDF/Excel maupun saat login akun SPV), serta menjaga tata letak grid kartu mobile tetap 1 kolom penuh.
+3. **Penggantian Filter `Hari Ini` dengan Dropdown Cek Per Tanggal (`index_modular.html`, `css.html`, `js.html`)**:
+   - Mengganti tombol pill statis `Hari Ini` di `.executive-filter-strip` dengan dropdown `#dateFilterSelect` (Option A) yang secara otomatis mengisi seluruh tanggal `1..daysInMonth` dari bulan aktif (`Bulan Berjalan` maupun bulan historis di `#monthFilterSelect`).
+   - Memilih tanggal spesifik memfilter **Dashboard Utama, Grafik & Performa Sales, Hero Ranking Cabang, serta Export Excel Sales** ke tanggal terpilih tersebut dengan target 1 hari yang akurat, sementara **Leaderboard 5 Pilar, Efisiensi HPP/Waste, Jadwal Kerja, Insiden, dan Ulasan** tetap mengikuti evaluasi bulan penuh terpilih.

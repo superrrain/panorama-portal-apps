@@ -1204,6 +1204,15 @@ function apiGetInitialData(userSession, fallbackUser) {
             } catch (eParseJson) {}
           }
 
+          var periodeText = String(rj[COL_JADWAL.PERIODE] || '').trim();
+          var totalShiftNum = Number(rj[COL_JADWAL.TOTAL_SHIFT] || 0);
+          var isMaVisitRow = (String(rj[COL_JADWAL.LEVEL] || '').trim().toUpperCase() === 'MA_TO_COO' || jTipe === 'VISIT_AREA');
+          var periodeMatch = periodeText.match(/\((\d+)\s*Hari\s*Kerja\)/i);
+          var fallbackWorkDays = periodeMatch ? (Number(periodeMatch[1]) || 0) : (isMaVisitRow && totalShiftNum > 0 ? Math.round(totalShiftNum / 2) : 0);
+          var dayCounts = (typeof computeJadwalDetailCounts_ === 'function')
+            ? computeJadwalDetailCounts_(parsedDetail.detailHari || null, parsedDetail, { totalHariKerja: fallbackWorkDays, masukCount: fallbackWorkDays })
+            : { totalHariKerja: Number(parsedDetail.totalHariKerja || fallbackWorkDays || 0), masukCount: Number(parsedDetail.masukCount || fallbackWorkDays || 0), lapanganCount: Number(parsedDetail.lapanganCount || 0), liburCount: Number(parsedDetail.liburCount || 0), phCount: Number(parsedDetail.phCount || 0), cutiCount: Number(parsedDetail.cutiCount || 0), sakitCount: Number(parsedDetail.sakitCount || 0) };
+
           listJadwal.push({
             jadwalId: jId,
             tipe: String(rj[COL_JADWAL.TIPE] || jTipe).trim(),
@@ -1212,9 +1221,16 @@ function apiGetInitialData(userSession, fallbackUser) {
             cabangId: String(rj[COL_JADWAL.CABANG_ID] || 'ALL').trim(),
             namaCabang: String(rj[COL_JADWAL.NAMA_CABANG] || '').trim(),
             pengaju: String(rj[COL_JADWAL.PENGAJU] || '').trim(),
-            periode: String(rj[COL_JADWAL.PERIODE] || '').trim(),
+            periode: periodeText,
             totalKru: Number(rj[COL_JADWAL.TOTAL_KRU] || 0),
-            totalShift: Number(rj[COL_JADWAL.TOTAL_SHIFT] || 0),
+            totalShift: totalShiftNum,
+            totalHariKerja: dayCounts.totalHariKerja,
+            masukCount: dayCounts.masukCount,
+            lapanganCount: dayCounts.lapanganCount,
+            liburCount: dayCounts.liburCount,
+            phCount: dayCounts.phCount,
+            cutiCount: dayCounts.cutiCount,
+            sakitCount: dayCounts.sakitCount,
             status: String(rj[COL_JADWAL.STATUS] || 'MENUNGGU_COO').trim(),
             catatan: String(rj[COL_JADWAL.CATATAN] || '').trim(),
             approver: String(rj[COL_JADWAL.APPROVER] || '').trim(),

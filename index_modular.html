@@ -1349,8 +1349,17 @@
             <span class="filter-label">Periode:</span>
             <div class="period-controls-wrap">
               <div class="pill-group pill-group-full">
-                <button class="pill-btn filter-period-btn active" data-period="today"
-                  onclick="setPeriodFilter('today')">Hari Ini</button>
+                <div class="date-filter-select-wrap" id="dateFilterSelectWrap">
+                  <select class="pill-btn select-period-date active" id="dateFilterSelect"
+                    onchange="onPeriodDateSelectChange(this.value)"
+                    aria-label="Filter Per Tanggal Kalender">
+                    <option value="">Pilih Tgl</option>
+                  </select>
+                  <svg class="date-selector-chevron" width="11" height="11" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2.6">
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </div>
                 <button class="pill-btn filter-period-btn" data-period="week" onclick="setPeriodFilter('week')">Minggu
                   Ini</button>
                 <button class="pill-btn filter-period-btn" data-period="month" onclick="setPeriodFilter('month')">Bulan
