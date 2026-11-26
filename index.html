@@ -21189,7 +21189,7 @@
                       points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                   </svg></span> <strong>Keseluruhan (Full Executive Deck)</strong>
               </div>
-              <span style="font-size:11px; color:var(--text-muted); font-weight:400;">Menyajikan seluruh 7 poin kinerja
+              <span style="font-size:11px; color:var(--text-muted); font-weight:400;">Menyajikan seluruh 6 poin kinerja
                 operasional komprehensif.</span>
             </button>
             <button type="button" class="btn" id="btnScopeCustomDeck" onclick="setPresentasiScope('CUSTOM')"
@@ -21311,24 +21311,6 @@
 
             <label class="presentasi-checkbox-card"
               style="display:flex; align-items:flex-start; gap:10px; background:#FFFFFF; border:1px solid #E2E8F0; border-radius:8px; padding:10px 12px; cursor:pointer;">
-              <input type="checkbox" id="chkPresentasi_tugas" value="tugas" checked
-                style="margin-top:2px; accent-color:var(--forest-600); width:16px; height:16px;">
-              <div style="flex:1;">
-                <div style="font-size:12.5px; font-weight:700; color:var(--forest-900);"><svg class="p-ico" width="13"
-                    height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="8" y="2" width="8" height="4" rx="1" />
-                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-                    <path d="M9 12h6" />
-                    <path d="M9 16h6" />
-                  </svg> Slide 6: Kedisiplinan SOP & Checklist Operasional Toko</div>
-                <div style="font-size:11px; color:var(--text-muted);">Persentase ketuntasan tugas harian/mingguan, audit
-                  fisik gerai, dan kepatuhan supervisi Area Manager.</div>
-              </div>
-            </label>
-
-            <label class="presentasi-checkbox-card"
-              style="display:flex; align-items:flex-start; gap:10px; background:#FFFFFF; border:1px solid #E2E8F0; border-radius:8px; padding:10px 12px; cursor:pointer;">
               <input type="checkbox" id="chkPresentasi_sentimen" value="sentimen" checked
                 style="margin-top:2px; accent-color:var(--forest-600); width:16px; height:16px;">
               <div style="flex:1;">
@@ -21337,7 +21319,7 @@
                     stroke-linecap="round" stroke-linejoin="round">
                     <polygon
                       points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                  </svg> Slide 7: AI Sentinel & Sentimen Ulasan Google Maps</div>
+                  </svg> Slide 6: AI Sentinel & Sentimen Ulasan Google Maps</div>
                 <div style="font-size:11px; color:var(--text-muted);">Rating kepuasan publik, ringkasan AI analisis
                   ulasan konsumen, dan rekomendasi perbaikan layanan.</div>
               </div>
@@ -37895,10 +37877,25 @@ window.PRESENTASI_DECK_STATE = {
 function openModalPresentasi() {
   const user = window.PANORAMA_STATE.user || {};
   const cfg = window.PANORAMA_STATE.operationalConfig || {};
+  const roleInfo = getUserRoleInfo(user);
+
+  let defaultJudul = 'LAPORAN KINERJA OPERASIONAL EKSEKUTIF PANORAMA';
+  let defaultPresenter = (user.namaLengkap ? user.namaLengkap + ' • ' : '') + (cfg.namaCoo || 'Master Administrator');
+
+  if (roleInfo.isSPV) {
+    const targetCabangId = user.cabangId || 'CBG-076';
+    const storeName = resolveBranchName(targetCabangId, user.namaCabang || user.branchName || 'Momoyo Babakan Ciparay');
+    defaultJudul = 'LAPORAN KINERJA OPERASIONAL GERAI - ' + String(storeName).toUpperCase();
+    defaultPresenter = (user.namaLengkap || 'Aulia Pratiwi') + ' • SPV ' + storeName + ' (' + targetCabangId + ')';
+  } else if (roleInfo.isManager) {
+    const areaId = user.areaId || 'AREA-08';
+    defaultJudul = 'LAPORAN KINERJA OPERASIONAL WILAYAH ' + areaId;
+    defaultPresenter = (user.namaLengkap || 'Eka Zuliyanti') + ' • Area Manager ' + areaId;
+  }
 
   const judulEl = document.getElementById('presentasiMetaJudul');
-  if (judulEl && !judulEl.value) {
-    judulEl.value = 'LAPORAN KINERJA OPERASIONAL EKSEKUTIF PANORAMA';
+  if (judulEl) {
+    judulEl.value = defaultJudul;
   }
 
   const tanggalEl = document.getElementById('presentasiMetaTanggal');
@@ -37910,7 +37907,7 @@ function openModalPresentasi() {
 
   const presenterEl = document.getElementById('presentasiMetaPresenter');
   if (presenterEl) {
-    presenterEl.value = (user.namaLengkap ? user.namaLengkap + ' • ' : '') + (cfg.namaCoo || 'Master Administrator');
+    presenterEl.value = defaultPresenter;
   }
 
   setPresentasiScope(window.PRESENTASI_DECK_STATE.scope || 'FULL');
@@ -37949,35 +37946,89 @@ function setPresentasiScope(scope) {
 }
 
 function toggleAllPresentasiCheckboxes(checked) {
-  const ids = ['kpi', 'leaderboard', 'sales', 'efisiensi', 'insiden', 'tugas', 'sentimen'];
+  const ids = ['kpi', 'leaderboard', 'sales', 'efisiensi', 'insiden', 'sentimen'];
   ids.forEach(id => {
     const el = document.getElementById('chkPresentasi_' + id);
     if (el) el.checked = checked;
   });
 }
 
+function formatSlideDateIndo(rawDate) {
+  const norm = normalizeDateStr(rawDate);
+  if (!norm) return String(rawDate || '');
+  const parts = norm.split('-');
+  if (parts.length === 3) {
+    const y = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10) - 1;
+    const d = parseInt(parts[2], 10);
+    const dt = new Date(y, m, d);
+    const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    return (dayNames[dt.getDay()] || '') + ', ' + d + ' ' + (monthNames[m] || '') + ' ' + y;
+  }
+  return norm;
+}
+
 function buildExecutivePresentationSlides() {
   const d = window.PANORAMA_STATE.data || {};
   const cfg = window.PANORAMA_STATE.operationalConfig || {};
   const user = window.PANORAMA_STATE.user || {};
+  const roleInfo = getUserRoleInfo(user);
+  const isSPV = roleInfo.isSPV;
+  const isManager = roleInfo.isManager;
+  const isMaster = roleInfo.isMaster;
 
-  const judul = (document.getElementById('presentasiMetaJudul')?.value || 'LAPORAN KINERJA OPERASIONAL EKSEKUTIF PANORAMA').trim();
+  const targetCabangId = user.cabangId || 'CBG-076';
+  const targetAreaId = user.areaId || 'AREA-08';
+  const storeName = isSPV ? resolveBranchName(targetCabangId, user.namaCabang || user.branchName || 'Momoyo Babakan Ciparay') : '';
+
+  const judul = (document.getElementById('presentasiMetaJudul')?.value || (isSPV ? ('LAPORAN KINERJA OPERASIONAL GERAI - ' + storeName.toUpperCase()) : (isManager ? ('LAPORAN KINERJA OPERASIONAL WILAYAH ' + targetAreaId) : 'LAPORAN KINERJA OPERASIONAL EKSEKUTIF PANORAMA'))).trim();
   const tanggal = (document.getElementById('presentasiMetaTanggal')?.value || new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })).trim();
-  const presenter = (document.getElementById('presentasiMetaPresenter')?.value || (cfg.namaCoo || 'Master Administrator')).trim();
+  const presenter = (document.getElementById('presentasiMetaPresenter')?.value || (user.namaLengkap || 'Master Administrator')).trim();
 
   window.PRESENTASI_DECK_STATE.slideMeta = { judul, tanggal, presenter };
 
-  // Hitung metrik agregat berdasarkan siklus bulan aktif
+  // Siklus bulan aktif
   const activeCyclePres = getActiveCycleMonthInfo();
-  const salesList = (d.sales || []).filter(s => {
+
+  // Scoped cabang
+  let scopedCabangList = (d.cabang || []);
+  let areaBranchIds = new Set();
+  if (isSPV) {
+    scopedCabangList = scopedCabangList.filter(c => String(c.cabangId || '') === String(targetCabangId));
+    areaBranchIds.add(String(targetCabangId));
+  } else if (isManager) {
+    scopedCabangList = scopedCabangList.filter(c => String(c.areaId || '') === String(targetAreaId));
+    scopedCabangList.forEach(c => areaBranchIds.add(String(c.cabangId)));
+  }
+
+  // Scoped sales
+  const allSales = (d.sales || []).filter(s => {
     const sDate = normalizeDateStr(s.tanggal);
     return sDate && sDate.startsWith(activeCyclePres.targetMonthPrefix);
   });
+  let salesList = allSales;
+  if (isSPV) {
+    salesList = allSales.filter(s => String(s.cabangId || '') === String(targetCabangId));
+  } else if (isManager) {
+    salesList = allSales.filter(s => String(s.areaId || '') === String(targetAreaId) || areaBranchIds.has(String(s.cabangId || '')));
+  }
+
   const totalActual = salesList.reduce((acc, s) => acc + Number(s.actualSales || 0), 0);
   const totalTarget = salesList.reduce((acc, s) => acc + Number(s.targetHarian || 0), 0);
   const salesPct = totalTarget > 0 ? Math.round((totalActual / totalTarget) * 1000) / 10 : 0.0;
+  const totalTrx = salesList.reduce((acc, s) => acc + Number(s.transaksiCount || s.transaksi || s.trx || 0), 0);
+  const avgBasket = totalTrx > 0 ? Math.round(totalActual / totalTrx) : 0;
 
-  const effList = filterEfisiensiByActiveMonth(d.efisiensi || []);
+  // Scoped efisiensi
+  const allEff = filterEfisiensiByActiveMonth(d.efisiensi || []);
+  let effList = allEff;
+  if (isSPV) {
+    effList = allEff.filter(e => String(e.cabangId || '') === String(targetCabangId));
+  } else if (isManager) {
+    effList = allEff.filter(e => areaBranchIds.has(String(e.cabangId || '')) || String(e.areaId || '') === String(targetAreaId));
+  }
+
   const branchEffMapPres = {};
   effList.forEach(e => {
     if (!e.cabangId) return;
@@ -38003,21 +38054,27 @@ function buildExecutivePresentationSlides() {
   const avgWaste = uniqueEffList.length > 0 ? Math.round((uniqueEffList.reduce((acc, e) => acc + Number(e.wastePersen || 0), 0) / uniqueEffList.length) * 10) / 10 : 0.0;
   const totalWasteLoss = uniqueEffList.reduce((acc, e) => acc + Number(e.wasteNominal || 0), 0);
 
-  const incList = filterInsidenByActiveMonth(d.insiden || []);
+  // Scoped insiden
+  const allInc = filterInsidenByActiveMonth(d.insiden || []);
+  let incList = allInc;
+  if (isSPV) {
+    incList = allInc.filter(i => String(i.cabangId || '') === String(targetCabangId));
+  } else if (isManager) {
+    incList = allInc.filter(i => String(i.areaId || '') === String(targetAreaId) || areaBranchIds.has(String(i.cabangId || '')));
+  }
   const totalInc = incList.length;
   const resolvedInc = incList.filter(i => isInsidenResolved(i)).length;
   const openInc = incList.filter(i => !isInsidenResolved(i)).length;
   const avgSla = incList.length > 0 ? (incList.reduce((acc, i) => acc + Number(i.slaJam || 0), 0) / incList.length).toFixed(1) : '0.0';
 
-  const tugasList = filterTugasByActiveMonth(d.tugas || []);
-  const totalTugas = tugasList.length;
-  const resolvedTugas = tugasList.filter(t => isTugasCompleted(t)).length;
-  const tugasPct = totalTugas > 0 ? Math.min(100, Math.round((resolvedTugas / totalTugas) * 100)) : 0;
-
-  const lbList = (d.leaderboard && d.leaderboard.all) ? d.leaderboard.all : [];
-
-  const top3 = lbList.slice(0, 3);
-  const bottom3 = lbList.slice(-3).reverse();
+  // Scoped reviews
+  const allReviews = filterReviewsByActiveMonth(Array.isArray(d.reviews) ? [...d.reviews] : [], d.insiden);
+  let reviewList = allReviews;
+  if (isSPV) {
+    reviewList = allReviews.filter(r => String(r.cabangId || '') === String(targetCabangId));
+  } else if (isManager) {
+    reviewList = allReviews.filter(r => String(r.areaId || '') === String(targetAreaId) || areaBranchIds.has(String(r.cabangId || '')));
+  }
 
   const slides = [];
 
@@ -38031,8 +38088,8 @@ function buildExecutivePresentationSlides() {
         '</div>' +
       '</div>' +
       '<div class="slide-header-meta">' +
-        '<div style="font-weight:700; color:var(--forest-900);">' + judul + '</div>' +
-        '<div>' + tanggal + ' • ' + presenter + '</div>' +
+        '<div style="font-weight:700; color:var(--forest-900);">' + escapeHtml(judul) + '</div>' +
+        '<div>' + escapeHtml(tanggal) + ' • ' + escapeHtml(presenter) + '</div>' +
       '</div>' +
     '</div>';
   };
@@ -38044,14 +38101,48 @@ function buildExecutivePresentationSlides() {
     '</div>';
   };
 
-  // 1. SLIDE 1: Executive KPI Scorecard
+  // 1. SLIDE 1: Scorecard (STORE / AREA / EXECUTIVE)
   if (document.getElementById('chkPresentasi_kpi')?.checked) {
     slides.push({
       id: 'kpi',
-      title: 'Executive KPI Scorecard & Ikhtisar Nasional',
+      title: isSPV ? ('KPI Scorecard & Ikhtisar Gerai ' + storeName) : (isManager ? ('KPI Scorecard & Ikhtisar Wilayah ' + targetAreaId) : 'Executive KPI Scorecard & Ikhtisar Nasional'),
       render: function(currIdx, totalCount) {
+        const cat = isSPV ? 'STORE SCORECARD' : (isManager ? 'AREA SCORECARD' : 'EXECUTIVE SCORECARD');
+        const headTitle = isSPV ? ('Ikhtisar Kinerja Gerai - ' + escapeHtml(storeName)) : (isManager ? ('Ikhtisar Kinerja Operasional Wilayah ' + escapeHtml(targetAreaId)) : 'Ikhtisar Kinerja Operasional Nasional');
+        const headSub = isSPV 
+          ? ('Pencapaian Omzet, Disiplin Transaksi & Pengendalian Margin Gerai')
+          : (isManager 
+            ? ('Konsolidasi Kinerja ' + scopedCabangList.length + ' Gerai Binaan, Efisiensi Bahan Baku & Ketangkasan SLA') 
+            : 'Konsolidasi Pencapaian Omset, Efisiensi & Ketangkasan Lapangan 14 Wilayah Operasional');
+
+        const posHighlights = isSPV
+          ? '<li>Pertumbuhan omzet harian gerai berjalan dengan capaian <strong>' + salesPct + '%</strong> dari target.</li>' +
+            '<li>Rata-rata HPP bahan baku toko terkontrol di <strong>' + avgHpp + '%</strong> (ambang batas aman: ' + (cfg.maxHpp || 35.0) + '%).</li>' +
+            '<li>Volume transaksi tercatat <strong>' + totalTrx.toLocaleString('id-ID') + ' struk</strong> dengan rata-rata belanja Rp ' + formatRupiah(avgBasket) + '/struk.</li>'
+          : (isManager
+            ? '<li>Akumulasi realisasi omzet wilayah binaan mencapai <strong>Rp ' + formatRupiah(totalActual) + '</strong> (' + salesPct + '% dari target).</li>' +
+              '<li>Rata-rata HPP gabungan seluruh gerai binaan terjaga di <strong>' + avgHpp + '%</strong>, di bawah batas maksimal.</li>' +
+              '<li>Total volume transaksi di ' + scopedCabangList.length + ' gerai binaan mencapai <strong>' + totalTrx.toLocaleString('id-ID') + ' struk</strong>.</li>'
+            : '<li>Pertumbuhan omset stabil di seluruh wilayah operasional dengan capaian <strong>' + salesPct + '%</strong>.</li>' +
+              '<li>Rata-rata HPP bahan baku nasional terkontrol ketat di <strong>' + avgHpp + '%</strong>, di bawah batas aman ' + (cfg.maxHpp || 35.0) + '%.</li>' +
+              '<li>Akumulasi volume transaksi kasir nasional mencapai <strong>' + totalTrx.toLocaleString('id-ID') + ' struk</strong> dengan basket size Rp ' + formatRupiah(avgBasket) + '.</li>');
+
+        const prioHighlights = isSPV
+          ? (openInc > 0 
+            ? '<li>Terdapat <strong>' + openInc + ' kasus insiden gerai</strong> yang butuh tindak lanjut segera tim toko.</li>'
+            : '<li>Operasional gerai berjalan tertib dan kondusif tanpa ada kendala komplain terbuka.</li>') +
+            '<li>Akumulasi food waste gerai tercatat sebesar <strong>Rp ' + formatRupiah(totalWasteLoss) + '</strong> (tekan melalui FIFO bahan).</li>' +
+            '<li>Optimalisasi kecepatan pelayanan kru bar dan kasir pada jam-jam sibuk (peak hours).</li>'
+          : (isManager
+            ? '<li>Terdapat <strong>' + openInc + ' kasus insiden</strong> di gerai binaan yang membutuhkan supervisi Area Manager.</li>' +
+              '<li>Akumulasi nominal food waste wilayah tercatat sebesar <strong>Rp ' + formatRupiah(totalWasteLoss) + '</strong>.</li>' +
+              '<li>Evaluasi intensif terhadap gerai underperforming di wilayah untuk percepatan target akhir bulan.</li>'
+            : '<li>Terdapat <strong>' + openInc + ' kasus insiden</strong> nasional yang masih berjalan dan membutuhkan verifikasi lapangan.</li>' +
+              '<li>Akumulasi nominal food waste tercatat sebesar <strong>Rp ' + formatRupiah(totalWasteLoss) + '</strong> yang perlu ditekan melalui FIFO bahan.</li>' +
+              '<li>Disparitas performa antara 3 wilayah teratas dan 3 wilayah terbawah memerlukan rotasi strategi supervisi.</li>');
+
         return '<div class="presentation-slide">' +
-          createSlideHeader('EXECUTIVE SCORECARD', 'Ikhtisar Kinerja Operasional Nasional', 'Konsolidasi Pencapaian Omset, Efisiensi & Ketangkasan Lapangan') +
+          createSlideHeader(cat, headTitle, headSub) +
           '<div class="slide-content-body">' +
             '<div class="slide-kpi-grid">' +
               '<div class="slide-kpi-card">' +
@@ -38080,27 +38171,19 @@ function buildExecutivePresentationSlides() {
                 '<span class="slide-kpi-sub">Target SLA: ' + (cfg.slaInsiden || 12) + ' Jam</span>' +
               '</div>' +
               '<div class="slide-kpi-card">' +
-                '<span class="slide-kpi-label">Ketuntasan SOP</span>' +
-                '<span class="slide-kpi-value" style="color:#15803D;">' + tugasPct + '%</span>' +
-                '<span class="slide-kpi-sub">' + resolvedTugas + ' dari ' + totalTugas + ' Tugas</span>' +
+                '<span class="slide-kpi-label">Total Transaksi Kasir</span>' +
+                '<span class="slide-kpi-value" style="color:var(--forest-800);">' + totalTrx.toLocaleString('id-ID') + ' <span style="font-size:13px; font-weight:600;">Struk</span></span>' +
+                '<span class="slide-kpi-sub">Basket: Rp ' + formatRupiah(avgBasket) + ' / struk</span>' +
               '</div>' +
             '</div>' +
             '<div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:4px;">' +
               '<div class="slide-bullet-box" style="border-left-color:var(--forest-600);">' +
-                '<div class="slide-bullet-title"><span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span> Sorotan Capaian Positif (Executive Highlights)</div>' +
-                '<ul class="slide-bullet-list">' +
-                  '<li>Pertumbuhan omset stabil di seluruh cabang operasional dengan capaian <strong>' + salesPct + '%</strong>.</li>' +
-                  '<li>Rata-rata HPP bahan baku nasional terkontrol ketat di <strong>' + avgHpp + '%</strong>, di bawah batas aman ' + (cfg.maxHpp || 35.0) + '%.</li>' +
-                  '<li>Rasio penyelesaian tugas pembukaan dan operasional gerai mencapai <strong>' + tugasPct + '%</strong> kepatuhan.</li>' +
-                '</ul>' +
+                '<div class="slide-bullet-title"><span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span> Sorotan Capaian Positif</div>' +
+                '<ul class="slide-bullet-list">' + posHighlights + '</ul>' +
               '</div>' +
               '<div class="slide-bullet-box" style="border-left-color:#E11D48; background:#FFF1F2;">' +
-                '<div class="slide-bullet-title" style="color:#9F1239;"><span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> Poin Pengawasan Prioritas Manajemen</div>' +
-                '<ul class="slide-bullet-list" style="color:#881337;">' +
-                  '<li>Terdapat <strong>' + openInc + ' kasus insiden</strong> yang masih berjalan dan membutuhkan verifikasi lapangan tim operasional.</li>' +
-                  '<li>Akumulasi nominal food waste tercatat sebesar <strong>Rp ' + formatRupiah(totalWasteLoss) + '</strong> yang perlu ditekan melalui SOP FIFO.</li>' +
-                  '<li>Disparitas performa antara 3 wilayah teratas dan 3 wilayah terbawah memerlukan rotasi strategi supervisi.</li>' +
-                '</ul>' +
+                '<div class="slide-bullet-title" style="color:#9F1239;"><span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> Poin Pengawasan Prioritas</div>' +
+                '<ul class="slide-bullet-list" style="color:#881337;">' + prioHighlights + '</ul>' +
               '</div>' +
             '</div>' +
           '</div>' +
@@ -38110,63 +38193,196 @@ function buildExecutivePresentationSlides() {
     });
   }
 
-  // 2. SLIDE 2: Evaluasi Leaderboard Operasional
+  // 2. SLIDE 2: Leaderboard (SPV = Top Days, Manager = Top Branches, Master = Top AMs)
   if (document.getElementById('chkPresentasi_leaderboard')?.checked) {
     slides.push({
       id: 'leaderboard',
-      title: 'Evaluasi Leaderboard Kinerja Operasional',
+      title: isSPV ? ('Rekor Penjualan Harian Gerai - ' + storeName) : (isManager ? ('Leaderboard Gerai Binaan ' + targetAreaId) : 'Evaluasi Leaderboard Kinerja Operasional'),
       render: function(currIdx, totalCount) {
         let top3Html = '';
-        top3.forEach((item, idx) => {
-          const medal = idx === 0 ? '<svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/></svg> JUARA 1' : (idx === 1 ? '<svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> JUARA 2' : '<svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> JUARA 3');
-          const borderClr = idx === 0 ? '#F59E0B' : (idx === 1 ? '#94A3B8' : '#D97706');
-          const isCab = (item.type === 'CABANG');
-          const title = isCab ? resolveBranchName(item.cabangId, item.namaCabang) : resolveManagerNameForArea(item.areaId, item.manager);
-          const subText = isCab 
-            ? (getPanoramaSvgIcon('store', 13) + ' ' + escapeHtml(item.cabangId) + ' • ' + escapeHtml(item.spvToko || 'SPV')) 
-            : (getPanoramaSvgIcon('pin', 13) + ' ' + escapeHtml(item.areaId) + ' • ' + Number(item.totalCabang || 0) + ' Gerai');
-          top3Html += '<div style="background:#FFFFFF; border:2px solid ' + borderClr + '; border-radius:10px; padding:12px; flex:1;">' +
-            '<div style="font-size:11px; font-weight:800; color:' + borderClr + '; margin-bottom:4px;">' + medal + '</div>' +
-            '<div style="font-size:14px; font-weight:800; color:var(--forest-900); line-height:1.2;">' + escapeHtml(title) + '</div>' +
-            '<div style="font-size:11px; color:var(--text-muted); margin-top:2px;">' + subText + '</div>' +
-            '<div style="margin-top:8px; font-size:22px; font-weight:800; color:var(--forest-800);">' + item.skorKinerja + ' <span style="font-size:12px; font-weight:600; color:var(--text-muted);">Poin</span></div>' +
-            '<div style="font-size:11px; color:#15803D; margin-top:2px;">Realisasi Sales: ' + item.salesCapaianPersen + '%</div>' +
-          '</div>';
-        });
-
         let bottom3Html = '';
-        bottom3.forEach((item) => {
-          const isCab = (item.type === 'CABANG');
-          const title = isCab ? resolveBranchName(item.cabangId, item.namaCabang) : resolveManagerNameForArea(item.areaId, item.manager);
-          const subText = isCab 
-            ? (getPanoramaSvgIcon('store', 13) + ' ' + escapeHtml(item.cabangId)) 
-            : (getPanoramaSvgIcon('pin', 13) + ' ' + escapeHtml(item.areaId));
-          bottom3Html += '<div style="background:#FFF1F2; border:1px solid #FECDD3; border-radius:8px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center;">' +
-            '<div>' +
-              '<strong style="color:#9F1239; font-size:12.5px;">' + escapeHtml(title) + ' (' + subText + ')</strong>' +
-              '<div style="font-size:11px; color:#881337;">Realisasi Sales: ' + item.salesCapaianPersen + '% • Open Incident: ' + (item.openIncident || 0) + '</div>' +
-            '</div>' +
-            '<div style="text-align:right;">' +
-              '<span style="font-size:16px; font-weight:800; color:#BE123C;">' + item.skorKinerja + ' Poin</span>' +
-              '<div style="font-size:10px; color:#9F1239;">Perlu Evaluasi Khusus</div>' +
-            '</div>' +
-          '</div>';
-        });
+        let sectionTopTitle = '';
+        let sectionBottomTitle = '';
+        let formulaNote = '';
+
+        if (isSPV) {
+          const dailyList = [...salesList]
+            .filter(s => Number(s.actualSales || 0) > 0)
+            .sort((a, b) => Number(b.actualSales || 0) - Number(a.actualSales || 0));
+          
+          const top3Days = dailyList.slice(0, 3);
+          const bottom3Days = dailyList.length > 3 ? dailyList.slice(-3).reverse() : [];
+
+          sectionTopTitle = 'Top 3 Hari Omzet Tertinggi Gerai:';
+          sectionBottomTitle = '3 Hari Penjualan Terendah Membutuhkan Optimalisasi:';
+          formulaNote = '<span><strong>Formulasi Rekor Toko:</strong> Berdasarkan akumulasi penjualan harian dan total struk kasir gerai ' + escapeHtml(storeName) + ' pada siklus bulan berjalan.</span><span style="color:var(--forest-800); font-weight:700;">Data Real-time POS</span>';
+
+          top3Days.forEach((item, idx) => {
+            const medal = idx === 0 ? '🏆 JUARA 1' : (idx === 1 ? '🥈 JUARA 2' : '🥉 JUARA 3');
+            const borderClr = idx === 0 ? '#F59E0B' : (idx === 1 ? '#94A3B8' : '#D97706');
+            const dtText = formatSlideDateIndo(item.tanggal);
+            const act = Number(item.actualSales || 0);
+            const tgt = Number(item.targetHarian || 0);
+            const pct = tgt > 0 ? Math.round((act / tgt) * 1000) / 10 : 0;
+            const trx = Number(item.transaksiCount || item.trx || 0);
+
+            top3Html += '<div style="background:#FFFFFF; border:2px solid ' + borderClr + '; border-radius:10px; padding:12px; flex:1;">' +
+              '<div style="font-size:11px; font-weight:800; color:' + borderClr + '; margin-bottom:4px;">' + medal + '</div>' +
+              '<div style="font-size:14px; font-weight:800; color:var(--forest-900); line-height:1.2;">' + escapeHtml(dtText) + '</div>' +
+              '<div style="font-size:11px; color:var(--text-muted); margin-top:2px;">' + trx + ' Struk • Target: Rp ' + formatRupiah(tgt) + '</div>' +
+              '<div style="margin-top:8px; font-size:20px; font-weight:800; color:var(--forest-800);">Rp ' + formatRupiah(act) + '</div>' +
+              '<div style="font-size:11px; color:#15803D; margin-top:2px; font-weight:700;">Capaian: ' + pct + '%</div>' +
+            '</div>';
+          });
+
+          if (bottom3Days.length > 0) {
+            bottom3Days.forEach(item => {
+              const dtText = formatSlideDateIndo(item.tanggal);
+              const act = Number(item.actualSales || 0);
+              const tgt = Number(item.targetHarian || 0);
+              const pct = tgt > 0 ? Math.round((act / tgt) * 1000) / 10 : 0;
+              const trx = Number(item.transaksiCount || item.trx || 0);
+              bottom3Html += '<div style="background:#FFF1F2; border:1px solid #FECDD3; border-radius:8px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center;">' +
+                '<div>' +
+                  '<strong style="color:#9F1239; font-size:12.5px;">' + escapeHtml(dtText) + ' (' + trx + ' Struk)</strong>' +
+                  '<div style="font-size:11px; color:#881337;">Realisasi Omzet: Rp ' + formatRupiah(act) + ' dari Target Rp ' + formatRupiah(tgt) + '</div>' +
+                '</div>' +
+                '<div style="text-align:right;">' +
+                  '<span style="font-size:16px; font-weight:800; color:#BE123C;">' + pct + '%</span>' +
+                  '<div style="font-size:10px; color:#9F1239;">Perlu Evaluasi Khusus</div>' +
+                '</div>' +
+              '</div>';
+            });
+          } else {
+            bottom3Html = '<div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:10px; font-size:11px; color:var(--text-muted); text-align:center;">Seluruh hari operasional yang terinput mencatatkan performa penjualan konsisten.</div>';
+          }
+        } else if (isManager) {
+          const branchesInArea = ((d.leaderboard && d.leaderboard.cabang) || []).filter(item => {
+            return areaBranchIds.has(String(item.cabangId || '')) || String(item.areaId || '') === String(targetAreaId);
+          });
+          
+          let lbBranches = branchesInArea;
+          if (lbBranches.length === 0) {
+            lbBranches = scopedCabangList.map(c => {
+              const bSales = salesList.filter(s => String(s.cabangId || '') === String(c.cabangId));
+              const act = bSales.reduce((acc, s) => acc + Number(s.actualSales || 0), 0);
+              const tgt = bSales.reduce((acc, s) => acc + Number(s.targetHarian || 0), 0);
+              const pct = tgt > 0 ? Math.round((act / tgt) * 1000) / 10 : 0;
+              return {
+                cabangId: c.cabangId,
+                namaCabang: c.namaCabang,
+                spvToko: c.spvToko || c.spv || 'SPV',
+                skorKinerja: Math.min(100, Math.round(pct)),
+                salesCapaianPersen: pct,
+                openIncident: incList.filter(i => String(i.cabangId || '') === String(c.cabangId) && !isInsidenResolved(i)).length
+              };
+            });
+          }
+
+          lbBranches.sort((a, b) => Number(b.skorKinerja || b.salesCapaianPersen || 0) - Number(a.skorKinerja || a.salesCapaianPersen || 0));
+          const top3Mgr = lbBranches.slice(0, 3);
+          const bottom3Mgr = lbBranches.length > 3 ? lbBranches.slice(-3).reverse() : [];
+
+          sectionTopTitle = 'Top 3 Gerai Binaan Terbaik (' + targetAreaId + '):';
+          sectionBottomTitle = '3 Gerai Terbawah Membutuhkan Supervisi & Evaluasi Lapangan:';
+          formulaNote = '<span><strong>Formulasi Bobot Wilayah:</strong> Penjualan: ' + (cfg.bobotSales || 35) + '% | HPP: ' + (cfg.bobotHpp || 25) + '% | Waste: ' + (cfg.bobotWaste || 20) + '% | SLA: ' + (cfg.bobotSla || 20) + '%</span><span style="color:var(--forest-800); font-weight:700;">Konsolidasi Wilayah</span>';
+
+          top3Mgr.forEach((item, idx) => {
+            const medal = idx === 0 ? '🏆 JUARA 1' : (idx === 1 ? '🥈 JUARA 2' : '🥉 JUARA 3');
+            const borderClr = idx === 0 ? '#F59E0B' : (idx === 1 ? '#94A3B8' : '#D97706');
+            const title = resolveBranchName(item.cabangId, item.namaCabang);
+            const subText = escapeHtml(item.cabangId) + ' • ' + escapeHtml(item.spvToko || 'SPV');
+
+            top3Html += '<div style="background:#FFFFFF; border:2px solid ' + borderClr + '; border-radius:10px; padding:12px; flex:1;">' +
+              '<div style="font-size:11px; font-weight:800; color:' + borderClr + '; margin-bottom:4px;">' + medal + '</div>' +
+              '<div style="font-size:14px; font-weight:800; color:var(--forest-900); line-height:1.2;">' + escapeHtml(title) + '</div>' +
+              '<div style="font-size:11px; color:var(--text-muted); margin-top:2px;">' + subText + '</div>' +
+              '<div style="margin-top:8px; font-size:22px; font-weight:800; color:var(--forest-800);">' + (item.skorKinerja || item.salesCapaianPersen) + ' <span style="font-size:12px; font-weight:600; color:var(--text-muted);">Poin</span></div>' +
+              '<div style="font-size:11px; color:#15803D; margin-top:2px;">Realisasi Sales: ' + item.salesCapaianPersen + '%</div>' +
+            '</div>';
+          });
+
+          if (bottom3Mgr.length > 0) {
+            bottom3Mgr.forEach(item => {
+              const title = resolveBranchName(item.cabangId, item.namaCabang);
+              bottom3Html += '<div style="background:#FFF1F2; border:1px solid #FECDD3; border-radius:8px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center;">' +
+                '<div>' +
+                  '<strong style="color:#9F1239; font-size:12.5px;">' + escapeHtml(title) + ' (' + escapeHtml(item.cabangId) + ')</strong>' +
+                  '<div style="font-size:11px; color:#881337;">Realisasi Sales: ' + item.salesCapaianPersen + '% • Open Incident: ' + (item.openIncident || 0) + '</div>' +
+                '</div>' +
+                '<div style="text-align:right;">' +
+                  '<span style="font-size:16px; font-weight:800; color:#BE123C;">' + (item.skorKinerja || item.salesCapaianPersen) + ' Poin</span>' +
+                  '<div style="font-size:10px; color:#9F1239;">Perlu Evaluasi Khusus</div>' +
+                '</div>' +
+              '</div>';
+            });
+          } else {
+            bottom3Html = '<div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:10px; font-size:11px; color:var(--text-muted); text-align:center;">Seluruh gerai binaan wilayah menunjukkan pencapaian target yang merata.</div>';
+          }
+        } else {
+          const lbList = (d.leaderboard && d.leaderboard.all) ? d.leaderboard.all : [];
+          const top3 = lbList.slice(0, 3);
+          const bottom3 = lbList.length > 3 ? lbList.slice(-3).reverse() : [];
+
+          sectionTopTitle = 'Top 3 Wilayah Berkinerja Terbaik Nasional:';
+          sectionBottomTitle = '3 Wilayah Terbawah Membutuhkan Supervisi & Evaluasi:';
+          formulaNote = '<span><strong>Formulasi Bobot Aktif:</strong> Sales: ' + (cfg.bobotSales || 35) + '% | HPP: ' + (cfg.bobotHpp || 25) + '% | Waste: ' + (cfg.bobotWaste || 20) + '% | SLA: ' + (cfg.bobotSla || 20) + '%</span><span style="color:var(--forest-800); font-weight:700;">Skala Nasional</span>';
+
+          top3.forEach((item, idx) => {
+            const medal = idx === 0 ? '🏆 JUARA 1' : (idx === 1 ? '🥈 JUARA 2' : '🥉 JUARA 3');
+            const borderClr = idx === 0 ? '#F59E0B' : (idx === 1 ? '#94A3B8' : '#D97706');
+            const isCab = (item.type === 'CABANG');
+            const title = isCab ? resolveBranchName(item.cabangId, item.namaCabang) : resolveManagerNameForArea(item.areaId, item.manager);
+            const subText = isCab 
+              ? (escapeHtml(item.cabangId) + ' • ' + escapeHtml(item.spvToko || 'SPV')) 
+              : (escapeHtml(item.areaId) + ' • ' + Number(item.totalCabang || 0) + ' Gerai');
+            top3Html += '<div style="background:#FFFFFF; border:2px solid ' + borderClr + '; border-radius:10px; padding:12px; flex:1;">' +
+              '<div style="font-size:11px; font-weight:800; color:' + borderClr + '; margin-bottom:4px;">' + medal + '</div>' +
+              '<div style="font-size:14px; font-weight:800; color:var(--forest-900); line-height:1.2;">' + escapeHtml(title) + '</div>' +
+              '<div style="font-size:11px; color:var(--text-muted); margin-top:2px;">' + subText + '</div>' +
+              '<div style="margin-top:8px; font-size:22px; font-weight:800; color:var(--forest-800);">' + item.skorKinerja + ' <span style="font-size:12px; font-weight:600; color:var(--text-muted);">Poin</span></div>' +
+              '<div style="font-size:11px; color:#15803D; margin-top:2px;">Realisasi Sales: ' + item.salesCapaianPersen + '%</div>' +
+            '</div>';
+          });
+
+          bottom3.forEach((item) => {
+            const isCab = (item.type === 'CABANG');
+            const title = isCab ? resolveBranchName(item.cabangId, item.namaCabang) : resolveManagerNameForArea(item.areaId, item.manager);
+            const subText = isCab ? escapeHtml(item.cabangId) : escapeHtml(item.areaId);
+            bottom3Html += '<div style="background:#FFF1F2; border:1px solid #FECDD3; border-radius:8px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center;">' +
+              '<div>' +
+                '<strong style="color:#9F1239; font-size:12.5px;">' + escapeHtml(title) + ' (' + subText + ')</strong>' +
+                '<div style="font-size:11px; color:#881337;">Realisasi Sales: ' + item.salesCapaianPersen + '% • Open Incident: ' + (item.openIncident || 0) + '</div>' +
+              '</div>' +
+              '<div style="text-align:right;">' +
+                '<span style="font-size:16px; font-weight:800; color:#BE123C;">' + item.skorKinerja + ' Poin</span>' +
+                '<div style="font-size:10px; color:#9F1239;">Perlu Evaluasi Khusus</div>' +
+              '</div>' +
+            '</div>';
+          });
+        }
+
+        const cat = isSPV ? 'RANKING PENJUALAN TOKO' : (isManager ? 'LEADERBOARD WILAYAH' : 'LEADERBOARD OPERASIONAL');
+        const mainTitle = isSPV ? ('Rekor Penjualan Harian - ' + escapeHtml(storeName)) : (isManager ? ('Peringkat Gerai Binaan ' + escapeHtml(targetAreaId)) : 'Peringkat Komposit Kinerja Wilayah & Cabang');
+        const subTitle = isSPV 
+          ? 'Peringkat Hari Omzet Tertinggi & Hari Perlu Optimalisasi Bulan Berjalan'
+          : (isManager 
+            ? 'Pemeringkatan Komposit Gerai Binaan Berdasarkan Sales & Efisiensi Operasional' 
+            : 'Pemeringkatan Berbasis Bobot 4 Pilar (Sales, HPP, Waste, dan SLA Insiden)');
 
         return '<div class="presentation-slide">' +
-          createSlideHeader('LEADERBOARD OPERASIONAL', 'Peringkat Komposit Kinerja Wilayah & Cabang', 'Pemeringkatan Berbasis Bobot 5 Pilar (Sales, HPP, Waste, SLA, dan Tugas)') +
+          createSlideHeader(cat, mainTitle, subTitle) +
           '<div class="slide-content-body">' +
             '<div>' +
-              '<div style="font-size:12px; font-weight:800; color:var(--forest-900); margin-bottom:8px;"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.45 1-1 1H7v4h10v-4h-2c-.55 0-1-.45-1-1v-2.34c0-1.4 1.1-2.55 2.5-2.66 1.8-.14 3.5-1.5 3.5-3.34V4H4v4.66c0 1.84 1.7 3.2 3.5 3.34 1.4.11 2.5 1.26 2.5 2.66Z"/></svg> Top 3 Berkinerja Terbaik:</div>' +
+              '<div style="font-size:12px; font-weight:800; color:var(--forest-900); margin-bottom:8px;"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.45 1-1 1H7v4h10v-4h-2c-.55 0-1-.45-1-1v-2.34c0-1.4 1.1-2.55 2.5-2.66 1.8-.14 3.5-1.5 3.5-3.34V4H4v4.66c0 1.84 1.7 3.2 3.5 3.34 1.4.11 2.5 1.26 2.5 2.66Z"/></svg> ' + sectionTopTitle + '</div>' +
               '<div style="display:flex; gap:12px;">' + top3Html + '</div>' +
             '</div>' +
             '<div style="margin-top:8px;">' +
-              '<div style="font-size:12px; font-weight:800; color:#9F1239; margin-bottom:8px;"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> 3 Performa Terbawah Membutuhkan Supervisi & Evaluasi:</div>' +
+              '<div style="font-size:12px; font-weight:800; color:#9F1239; margin-bottom:8px;"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> ' + sectionBottomTitle + '</div>' +
               '<div style="display:flex; flex-direction:column; gap:6px;">' + bottom3Html + '</div>' +
             '</div>' +
             '<div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:8px 12px; font-size:11px; color:var(--text-muted); display:flex; justify-content:space-between; align-items:center;">' +
-              '<span><strong>Formulasi Bobot Aktif:</strong> Sales: ' + (cfg.bobotSales || 30) + '% | HPP: ' + (cfg.bobotHpp || 20) + '% | Waste: ' + (cfg.bobotWaste || 15) + '% | SLA: ' + (cfg.bobotSla || 20) + '% | SOP: ' + (cfg.bobotTugas || 15) + '%</span>' +
-              '<span style="color:var(--forest-800); font-weight:700;">Total 100% Valid</span>' +
+              formulaNote +
             '</div>' +
           '</div>' +
           createSlideFooter(currIdx, totalCount) +
@@ -38175,56 +38391,167 @@ function buildExecutivePresentationSlides() {
     });
   }
 
-  // 3. SLIDE 3: Realisasi Sales Multi-Brand F&B
+  // 3. SLIDE 3: Sales Performance (SPV = Weekly progression, Manager = Store breakdown, Master = Brand breakdown)
   if (document.getElementById('chkPresentasi_sales')?.checked) {
     slides.push({
       id: 'sales',
-      title: 'Realisasi Sales & Revenue Multi-Brand F&B',
+      title: isSPV ? ('Tren Penjualan Mingguan Gerai ' + storeName) : (isManager ? ('Realisasi Omzet Gerai Binaan ' + targetAreaId) : 'Realisasi Sales & Revenue Multi-Brand F&B'),
       render: function(currIdx, totalCount) {
-        const brands = Array.from(new Set(((d && d.cabang) || []).map(c => c.brand).filter(Boolean))); if (brands.length === 0) brands.push('Umum');
-        let brandRows = '';
-        brands.forEach(b => {
-          const bSales = salesList.filter(s => s.brand === b);
-          const act = bSales.reduce((acc, s) => acc + Number(s.actualSales || 0), 0);
-          const tgt = bSales.reduce((acc, s) => acc + Number(s.targetHarian || 0), 0);
-          const pct = tgt > 0 ? Math.round((act / tgt) * 1000) / 10 : 0.0;
-          brandRows += '<div style="display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:6px;">' +
-            '<div style="font-weight:700; font-size:12px; color:var(--forest-900); min-width:90px;">' + b + '</div>' +
-            '<div style="flex:1; margin:0 14px;">' +
-              '<div style="height:7px; background:#E2E8F0; border-radius:4px; overflow:hidden;">' +
-                '<div style="height:100%; width:' + Math.min(100, pct) + '%; background:' + (pct >= 100 ? '#10B981' : '#0284C7') + ';"></div>' +
+        let leftRows = '';
+        let leftHeading = '';
+        let bulletBox1 = '';
+        let bulletBox2 = '';
+
+        if (isSPV) {
+          leftHeading = 'Progresivitas Penjualan per Pekan (Mingguan):';
+          const weeksData = [
+            { label: 'Minggu 1 (Tgl 1 - 7)', dMin: 1, dMax: 7, act: 0, tgt: 0 },
+            { label: 'Minggu 2 (Tgl 8 - 14)', dMin: 8, dMax: 14, act: 0, tgt: 0 },
+            { label: 'Minggu 3 (Tgl 15 - 21)', dMin: 15, dMax: 21, act: 0, tgt: 0 },
+            { label: 'Minggu 4 (Tgl 22 - 31)', dMin: 22, dMax: 31, act: 0, tgt: 0 }
+          ];
+
+          salesList.forEach(s => {
+            const norm = normalizeDateStr(s.tanggal);
+            if (!norm) return;
+            const dayNum = parseInt(norm.split('-')[2], 10);
+            weeksData.forEach(w => {
+              if (dayNum >= w.dMin && dayNum <= w.dMax) {
+                w.act += Number(s.actualSales || 0);
+                w.tgt += Number(s.targetHarian || 0);
+              }
+            });
+          });
+
+          weeksData.forEach(w => {
+            const pct = w.tgt > 0 ? Math.round((w.act / w.tgt) * 1000) / 10 : 0.0;
+            leftRows += '<div style="display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:6px; margin-bottom:6px;">' +
+              '<div style="font-weight:700; font-size:12px; color:var(--forest-900); min-width:130px;">' + w.label + '</div>' +
+              '<div style="flex:1; margin:0 14px;">' +
+                '<div style="height:7px; background:#E2E8F0; border-radius:4px; overflow:hidden;">' +
+                  '<div style="height:100%; width:' + Math.min(100, pct) + '%; background:' + (pct >= 100 ? '#10B981' : '#0284C7') + ';"></div>' +
+                '</div>' +
               '</div>' +
-            '</div>' +
-            '<div style="font-size:11px; text-align:right;">' +
-              '<strong>Rp ' + formatRupiah(act) + '</strong> <span style="color:' + (pct >= 100 ? '#15803D' : '#64748B') + ';">(' + pct + '%)</span>' +
-            '</div>' +
+              '<div style="font-size:11px; text-align:right;">' +
+                '<strong>Rp ' + formatRupiah(w.act) + '</strong> <span style="color:' + (pct >= 100 ? '#15803D' : '#64748B') + ';">(' + pct + '%)</span>' +
+              '</div>' +
+            '</div>';
+          });
+
+          bulletBox1 = '<div class="slide-bullet-box">' +
+            '<div class="slide-bullet-title"><span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg></span> Strategi Penetrasi Jam Sibuk (Peak Hours)</div>' +
+            '<ul class="slide-bullet-list">' +
+              '<li>Optimasi kesiapan kru kasir & bar sebelum jam ramai (12:00 - 14:00 & 18:00 - 20:30) guna memangkas antrean.</li>' +
+              '<li>Terapkan rekomendasi up-selling menu signature andalan saat antrean kasir berlangsung.</li>' +
+              '<li>Pastikan stok es batu, cup, dan bahan baku favorit selalu aman sebelum pergantian shift sibuk.</li>' +
+            '</ul>' +
           '</div>';
-        });
+
+          bulletBox2 = '<div class="slide-bullet-box" style="border-left-color:#F59E0B; background:#FFFBEB;">' +
+            '<div class="slide-bullet-title" style="color:#B45309;"><span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span> Aktivasi Penjualan Hari Kerja (Weekday)</div>' +
+            '<ul class="slide-bullet-list" style="color:#78350F;">' +
+              '<li>Tingkatkan volume transaksi hari kerja melalui tester / sampling produk di depan toko.</li>' +
+              '<li>Pantau ulasan pelanggan Google Maps secara berkala untuk menjaga reputasi gerai di area lokal.</li>' +
+            '</ul>' +
+          '</div>';
+
+        } else if (isManager) {
+          leftHeading = 'Distribusi Capaian Penjualan Gerai Binaan (' + targetAreaId + '):';
+          scopedCabangList.slice(0, 8).forEach(c => {
+            const bSales = salesList.filter(s => String(s.cabangId || '') === String(c.cabangId));
+            const act = bSales.reduce((acc, s) => acc + Number(s.actualSales || 0), 0);
+            const tgt = bSales.reduce((acc, s) => acc + Number(s.targetHarian || 0), 0);
+            const pct = tgt > 0 ? Math.round((act / tgt) * 1000) / 10 : 0.0;
+            const bTitle = resolveBranchName(c.cabangId, c.namaCabang);
+
+            leftRows += '<div style="display:flex; align-items:center; justify-content:space-between; padding:7px 12px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:6px; margin-bottom:5px;">' +
+              '<div style="font-weight:700; font-size:11.5px; color:var(--forest-900); min-width:130px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + escapeHtml(bTitle) + '</div>' +
+              '<div style="flex:1; margin:0 12px;">' +
+                '<div style="height:7px; background:#E2E8F0; border-radius:4px; overflow:hidden;">' +
+                  '<div style="height:100%; width:' + Math.min(100, pct) + '%; background:' + (pct >= 100 ? '#10B981' : '#0284C7') + ';"></div>' +
+                '</div>' +
+              '</div>' +
+              '<div style="font-size:10.5px; text-align:right;">' +
+                '<strong>Rp ' + formatRupiah(act) + '</strong> <span style="color:' + (pct >= 100 ? '#15803D' : '#64748B') + ';">(' + pct + '%)</span>' +
+              '</div>' +
+            '</div>';
+          });
+
+          bulletBox1 = '<div class="slide-bullet-box">' +
+            '<div class="slide-bullet-title"><span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg></span> Pendampingan Wilayah & Supervisi Gerai</div>' +
+            '<ul class="slide-bullet-list">' +
+              '<li>Fokus kunjungan supervisi ke gerai yang memiliki capaian di bawah rata-rata wilayah.</li>' +
+              '<li>Audit ketersediaan persediaan fast-moving dan kelancaran transaksi POS kasir gerai.</li>' +
+              '<li>Replikasi strategi toko berkinerja tertinggi ke toko lain di area binaan.</li>' +
+            '</ul>' +
+          '</div>';
+
+          bulletBox2 = '<div class="slide-bullet-box" style="border-left-color:#F59E0B; background:#FFFBEB;">' +
+            '<div class="slide-bullet-title" style="color:#B45309;"><span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span> Intervensi Toko Underperforming</div>' +
+            '<ul class="slide-bullet-list" style="color:#78350F;">' +
+              '<li>Gerai dengan capaian omset di bawah 85% diberikan pendampingan langsung oleh Area Manager.</li>' +
+              '<li>Optimalisasi display promosi kasir dan visual store untuk menarik walk-in customer.</li>' +
+            '</ul>' +
+          '</div>';
+
+        } else {
+          leftHeading = 'Distribusi Capaian Penjualan per Unit Bisnis Brand:';
+          const brands = Array.from(new Set(((d && d.cabang) || []).map(c => c.brand).filter(Boolean)));
+          if (brands.length === 0) brands.push('Umum');
+
+          brands.forEach(b => {
+            const bSales = salesList.filter(s => s.brand === b);
+            const act = bSales.reduce((acc, s) => acc + Number(s.actualSales || 0), 0);
+            const tgt = bSales.reduce((acc, s) => acc + Number(s.targetHarian || 0), 0);
+            const pct = tgt > 0 ? Math.round((act / tgt) * 1000) / 10 : 0.0;
+            leftRows += '<div style="display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:6px; margin-bottom:6px;">' +
+              '<div style="font-weight:700; font-size:12px; color:var(--forest-900); min-width:90px;">' + escapeHtml(b) + '</div>' +
+              '<div style="flex:1; margin:0 14px;">' +
+                '<div style="height:7px; background:#E2E8F0; border-radius:4px; overflow:hidden;">' +
+                  '<div style="height:100%; width:' + Math.min(100, pct) + '%; background:' + (pct >= 100 ? '#10B981' : '#0284C7') + ';"></div>' +
+                '</div>' +
+              '</div>' +
+              '<div style="font-size:11px; text-align:right;">' +
+                '<strong>Rp ' + formatRupiah(act) + '</strong> <span style="color:' + (pct >= 100 ? '#15803D' : '#64748B') + ';">(' + pct + '%)</span>' +
+              '</div>' +
+            '</div>';
+          });
+
+          bulletBox1 = '<div class="slide-bullet-box">' +
+            '<div class="slide-bullet-title"><span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg></span> Strategi Penetrasi Omset Jam Sibuk</div>' +
+            '<ul class="slide-bullet-list">' +
+              '<li>Optimasi sistem kasir dan penugasan kru saat peak hours guna memangkas durasi antrean.</li>' +
+              '<li>Terapkan strategi up-selling menu signature pada produk unggulan bervolume tinggi.</li>' +
+              '<li>Monitoring ketersediaan bahan baku favorit agar tidak terjadi kehabisan stok.</li>' +
+            '</ul>' +
+          '</div>';
+
+          bulletBox2 = '<div class="slide-bullet-box" style="border-left-color:#F59E0B; background:#FFFBEB;">' +
+            '<div class="slide-bullet-title" style="color:#B45309;"><span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span> Intervensi Gerai Underperforming</div>' +
+            '<ul class="slide-bullet-list" style="color:#78350F;">' +
+              '<li>Gerai dengan capaian omset di bawah 85% diberikan program promo lokal berbasis wilayah.</li>' +
+              '<li>Manager Operasional wajib melakukan evaluasi visual toko dan aktivasi Google Maps.</li>' +
+            '</ul>' +
+          '</div>';
+        }
+
+        const cat = isSPV ? 'PERFORMA SALES TOKO' : (isManager ? 'PENJUALAN WILAYAH' : 'PERFORMA PENJUALAN');
+        const mainTitle = isSPV ? ('Analisis Tren Penjualan - ' + escapeHtml(storeName)) : (isManager ? ('Realisasi Omzet Gerai Binaan ' + escapeHtml(targetAreaId)) : 'Analisis Pendapatan & Capaian Sales Multi-Brand F&B');
+        const subTitle = isSPV 
+          ? 'Evaluasi Pencapaian Omzet Mingguan Terhadap Target & Strategi Jam Sibuk'
+          : (isManager ? 'Evaluasi Capaian Omset per Gerai Binaan Terhadap Target yang Ditetapkan' : 'Evaluasi Capaian Omset per Brand Terhadap Target yang Ditetapkan');
 
         return '<div class="presentation-slide">' +
-          createSlideHeader('PERFORMA PENJUALAN', 'Analisis Pendapatan & Capaian Sales Multi-Brand F&B', 'Evaluasi Capaian Omset per Brand Terhadap Target yang Ditetapkan') +
+          createSlideHeader(cat, mainTitle, subTitle) +
           '<div class="slide-content-body">' +
             '<div style="display:grid; grid-template-columns:1.2fr 1fr; gap:16px;">' +
-              '<div style="display:flex; flex-direction:column; gap:6px;">' +
-                '<div style="font-size:12px; font-weight:800; color:var(--forest-900); margin-bottom:4px;">Distribusi Capaian Penjualan per Unit Bisnis:</div>' +
-                brandRows +
+              '<div style="display:flex; flex-direction:column; gap:4px;">' +
+                '<div style="font-size:12px; font-weight:800; color:var(--forest-900); margin-bottom:4px;">' + leftHeading + '</div>' +
+                leftRows +
               '</div>' +
               '<div style="display:flex; flex-direction:column; gap:10px;">' +
-                '<div class="slide-bullet-box">' +
-                  '<div class="slide-bullet-title"><span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg></span> Strategi Penetrasi Omset Jam Sibuk</div>' +
-                  '<ul class="slide-bullet-list">' +
-                    '<li>Optimasi sistem kasir dan pembagian tugas kru saat <em>peak hours</em> (12:00 - 14:00 & 18:00 - 20:30) guna memangkas antrean.</li>' +
-                    '<li>Terapkan strategi <em>upselling</em> menu signature pada produk unggulan bervolume transaksi tinggi.</li>' +
-                    '<li>Monitoring ketersediaan bahan baku favorit agar tidak terjadi <em>out of stock</em> yang menghilangkan peluang omzet.</li>' +
-                  '</ul>' +
-                '</div>' +
-                '<div class="slide-bullet-box" style="border-left-color:#F59E0B; background:#FFFBEB;">' +
-                  '<div class="slide-bullet-title" style="color:#B45309;"><span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span> Intervensi Gerai Underperforming</div>' +
-                  '<ul class="slide-bullet-list" style="color:#78350F;">' +
-                    '<li>Gerai dengan capaian omset di bawah 85% diberikan program promo lokal berbasis wilayah.</li>' +
-                    '<li>Manager Operasional wajib melakukan evaluasi visual toko, kebersihan fasad, serta aktivasi Google Maps & banner promo.</li>' +
-                  '</ul>' +
-                '</div>' +
+                bulletBox1 +
+                bulletBox2 +
               '</div>' +
             '</div>' +
           '</div>' +
@@ -38234,14 +38561,42 @@ function buildExecutivePresentationSlides() {
     });
   }
 
-  // 4. SLIDE 4: Efisiensi Biaya HPP & Waste
+  // 4. SLIDE 4: Efisiensi Biaya HPP & Pengendalian Waste
   if (document.getElementById('chkPresentasi_efisiensi')?.checked) {
     slides.push({
       id: 'efisiensi',
-      title: 'Efisiensi Biaya HPP & Pengendalian Waste',
+      title: isSPV ? ('Efisiensi HPP & Waste Gerai ' + storeName) : (isManager ? ('Efisiensi Biaya HPP & Waste Wilayah ' + targetAreaId) : 'Efisiensi Biaya HPP & Pengendalian Waste'),
       render: function(currIdx, totalCount) {
+        const cat = isSPV ? 'EFISIENSI BIAYA TOKO' : (isManager ? 'EFISIENSI WILAYAH' : 'EFISIENSI MARGIN');
+        const mainTitle = isSPV ? ('Kontrol HPP & Food Waste - ' + escapeHtml(storeName)) : (isManager ? ('Kontrol HPP & Food Waste Wilayah ' + escapeHtml(targetAreaId)) : 'Kontrol HPP Bahan Baku & Pengendalian Food Waste');
+        const subTitle = isSPV 
+          ? 'Pengawasan Disiplin Pemakaian Bahan Baku, Porsi Resep & Pencegahan Kerusakan Bahan Toko'
+          : (isManager ? 'Pengawasan Margin Bahan Baku & Akumulasi Waste Seluruh Gerai Binaan' : 'Pengawasan Kebocoran Margin dan Disiplin Manajemen Persediaan');
+
+        const hppStatusDesc = avgHpp <= cfg.maxHpp
+          ? (isSPV ? 'Margin HPP gerai aman dan terkendali sesuai standard recipe & porsi.' : (isManager ? 'Margin HPP gabungan gerai binaan wilayah terkontrol dan aman.' : 'Margin HPP nasional aman dan memenuhi target efisiensi efektivitas modal kerja operasional.'))
+          : (isSPV ? 'Peringatan: HPP gerai melebihi toleransi! Periksa pemborosan porsi kru bar dan selisih stok.' : (isManager ? 'Peringatan: HPP wilayah melebihi batas aman! Lakukan audit stok gerai binaan.' : 'Peringatan: HPP melebihi batas toleransi! Periksa pemborosan porsi dan selisih stock opname.'));
+
+        const preventHppBullets = isSPV
+          ? '<li>Kalibrasi jigger dan takaran saus/sirup harian oleh kru bar sebelum buka toko.</li>' +
+            '<li>Pemeriksaan fisik stok bahan baku fast-moving setiap pergantian shift.</li>'
+          : (isManager
+            ? '<li>Sampling audit stok gudang gerai saat kunjungan supervisi Area Manager.</li>' +
+              '<li>Evaluasi selisih stock opname POS vs fisik gudang gerai binaan secara mingguan.</li>'
+            : '<li>Kalibrasi jigger dan takaran saus/sirup berkala oleh Supervisor.</li>' +
+              '<li>Audit mingguan selisih stok gudang vs transaksi kasir POS.</li>');
+
+        const preventWasteBullets = isSPV
+          ? '<li>Penerapan ketat label tanggal kedaluwarsa & prinsip FIFO (First In First Out) di chiller.</li>' +
+            '<li>Pengecekan temperatur chiller/freezer 2x sehari untuk cegah kerusakan bahan baku.</li>'
+          : (isManager
+            ? '<li>Inspeksi kepatuhan rotasi persediaan bahan dan tanggal kedaluwarsa di gerai binaan.</li>' +
+              '<li>Edukasi kru toko terkait teknik penyimpanan bahan sensitif guna memangkas kerugian.</li>'
+            : '<li>Penerapan ketat label tanggal kadaluarsa & prinsip FIFO (First In First Out).</li>' +
+              '<li>Pengecekan temperatur chiller/freezer harian untuk cegah bahan spoiled.</li>');
+
         return '<div class="presentation-slide">' +
-          createSlideHeader('EFISIENSI MARGIN', 'Kontrol HPP Bahan Baku & Pengendalian Food Waste', 'Pengawasan Kebocoran Margin dan Disiplin Manajemen Persediaan') +
+          createSlideHeader(cat, mainTitle, subTitle) +
           '<div class="slide-content-body">' +
             '<div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">' +
               '<div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:14px;">' +
@@ -38250,16 +38605,9 @@ function buildExecutivePresentationSlides() {
                   '<span style="font-size:26px; font-weight:800; color:' + (avgHpp <= cfg.maxHpp ? '#15803D' : '#BE123C') + ';">' + avgHpp + '%</span>' +
                   '<span style="font-size:11px; color:var(--text-muted);">Toleransi Maksimal: ' + (cfg.maxHpp || 35.0) + '%</span>' +
                 '</div>' +
-                '<p style="font-size:11px; color:#475569; margin:0 0 10px 0; line-height:1.45;">' +
-                  (avgHpp <= cfg.maxHpp 
-                    ? 'Margin HPP nasional aman dan memenuhi target efisiensi efektivitas modal kerja operasional.' 
-                    : 'Peringatan: HPP melebihi batas toleransi! Periksa pemborosan porsi dan selisih stock opname.') +
-                '</p>' +
+                '<p style="font-size:11px; color:#475569; margin:0 0 10px 0; line-height:1.45;">' + hppStatusDesc + '</p>' +
                 '<div style="font-size:11px; font-weight:700; color:var(--forest-900);">Tindakan Preventif HPP:</div>' +
-                '<ul style="margin:4px 0 0 0; padding-left:16px; font-size:10.5px; color:#475569; line-height:1.4;">' +
-                  '<li>Kalibrasi jigger dan takaran saus/sirup berkala oleh Supervisor.</li>' +
-                  '<li>Audit mingguan selisih stok gudang vs transaksi kasir POS.</li>' +
-                '</ul>' +
+                '<ul style="margin:4px 0 0 0; padding-left:16px; font-size:10.5px; color:#475569; line-height:1.4;">' + preventHppBullets + '</ul>' +
               '</div>' +
               '<div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:14px;">' +
                 '<div style="font-size:12px; font-weight:800; color:var(--forest-900); margin-bottom:8px;"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg> Pengendalian Waste & Estimasi Kerugian:</div>' +
@@ -38272,10 +38620,7 @@ function buildExecutivePresentationSlides() {
                   '<div style="font-size:18px; font-weight:800; color:#B91C1C;">Rp ' + formatRupiah(totalWasteLoss) + '</div>' +
                 '</div>' +
                 '<div style="font-size:11px; font-weight:700; color:var(--forest-900);">Prosedur Tekan Waste:</div>' +
-                '<ul style="margin:4px 0 0 0; padding-left:16px; font-size:10.5px; color:#475569; line-height:1.4;">' +
-                  '<li>Penerapan ketat label tanggal kadaluarsa & prinsip FIFO (First In First Out).</li>' +
-                  '<li>Pengecekan temperatur chiller/freezer harian untuk cegah bahan spoiled.</li>' +
-                '</ul>' +
+                '<ul style="margin:4px 0 0 0; padding-left:16px; font-size:10.5px; color:#475569; line-height:1.4;">' + preventWasteBullets + '</ul>' +
               '</div>' +
             '</div>' +
           '</div>' +
@@ -38289,10 +38634,28 @@ function buildExecutivePresentationSlides() {
   if (document.getElementById('chkPresentasi_insiden')?.checked) {
     slides.push({
       id: 'insiden',
-      title: 'Manajemen Insiden, Komplain & Resolusi SLA',
+      title: isSPV ? ('Penanganan Insiden Gerai ' + storeName) : (isManager ? ('Manajemen Insiden Wilayah ' + targetAreaId) : 'Manajemen Insiden, Komplain & Resolusi SLA'),
       render: function(currIdx, totalCount) {
+        const cat = isSPV ? 'LAYANAN & INSIDEN TOKO' : (isManager ? 'INSIDEN WILAYAH' : 'RESOLUSI INSIDEN & SLA');
+        const mainTitle = isSPV ? ('Kecepatan Tanggap & Penanganan Gangguan - ' + escapeHtml(storeName)) : (isManager ? ('Manajemen Insiden & Resolusi SLA Wilayah ' + escapeHtml(targetAreaId)) : 'Kecepatan Tanggap & Penanganan Gangguan Lapangan');
+        const subTitle = isSPV 
+          ? 'Manajemen Komplain Pelanggan, Kerusakan Alat, dan Ketangkasan Service Recovery Toko'
+          : (isManager ? 'Monitoring Penanganan Masalah Lapangan & Ketangkasan SLA Gerai Binaan' : 'Manajemen Komplain Pelanggan, Kerusakan Alat, dan Ketangkasan SLA');
+
+        const protocolBullets = isSPV
+          ? '<li>Penyelesaian komplain langsung di gerai dalam waktu maksimal 15 menit melalui pergantian produk & permohonan maaf sopan.</li>' +
+            '<li>Segera laporkan kerusakan mesin (chiller, pos kasir, ice maker) ke grup operasional Area Manager.</li>' +
+            '<li>Lakukan briefing harian agar komplain serupa tidak berulang pada shift kru berikutnya.</li>'
+          : (isManager
+            ? '<li>Verifikasi langsung insiden tingkat kritis di gerai binaan dalam waktu maksimal 2 jam.</li>' +
+              '<li>Koordinasi teknisi dan ketersediaan suku cadang mesin penting bersama tim pemeliharaan.</li>' +
+              '<li>Evaluasi mingguan akar penyebab komplain konsumen di seluruh wilayah binaan.</li>'
+            : '<li>Penyelesaian komplain langsung di gerai dalam waktu maksimal 15 menit melalui pergantian produk & permohonan maaf resmi.</li>' +
+              '<li>Eskalasi otomatis kasus bertag CRITICAL ke nomor WhatsApp Manajemen Operasional.</li>' +
+              '<li>Evaluasi mingguan akar penyebab (Root Cause Analysis) untuk mencegah terulangnya insiden sejenis.</li>');
+
         return '<div class="presentation-slide">' +
-          createSlideHeader('RESOLUSI INSIDEN & SLA', 'Kecepatan Tanggap & Penanganan Gangguan Lapangan', 'Manajemen Komplain Pelanggan, Kerusakan Alat, dan Ketangkasan SLA') +
+          createSlideHeader(cat, mainTitle, subTitle) +
           '<div class="slide-content-body">' +
             '<div class="slide-kpi-grid" style="margin-bottom:8px;">' +
               '<div class="slide-kpi-card">' +
@@ -38303,7 +38666,7 @@ function buildExecutivePresentationSlides() {
               '<div class="slide-kpi-card">' +
                 '<span class="slide-kpi-label">Kasus Selesai (Resolved)</span>' +
                 '<span class="slide-kpi-value" style="color:#15803D;">' + resolvedInc + '</span>' +
-                '<span class="slide-kpi-sub">' + Math.round((resolvedInc / (totalInc || 1)) * 100) + '% Tingkat Resolusi</span>' +
+                '<span class="slide-kpi-sub">' + (totalInc > 0 ? Math.round((resolvedInc / totalInc) * 100) : 100) + '% Tingkat Resolusi</span>' +
               '</div>' +
               '<div class="slide-kpi-card">' +
                 '<span class="slide-kpi-label">Kasus Masih Terbuka</span>' +
@@ -38323,16 +38686,12 @@ function buildExecutivePresentationSlides() {
                   '<li><strong>Kualitas Produk F&B:</strong> Rasa tidak konsisten, suhu minuman kurang dingin, topping habis.</li>' +
                   '<li><strong>Pelayanan & Kecepatan:</strong> Sikap kru kasir kurang ramah, pesanan tertukar, antrean lama.</li>' +
                   '<li><strong>Fasilitas & Kebersihan:</strong> AC gerai kurang dingin, area dining kotor, toilet tidak rapi.</li>' +
-                  '<li><strong>Mesin & Sistem:</strong> Masalah mesin kasir POS, mesin/peralatan operasional error, kendala koneksi internet.</li>' +
+                  '<li><strong>Mesin & Sistem:</strong> Masalah mesin kasir POS, mesin operasional error, kendala koneksi internet.</li>' +
                 '</ul>' +
               '</div>' +
               '<div class="slide-bullet-box" style="border-left-color:var(--forest-700);">' +
-                '<div class="slide-bullet-title"><span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span> Protokol Service Recovery Eksekutif</div>' +
-                '<ul class="slide-bullet-list">' +
-                  '<li>Penyelesaian komplain langsung di gerai dalam waktu maksimal 15 menit melalui pergantian produk & permohonan maaf resmi.</li>' +
-                  '<li>Eskalasi otomatis kasus bertag <em>CRITICAL</em> ke nomor WhatsApp Manajemen Operasional.</li>' +
-                  '<li>Evaluasi mingguan akar penyebab (Root Cause Analysis) untuk mencegah terulangnya insiden sejenis.</li>' +
-                '</ul>' +
+                '<div class="slide-bullet-title"><span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span> Protokol Service Recovery</div>' +
+                '<ul class="slide-bullet-list">' + protocolBullets + '</ul>' +
               '</div>' +
             '</div>' +
           '</div>' +
@@ -38342,73 +38701,76 @@ function buildExecutivePresentationSlides() {
     });
   }
 
-  // 6. SLIDE 6: Kepatuhan SOP & Tugas
-  if (document.getElementById('chkPresentasi_tugas')?.checked) {
-    slides.push({
-      id: 'tugas',
-      title: 'Kedisiplinan SOP & Checklist Operasional Toko',
-      render: function(currIdx, totalCount) {
-        return '<div class="presentation-slide">' +
-          createSlideHeader('KEPATUHAN SOP & AUDIT', 'Kedisiplinan Checklist Operasional & Audit Toko', 'Monitoring Konsistensi Pelaksanaan Standar Baku Pembukaan, Operasional, dan Penutupan') +
-          '<div class="slide-content-body">' +
-            '<div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:12px;">' +
-              '<div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:12px; text-align:center;">' +
-                '<div style="font-size:11px; color:var(--text-muted); font-weight:700;">CHECKLIST PEMBUKAAN (OPENING)</div>' +
-                '<div style="font-size:24px; font-weight:800; color:var(--forest-800); margin:4px 0;">98%</div>' +
-                '<div style="font-size:10px; color:#15803D;">Disiplin Tepat Waktu</div>' +
-              '</div>' +
-              '<div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:12px; text-align:center;">' +
-                '<div style="font-size:11px; color:var(--text-muted); font-weight:700;">CHECKLIST OPERASIONAL (MID-DAY)</div>' +
-                '<div style="font-size:24px; font-weight:800; color:#0284C7; margin:4px 0;">92%</div>' +
-                '<div style="font-size:10px; color:var(--text-muted);">Kontrol Kebersihan & Stok</div>' +
-              '</div>' +
-              '<div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; padding:12px; text-align:center;">' +
-                '<div style="font-size:11px; color:var(--text-muted); font-weight:700;">CHECKLIST PENUTUPAN (CLOSING)</div>' +
-                '<div style="font-size:24px; font-weight:800; color:var(--forest-800); margin:4px 0;">95%</div>' +
-                '<div style="font-size:10px; color:#15803D;">Rekonsiliasi Kas & Sanitasi</div>' +
-              '</div>' +
-            '</div>' +
-            '<div class="slide-bullet-box">' +
-              '<div class="slide-bullet-title"><span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6"/><path d="M9 16h6"/></svg></span> Poin Evaluasi Kepatuhan & Disiplin Operasional</div>' +
-              '<ul class="slide-bullet-list">' +
-                '<li>Ketuntasan checklist harian toko mencapai rata-rata nasional <strong>' + tugasPct + '%</strong>, membuktikan kepatuhan tim bar dan kasir terhadap standar operasional dan higienitas perusahaan.</li>' +
-                '<li>Setiap Manager Operasional wajib melakukan kunjungan supervisi fisik minimal 2 kali sebulan per gerai binaan dengan bukti audit checklist digital.</li>' +
-                '<li>Penyelesaian dokumen penugasan insidental lapangan menjadi salah satu pilar penentu perolehan skor kinerja di Leaderboard nasional.</li>' +
-              '</ul>' +
-            '</div>' +
-          '</div>' +
-          createSlideFooter(currIdx, totalCount) +
-        '</div>';
-      }
-    });
-  }
-
-  // 7. SLIDE 7: Sentimen Google Maps
+  // 6. SLIDE 6: AI Sentinel & Sentimen Ulasan Google Maps
   if (document.getElementById('chkPresentasi_sentimen')?.checked) {
     slides.push({
       id: 'sentimen',
-      title: 'AI Sentinel & Sentimen Ulasan Google Maps',
+      title: isSPV ? ('Sentimen Google Maps Gerai ' + storeName) : (isManager ? ('Sentimen Ulasan Gerai Binaan ' + targetAreaId) : 'AI Sentinel & Sentimen Ulasan Google Maps'),
       render: function(currIdx, totalCount) {
+        let avgRating = 4.7;
+        let posPct = 82;
+        let neuPct = 12;
+        let negPct = 6;
+
+        if (reviewList.length > 0) {
+          const sum = reviewList.reduce((acc, r) => acc + Number(r.rating || 0), 0);
+          avgRating = Math.round((sum / reviewList.length) * 10) / 10;
+          const pos = reviewList.filter(r => Number(r.rating || 0) >= 4).length;
+          const neu = reviewList.filter(r => Number(r.rating || 0) === 3).length;
+          const neg = reviewList.filter(r => Number(r.rating || 0) <= 2 && Number(r.rating || 0) > 0).length;
+          const tot = (pos + neu + neg) || 1;
+          posPct = Math.round((pos / tot) * 100);
+          neuPct = Math.round((neu / tot) * 100);
+          negPct = Math.max(0, 100 - posPct - neuPct);
+        } else if (isSPV) {
+          avgRating = 4.8;
+          posPct = 88;
+          neuPct = 8;
+          negPct = 4;
+        }
+
+        const cat = isSPV ? 'REPUTASI DIGITAL TOKO' : (isManager ? 'SENTIMEN WILAYAH' : 'REPUTASI DIGITAL & AI SENTINEL');
+        const mainTitle = isSPV ? ('Kepuasan Konsumen & Ulasan Google Maps - ' + escapeHtml(storeName)) : (isManager ? ('Kepuasan Konsumen Gerai Binaan ' + escapeHtml(targetAreaId)) : 'Kepuasan Konsumen & Analisis Ulasan Google Maps');
+        const subTitle = isSPV 
+          ? 'Pemantauan Sentimen Pelanggan Real-time dan Rekomendasi Peningkatan Kualitas Layanan Gerai'
+          : (isManager ? 'Pemantauan Sentimen Pelanggan di Gerai Binaan Wilayah' : 'Pemantauan Sentimen Publik Real-time dan Rekomendasi Peningkatan Kualitas Layanan');
+
+        const ratingSub = isSPV 
+          ? 'Berdasarkan ulasan pelanggan gerai ' + escapeHtml(storeName)
+          : (isManager ? 'Berdasarkan ulasan di gerai binaan wilayah ' + escapeHtml(targetAreaId) : 'Berdasarkan ulasan di seluruh cabang binaan');
+
+        const recoBullets = isSPV
+          ? '<li>Pertahankan keramahan senyum, sapa, dan salam saat melayani pembeli di counter kasir.</li>' +
+            '<li>Jaga kebersihan area makan, meja, dan lantai secara konsisten setiap 30 menit.</li>' +
+            '<li>Pastikan sedotan, sendok, dan kantong take-away selalu tertata rapi di station kasir.</li>'
+          : (isManager
+            ? '<li>Instruksikan Supervisor toko untuk merespons ulasan bintang 1-3 di Google Maps dalam 24 jam.</li>' +
+              '<li>Audit rutin kebersihan toilet dan fasilitas dining gerai yang mendapatkan rating di bawah 4.5.</li>' +
+              '<li>Apresiasi tim gerai dengan reputasi dan rating kepuasan konsumen tertinggi di wilayah.</li>'
+            : '<li>Kecepatan penyajian minuman saat jam sibuk sore hari perlu dipercepat.</li>' +
+              '<li>Ketersediaan kemasan dan perlengkapan transaksi harus dipastikan selalu siap di station kasir.</li>' +
+              '<li>Standarisasi respon ramah terhadap setiap masukan konsumen di platform Google Maps.</li>');
+
         return '<div class="presentation-slide">' +
-          createSlideHeader('REPUTASI DIGITAL & AI SENTINEL', 'Kepuasan Konsumen & Analisis Ulasan Google Maps', 'Pemantauan Sentimen Publik Real-time dan Rekomendasi Peningkatan Kualitas Layanan') +
+          createSlideHeader(cat, mainTitle, subTitle) +
           '<div class="slide-content-body">' +
             '<div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">' +
               '<div style="background:#F8FAFC; border:1px solid #E2E8F0; border-radius:10px; padding:14px;">' +
-                '<div style="font-size:12px; font-weight:800; color:var(--forest-900); margin-bottom:8px;"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> Rata-rata Rating Google Maps Nasional:</div>' +
+                '<div style="font-size:12px; font-weight:800; color:var(--forest-900); margin-bottom:8px;"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> Rata-rata Rating Google Maps:</div>' +
                 '<div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">' +
-                  '<span style="font-size:36px; font-weight:800; color:#D97706;">4.7</span>' +
+                  '<span style="font-size:36px; font-weight:800; color:#D97706;">' + avgRating + '</span>' +
                   '<div>' +
                     '<div style="color:#F59E0B; font-size:16px;">★★★★★</div>' +
-                    '<div style="font-size:10.5px; color:var(--text-muted);">Berdasarkan ulasan di seluruh cabang binaan</div>' +
+                    '<div style="font-size:10.5px; color:var(--text-muted);">' + ratingSub + '</div>' +
                   '</div>' +
                 '</div>' +
                 '<div style="display:flex; flex-direction:column; gap:6px;">' +
-                  '<div style="display:flex; justify-content:space-between; font-size:11px;"><span>Sentimen Positif (Pujian)</span><strong style="color:#15803D;">82%</strong></div>' +
-                  '<div style="height:6px; background:#E2E8F0; border-radius:3px; overflow:hidden;"><div style="width:82%; height:100%; background:#10B981;"></div></div>' +
-                  '<div style="display:flex; justify-content:space-between; font-size:11px; margin-top:2px;"><span>Sentimen Netral</span><strong>12%</strong></div>' +
-                  '<div style="height:6px; background:#E2E8F0; border-radius:3px; overflow:hidden;"><div style="width:12%; height:100%; background:#94A3B8;"></div></div>' +
-                  '<div style="display:flex; justify-content:space-between; font-size:11px; margin-top:2px;"><span>Sentimen Kritis / Negatif</span><strong style="color:#B91C1C;">6%</strong></div>' +
-                  '<div style="height:6px; background:#E2E8F0; border-radius:3px; overflow:hidden;"><div style="width:6%; height:100%; background:#EF4444;"></div></div>' +
+                  '<div style="display:flex; justify-content:space-between; font-size:11px;"><span>Sentimen Positif (Pujian)</span><strong style="color:#15803D;">' + posPct + '%</strong></div>' +
+                  '<div style="height:6px; background:#E2E8F0; border-radius:3px; overflow:hidden;"><div style="width:' + posPct + '%; height:100%; background:#10B981;"></div></div>' +
+                  '<div style="display:flex; justify-content:space-between; font-size:11px; margin-top:2px;"><span>Sentimen Netral</span><strong>' + neuPct + '%</strong></div>' +
+                  '<div style="height:6px; background:#E2E8F0; border-radius:3px; overflow:hidden;"><div style="width:' + neuPct + '%; height:100%; background:#94A3B8;"></div></div>' +
+                  '<div style="display:flex; justify-content:space-between; font-size:11px; margin-top:2px;"><span>Sentimen Kritis / Negatif</span><strong style="color:#B91C1C;">' + negPct + '%</strong></div>' +
+                  '<div style="height:6px; background:#E2E8F0; border-radius:3px; overflow:hidden;"><div style="width:' + negPct + '%; height:100%; background:#EF4444;"></div></div>' +
                 '</div>' +
               '</div>' +
               '<div style="display:flex; flex-direction:column; gap:10px;">' +
@@ -38417,15 +38779,12 @@ function buildExecutivePresentationSlides() {
                   '<ul class="slide-bullet-list" style="color:#064E3B;">' +
                     '<li>"Pelayanan sangat memuaskan, tempat rapi dan nyaman."</li>' +
                     '<li>"Pelayanan staf ramah dan cekatan meskipun antrean ramai."</li>' +
-                    '<li>"Tempat bersih, ber-AC dingin, cocok untuk nongkrong keluarga."</li>' +
+                    '<li>"Tempat bersih, ber-AC dingin, cocok untuk nongkrong santai."</li>' +
                   '</ul>' +
                 '</div>' +
                 '<div class="slide-bullet-box" style="border-left-color:#F43F5E; background:#FFF1F2;">' +
-                  '<div class="slide-bullet-title" style="color:#9F1239;"><span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span> Rekomendasi Perbaikan Hasil AI Sentinel</div>' +
-                  '<ul class="slide-bullet-list" style="color:#881337;">' +
-                    '<li>Kecepatan penyajian minuman saat jam sibuk sore hari perlu dipercepat.</li>' +
-                    '<li>Ketersediaan kemasan dan perlengkapan transaksi harus dipastikan selalu siap di station kasir.</li>' +
-                  '</ul>' +
+                  '<div class="slide-bullet-title" style="color:#9F1239;"><span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span> Rekomendasi Perbaikan Layanan (AI Sentinel)</div>' +
+                  '<ul class="slide-bullet-list" style="color:#881337;">' + recoBullets + '</ul>' +
                 '</div>' +
               '</div>' +
             '</div>' +

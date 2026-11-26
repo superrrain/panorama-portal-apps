@@ -1976,6 +1976,15 @@ const COL_CONFIG = { KEY: 0, VALUE: 1, KETERANGAN: 2 };
   * **Pemisahan Role SPV di Halaman Pengaturan Akun (`initSettingPageView`)**:
     - Menambahkan percabangan role `isSPV` sehingga profil akun SPV tidak lagi tertulis `ROLE: AREA MANAGER` secara keliru, melainkan otomatis menampilkan `ROLE: SUPERVISOR GERAI (SPV)`.
     - Badge wilayah dan cakupan toko secara dinamis menampilkan gerai binaan SPV (`CBG-076 • Momoyo Babakan Ciparay`), dan kolom nomor WhatsApp disanitasi dari formula error `#ERROR!`.
+- **Implementasi Presentasi Eksekutif PDF 3-Tier Multi-Scope & Penghapusan Modul SOP (v5.9.5):**
+  * **Eliminasi Total Pembahasan SOP dari Slide Deck**:
+    - Menghapus opsi checkbox `chkPresentasi_tugas` dari pop-up modal `Generate Presentasi PDF` dan menyederhanakan jumlah slide menjadi 6 poin inti.
+    - Menghapus kartu metrik *Ketuntasan SOP* dari Slide 1 (Scorecard) dan menggantinya dengan metrik transaksi riil: **Total Transaksi Kasir (Struk)** dan **Rata-rata Penjualan per Struk (Basket Size)**.
+    - Menghapus total Slide 6 lama (Kedisiplinan SOP & Checklist Toko).
+  * **Kontekstualisasi Peran 3 Tingkat (SPV, Area Manager, Master COO)**:
+    - **SPV Gerai (Skala Toko)**: Judul & presenter otomatis mencantumkan nama gerai binaan (`MOMOYO BABAKAN CIPARAY`), Slide 1 menyajikan omzet, target bulanan, transaksi, dan HPP gerai. Slide 2 menyajikan **Top 3 Hari Omzet Tertinggi Gerai** vs **3 Hari Terendah** (evaluasi sepi toko). Slide 3 menampilkan tren progresivitas mingguan (W1-W4) gerai & strategi peak hours. Slide 4 mengulas HPP & kerugian waste toko (FIFO). Slide 5 insiden gerai (*Nihil Insiden Aktif* jika 0 open issue). Slide 6 ulasan rating Google Maps khusus gerai.
+    - **Area Manager (Skala Wilayah Binaan, AREA-08)**: Judul & presenter mengacu pada wilayah binaan, menyajikan konsolidasi gerai di area, Leaderboard Top 3 & Bottom 3 gerai wilayah, distribusi penjualan gerai area, dan pengawasan insiden lapangan.
+    - **Master COO (Skala Nasional)**: Laporan komprehensif 14 wilayah & 146 gerai se-Indonesia, Leaderboard 14 AM nasional, realisasi omzet multi-brand nasional, audit rantai pasok HPP & waste agregat.
 
   * **DILARANG KERAS MEMBUAT LINK / DEPLOYMENT ID BARU**: Dilarang menjalankan perintah bare `clasp deploy` tanpa flag `-i`, karena akan men-generate ID dan URL baru yang memutus koneksi Vercel dan seluruh klien.
   * **WAJIB REDEPLOY KE DEPLOYMENT ID RESMI**: Setiap deployment ke Apps Script WAJIB mere-deploy ke Deployment ID produksi aktif:
