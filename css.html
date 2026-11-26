@@ -14854,5 +14854,54 @@
     html.theme-switching *, html.theme-switching *::before, html.theme-switching *::after { transition: none !important; }
   }
 
+  /* ==========================================================================
+     SPV EFISIENSI POPUP & KPI GRID (v5.8.9)
+     ========================================================================== */
+  .spv-ef-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  @media (max-width: 640px) {
+    .spv-ef-kpi-grid {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+  }
+  .spv-ef-kpi-card {
+    background: var(--bg-surface, #111A16);
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .spv-ef-kpi-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted, #94A3B8);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .spv-ef-kpi-val {
+    font-size: 19px;
+    font-weight: 800;
+    color: var(--text-main, #F8FAFC);
+  }
+  .spv-ef-kpi-badge {
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    width: fit-content;
+    margin-top: 2px;
+  }
+  .spv-ef-kpi-sub {
+    font-size: 11px;
+    color: var(--text-muted, #94A3B8);
+    margin-top: 2px;
+  }
+
 /* ===== PANORAMA DARK THEME (AUTO-GENERATED) END ===== */
 </style>

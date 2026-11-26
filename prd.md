@@ -1937,6 +1937,16 @@ const COL_CONFIG = { KEY: 0, VALUE: 1, KETERANGAN: 2 };
     - Menghasilkan basket size (Rata-rata Penjualan per Struk) yang presisi, realistis (~Rp 24.862/struk), dan memulihkan total struk bulanan ke kisaran wajar (~5.800–6.200 struk).
   * **Validasi Form Input Sales**:
     - Batas maksimal 2.500 struk/hari pada input penjualan harian untuk mencegah kesalahan input staf di masa mendatang.
+- **Kartu Efisiensi Toko & Modal Breakdown Belanja Mingguan Khusus SPV (v5.8.9):**
+  * **Kartu Pilar 3 Aktif di Dashboard SPV**:
+    - Kartu `3. Efisiensi Gerai` diaktifkan kembali pada akun SPV di baris kedua dashboard sehingga urutan kartu simetris dan lengkap (2. Insiden & SLA, 3. Efisiensi Gerai, 4. Status Tugas).
+    - Perhitungan nilai terisolasi otomatis untuk cabang SPV:
+      * Rasio HPP dihitung dari Total Belanja Bahan Baku Bulan Aktif dibagi Omzet Gerai.
+      * Indikator status dinamis: 🟢 Aman ($\le 40\%$), 🟡 Waspada ($40.1\%-44\%$), 🔴 Over Budget ($> 44\%$).
+      * Sub-metrik menampilkan total belanja bahan dan penggunaan kas kecil gerai.
+  * **Pop-Up Rincian Belanja Mingguan (`modalSpvEfisiensi`)**:
+    - Klik kartu efisiensi oleh SPV membuka modal pop-up yang menyajikan mini KPI strip dan tabel riwayat belanja bahan per minggu kalender (Minggu 1 s/d Minggu 5).
+    - Bersifat View-Only tanpa tombol mutasi untuk menjaga integritas data akuntansi.
 
   * **DILARANG KERAS MEMBUAT LINK / DEPLOYMENT ID BARU**: Dilarang menjalankan perintah bare `clasp deploy` tanpa flag `-i`, karena akan men-generate ID dan URL baru yang memutus koneksi Vercel dan seluruh klien.
   * **WAJIB REDEPLOY KE DEPLOYMENT ID RESMI**: Setiap deployment ke Apps Script WAJIB mere-deploy ke Deployment ID produksi aktif:

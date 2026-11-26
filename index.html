@@ -15041,6 +15041,55 @@
     html.theme-switching *, html.theme-switching *::before, html.theme-switching *::after { transition: none !important; }
   }
 
+  /* ==========================================================================
+     SPV EFISIENSI POPUP & KPI GRID (v5.8.9)
+     ========================================================================== */
+  .spv-ef-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  @media (max-width: 640px) {
+    .spv-ef-kpi-grid {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+  }
+  .spv-ef-kpi-card {
+    background: var(--bg-surface, #111A16);
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .spv-ef-kpi-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted, #94A3B8);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .spv-ef-kpi-val {
+    font-size: 19px;
+    font-weight: 800;
+    color: var(--text-main, #F8FAFC);
+  }
+  .spv-ef-kpi-badge {
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    width: fit-content;
+    margin-top: 2px;
+  }
+  .spv-ef-kpi-sub {
+    font-size: 11px;
+    color: var(--text-muted, #94A3B8);
+    margin-top: 2px;
+  }
+
 /* ===== PANORAMA DARK THEME (AUTO-GENERATED) END ===== */
 </style>
 
@@ -16484,7 +16533,7 @@
 
             <!-- Pilar 3: Efisiensi HPP, Waste & Petty Cash -->
             <div class="metric-card card-efficiency" id="dashCardEfficiency" style="cursor: pointer;"
-              onclick="if (!event.target.closest('button, select, input, a')) switchTab('efisiensi');">
+              onclick="if (!event.target.closest('button, select, input, a')) onDashEfficiencyCardClick();">
               <div class="metric-card-header">
                 <div class="metric-card-title-group">
                   <div class="metric-icon-box icon-box-efficiency">
@@ -16496,9 +16545,9 @@
                       <line x1="12" y1="22.08" x2="12" y2="12" />
                     </svg>
                   </div>
-                  <span class="metric-card-title">3. Efisiensi Biaya Toko</span>
+                  <span class="metric-card-title" id="lblDashEffTitle">3. Efisiensi Biaya Toko</span>
                 </div>
-                <div class="metric-arrow-btn" onclick="switchTab('efisiensi')" title="Buka Detail Efisiensi">
+                <div class="metric-arrow-btn" onclick="onDashEfficiencyCardClick()" title="Buka Detail Efisiensi">
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
                     stroke-linecap="round" stroke-linejoin="round">
                     <path d="M7 17L17 7" />
@@ -16508,9 +16557,7 @@
               </div>
               <div class="metric-card-value" id="metricHppWaste">HPP 0%</div>
               <div class="metric-card-sub">
-                <span id="metricPettyCash" class="pill-badge-donezo">Petty Cash: Rp 0</span>
-                <span id="metricPettyCash" class="pill-badge-donezo"><span class="live-dot-green"></span> Petty Cash: Rp
-                  0</span>
+                <span id="metricPettyCash" class="pill-badge-donezo"><span class="live-dot-green"></span> Petty Cash: Rp 0</span>
               </div>
               <div class="metric-meta-sub" id="metricMetaSubHppWaste">Toleransi HPP: Max 35.0% | Waste: Max 2.0%</div>
             </div>
@@ -19155,6 +19202,89 @@
       <div class="modal-footer">
         <button class="btn btn-outline" onclick="closeModal('modalInputEfisiensi')">Batal</button>
         <button class="btn btn-primary" id="btnSubmitEfisiensi" onclick="submitEfisiensiForm()">Simpan Data</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================================
+       MODAL 1B: RINCIAN EFISIENSI & BELANJA BAHAN BAKU GERAI (KHUSUS SPV - VIEW ONLY)
+       ============================================================================ -->
+  <div class="modal-backdrop" id="modalSpvEfisiensi" style="display: none;">
+    <div class="modal-box modal-spv-efisiensi-box" style="max-width: 740px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 9px;">
+          <div class="metric-icon-box icon-box-efficiency" style="width: 32px; height: 32px;">
+            <svg class="p-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+              <line x1="12" y1="22.08" x2="12" y2="12" />
+            </svg>
+          </div>
+          <div>
+            <h3 style="margin: 0; font-size: 15px; font-weight: 800; color: var(--text-main);">Rincian Efisiensi & Belanja Gerai</h3>
+            <span id="spvEfBranchSubtitle" style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Momoyo Babakan Ciparay • Bulan Berjalan</span>
+          </div>
+        </div>
+        <button class="modal-close-btn" onclick="closeModal('modalSpvEfisiensi')">✕</button>
+      </div>
+      <div class="modal-body" style="padding-top: 14px;">
+        <!-- Strip 3 Kartu KPI Mini Efisiensi SPV -->
+        <div class="spv-ef-kpi-grid">
+          <div class="spv-ef-kpi-card">
+            <span class="spv-ef-kpi-label">Rasio HPP Toko</span>
+            <div class="spv-ef-kpi-val" id="spvEfKpiHpp">0.0%</div>
+            <span class="spv-ef-kpi-badge" id="spvEfKpiHppBadge">Target ≤40.0%</span>
+          </div>
+          <div class="spv-ef-kpi-card">
+            <span class="spv-ef-kpi-label">Total Belanja Bahan</span>
+            <div class="spv-ef-kpi-val" id="spvEfKpiBelanja">Rp 0</div>
+            <span class="spv-ef-kpi-sub" id="spvEfKpiOmzetSub">vs Omzet Rp 0</span>
+          </div>
+          <div class="spv-ef-kpi-card">
+            <span class="spv-ef-kpi-label">Petty Cash & Waste</span>
+            <div class="spv-ef-kpi-val" id="spvEfKpiKas">Rp 0</div>
+            <span class="spv-ef-kpi-sub" id="spvEfKpiWasteSub">Waste: 0.0% (Maks 1.5%)</span>
+          </div>
+        </div>
+
+        <!-- Tabel Riwayat Belanja Mingguan Kalender -->
+        <div class="breakdown-section" style="margin-top: 16px;">
+          <div class="breakdown-section-header">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="color: var(--primary); display: inline-flex; align-items: center;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+                  <rect x="8" y="2" width="8" height="4" rx="1" />
+                </svg>
+              </span>
+              <span style="font-weight: 700; font-size: 11.5px; color: var(--text-main);">Riwayat Faktur Belanja Bahan Baku (Mingguan)</span>
+            </div>
+            <span class="badge badge-success" style="font-size: 10px;">Mode Pantau (View-Only)</span>
+          </div>
+          <div class="breakdown-table-container">
+            <table class="breakdown-table">
+              <thead>
+                <tr>
+                  <th style="width: 130px;">Minggu Kalender</th>
+                  <th>Belanja Bahan</th>
+                  <th>HPP Mingguan</th>
+                  <th>Kas Toko</th>
+                  <th style="text-align: center;">Diinput Oleh</th>
+                  <th style="text-align: center; width: 65px;">Status</th>
+                </tr>
+              </thead>
+              <tbody id="spvEfWeeklyTbody">
+                <!-- Rendered dynamically via JS -->
+              </tbody>
+            </table>
+          </div>
+          <div class="breakdown-summary-strip" id="spvEfWeeklySummary">
+            <!-- Summary rendered dynamically via JS -->
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; justify-content: flex-end;">
+        <button class="btn btn-outline" onclick="closeModal('modalSpvEfisiensi')">Tutup</button>
       </div>
     </div>
   </div>
@@ -23538,7 +23668,7 @@ function updateUserProfileUI(user, isBackgroundSync) {
   const mobEfNav = document.getElementById('mobileNavEfisiensi');
   if (mobEfNav) mobEfNav.style.display = isSPV ? 'none' : '';
   const efCard = document.getElementById('dashCardEfficiency');
-  if (efCard) efCard.style.display = isSPV ? 'none' : '';
+  if (efCard) efCard.style.display = ''; // Kartu efisiensi pilar 3 aktif untuk seluruh peran (termasuk SPV)
   const btnTugas = document.getElementById('btnBuatTugasBaru');
   if (btnTugas) btnTugas.style.display = isSPV ? 'none' : '';
   const btnSop = document.getElementById('btnUploadSOP');
@@ -25078,10 +25208,77 @@ function renderDashboardView() {
   const elAvgSla = document.getElementById('metricAvgSla');
   if (elAvgSla) elAvgSla.innerHTML = '<span class="live-dot-rose"></span> Rata-rata SLA: ' + avgSla + ' Jam';
 
+  const roleInfo = (typeof getUserRoleInfo === 'function') ? getUserRoleInfo(user) : {};
+  const isSPV = Boolean(roleInfo.isSPV || user.role === 'SPV' || String(user.role).includes('SPV'));
+
+  let spvCabangId = user.cabangId || '';
+  if (isSPV && !spvCabangId) {
+    const allBranches = (d && Array.isArray(d.cabang)) ? d.cabang : [];
+    if (user.namaCabang) {
+      const found = allBranches.find(c => String(c.namaCabang).toLowerCase() === String(user.namaCabang).toLowerCase());
+      if (found) spvCabangId = found.cabangId;
+    }
+    if (!spvCabangId && allBranches.length === 1) {
+      spvCabangId = allBranches[0].cabangId;
+    }
+  }
+
+  const elEffTitle = document.getElementById('lblDashEffTitle');
   const elHpp = document.getElementById('metricHppWaste');
-  if (elHpp) elHpp.textContent = 'HPP: ' + avgHpp + '% | Waste: ' + avgWaste + '%';
   const elPetty = document.getElementById('metricPettyCash');
-  if (elPetty) elPetty.innerHTML = '<span class="live-dot-green"></span> Petty Cash: Rp ' + formatRupiah(totalPettyCash);
+  const elMetaEff = document.getElementById('metricMetaSubHppWaste');
+
+  if (isSPV) {
+    if (elEffTitle) elEffTitle.textContent = '3. Efisiensi Gerai';
+
+    const spvEffList = (d.efisiensi && Array.isArray(d.efisiensi))
+      ? filterEfisiensiByActiveMonth(d.efisiensi, calMonth).filter(e => String(e.cabangId).toUpperCase() === String(spvCabangId).toUpperCase())
+      : [];
+
+    let spvTotalBelanja = 0;
+    let spvTotalKas = 0;
+    let spvWaste = 0;
+    let spvTargetHpp = 40.0;
+
+    spvEffList.forEach(e => {
+      spvTotalBelanja += Number(e.pembelianBahanBaku || 0);
+      spvTotalKas += Number(e.terpakaiPettyCash || 0);
+      if (Number(e.wastePersen) > 0) spvWaste = Number(e.wastePersen);
+      if (Number(e.targetHppMax) > 0) spvTargetHpp = Number(e.targetHppMax);
+    });
+
+    const spvMonthlyOmzet = (typeof getMonthlyActualOmzetForBranch === 'function' && spvCabangId)
+      ? getMonthlyActualOmzetForBranch(spvCabangId, (calMonth && calMonth !== 'CURRENT') ? calMonth + '-01' : getTodayIsoDate())
+      : totalActual;
+
+    let spvHppPersen = 0;
+    if (spvTotalBelanja > 0 && spvMonthlyOmzet > 0) {
+      spvHppPersen = Math.round((spvTotalBelanja / spvMonthlyOmzet) * 1000) / 10;
+    }
+
+    const isHppAman = spvHppPersen <= spvTargetHpp;
+    const isHppWaspada = spvHppPersen > spvTargetHpp && spvHppPersen <= (spvTargetHpp + 4);
+    const statusColor = isHppAman ? '#10B981' : (isHppWaspada ? '#F59E0B' : '#EF4444');
+    const statusBg = isHppAman ? 'rgba(16,185,129,0.18)' : (isHppWaspada ? 'rgba(245,158,11,0.18)' : 'rgba(239,68,68,0.18)');
+    const statusText = isHppAman ? 'Aman' : (isHppWaspada ? 'Waspada' : 'Over Budget');
+
+    if (elHpp) {
+      elHpp.innerHTML = 'HPP: <strong style="color:' + statusColor + ';">' + spvHppPersen.toFixed(1) + '%</strong> <span style="font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:4px; margin-left:6px; background:' + statusBg + '; color:' + statusColor + ';">' + statusText + '</span>';
+    }
+    if (elPetty) {
+      const belanjaStr = (typeof formatCompactRupiah === 'function') ? formatCompactRupiah(spvTotalBelanja) : formatRupiah(spvTotalBelanja);
+      const kasStr = (typeof formatCompactRupiah === 'function') ? formatCompactRupiah(spvTotalKas) : formatRupiah(spvTotalKas);
+      elPetty.innerHTML = '<span class="live-dot-green"></span> Belanja: <strong>Rp ' + belanjaStr + '</strong> • Kas: <strong>Rp ' + kasStr + '</strong>';
+    }
+    if (elMetaEff) {
+      elMetaEff.textContent = 'Target HPP: Max ' + spvTargetHpp.toFixed(1) + '% • Waste: ' + spvWaste.toFixed(1) + '% (Maks 1.5%)';
+    }
+  } else {
+    if (elEffTitle) elEffTitle.textContent = '3. Efisiensi Biaya Toko';
+    if (elHpp) elHpp.textContent = 'HPP: ' + avgHpp + '% | Waste: ' + avgWaste + '%';
+    if (elPetty) elPetty.innerHTML = '<span class="live-dot-green"></span> Petty Cash: Rp ' + formatRupiah(totalPettyCash);
+    if (elMetaEff) elMetaEff.textContent = 'Toleransi HPP: Max 35.0% | Waste: Max 2.0%';
+  }
 
   applyOperationalConfigToDOM();
 
@@ -28868,6 +29065,165 @@ function editEfisiensiWeekRow(effId, dateStr) {
   const wInfo = getCalendarWeekInfo(dateStr);
   showToast('Mode Koreksi aktif untuk data transaksi ' + wInfo.weekLabel + ' (' + (dateStr || '') + '). Silakan ubah belanja/kas lalu klik Simpan Koreksi.', 'info');
 }
+
+/**
+ * ================================================================================
+ * SMART EFISIENSI GERAI SPV ENGINE (v5.8.9)
+ * Handler Klik Kartu Efisiensi & Modal Breakdown Belanja Mingguan Khusus SPV
+ * ================================================================================
+ */
+function onDashEfficiencyCardClick() {
+  const user = window.PANORAMA_STATE.user || {};
+  const roleInfo = (typeof getUserRoleInfo === 'function') ? getUserRoleInfo(user) : {};
+  const isSPV = Boolean(roleInfo.isSPV || user.role === 'SPV' || String(user.role).includes('SPV'));
+  if (isSPV) {
+    openSpvEfisiensiModal();
+  } else {
+    switchTab('efisiensi');
+  }
+}
+window.onDashEfficiencyCardClick = onDashEfficiencyCardClick;
+
+function openSpvEfisiensiModal() {
+  const d = window.PANORAMA_STATE.data;
+  if (!d) return;
+
+  const user = window.PANORAMA_STATE.user || {};
+  const allBranches = (d && Array.isArray(d.cabang)) ? d.cabang : [];
+  let currentSpvBranch = null;
+  if (user.cabangId) {
+    currentSpvBranch = allBranches.find(c => String(c.cabangId).toUpperCase() === String(user.cabangId).toUpperCase());
+  }
+  if (!currentSpvBranch && user.namaCabang) {
+    currentSpvBranch = allBranches.find(c => String(c.namaCabang).toLowerCase() === String(user.namaCabang).toLowerCase());
+  }
+  if (!currentSpvBranch && allBranches.length === 1) {
+    currentSpvBranch = allBranches[0];
+  }
+
+  const spvCabangId = currentSpvBranch ? currentSpvBranch.cabangId : (user.cabangId || '');
+  const spvCabangName = currentSpvBranch ? (currentSpvBranch.namaCabang || currentSpvBranch.cabangId) : (user.namaCabang || user.cabangId || 'GERAI SAYA');
+
+  const calMonth = window.PANORAMA_STATE.filters.calendarMonth || 'CURRENT';
+  const isHistoricalMonth = (calMonth && calMonth !== 'CURRENT');
+  const todayIso = (typeof getTodayIsoDate === 'function') ? getTodayIsoDate() : new Date().toISOString().slice(0, 10);
+  const activeMonthPrefix = isHistoricalMonth ? String(calMonth).substring(0, 7) : todayIso.substring(0, 7);
+
+  const subTitleEl = document.getElementById('spvEfBranchSubtitle');
+  if (subTitleEl) {
+    subTitleEl.textContent = spvCabangName + ' • Bulan ' + activeMonthPrefix;
+  }
+
+  // Filter transaksi efisiensi cabang SPV di bulan aktif
+  const activeEffList = (typeof filterEfisiensiByActiveMonth === 'function') ? filterEfisiensiByActiveMonth(d.efisiensi) : (d.efisiensi || []);
+  const branchEffs = activeEffList.filter(e => String(e.cabangId).toUpperCase() === String(spvCabangId).toUpperCase());
+
+  // Urutkan berdasarkan tanggal transaksi kalender (terbaru di atas)
+  const sortedEffs = branchEffs.slice().sort((a, b) => {
+    return String(b.tanggal || '').localeCompare(String(a.tanggal || ''));
+  });
+
+  let sumBelanja = 0;
+  let sumKas = 0;
+  let latestWaste = 0;
+  let targetHppMax = 40.0;
+
+  const tbody = document.getElementById('spvEfWeeklyTbody');
+  if (tbody) tbody.innerHTML = '';
+
+  const monthlyOmzet = (typeof getMonthlyActualOmzetForBranch === 'function' && spvCabangId)
+    ? getMonthlyActualOmzetForBranch(spvCabangId, activeMonthPrefix + '-01')
+    : 0;
+
+  if (sortedEffs.length === 0) {
+    if (tbody) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 22px; color: var(--text-muted); font-size: 11.5px;">Belum ada riwayat faktur belanja bahan baku yang dicatat untuk gerai ini pada bulan ' + activeMonthPrefix + '.</td></tr>';
+    }
+  } else {
+    sortedEffs.forEach(item => {
+      const itemDate = String(item.tanggal || '').split('T')[0];
+      const belanja = Number(item.pembelianBahanBaku || 0);
+      const kas = Number(item.terpakaiPettyCash || 0);
+      if (Number(item.wastePersen) > 0) latestWaste = Number(item.wastePersen);
+      if (Number(item.targetHppMax) > 0) targetHppMax = Number(item.targetHppMax);
+
+      sumBelanja += belanja;
+      sumKas += kas;
+
+      let hppMingguan = 0;
+      if (belanja > 0 && monthlyOmzet > 0) {
+        hppMingguan = Math.round((belanja / monthlyOmzet) * 1000) / 10;
+      }
+      const isSafe = hppMingguan <= targetHppMax;
+
+      const dateParts = itemDate.split('-');
+      const formattedDate = dateParts.length === 3 ? (dateParts[2] + '/' + dateParts[1] + '/' + dateParts[0]) : itemDate;
+      const wInfo = (typeof getCalendarWeekInfo === 'function') ? getCalendarWeekInfo(itemDate) : { weekLabel: 'Minggu', rangeText: formattedDate };
+      const weekLabel = wInfo.weekLabel + ' (' + formattedDate + ' • ' + wInfo.rangeText + ')';
+
+      let pelaporDisplay = (typeof escapeHtml === 'function') ? escapeHtml(item.updatedBy || '-') : (item.updatedBy || '-');
+      if (pelaporDisplay.length > 15) pelaporDisplay = pelaporDisplay.split(' ')[0];
+
+      if (tbody) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = 
+          '<td><div style="font-weight: 700; color: var(--text-main); font-size: 11px;">' + weekLabel + '</div></td>' +
+          '<td><strong style="color: var(--text-main);">Rp ' + formatRupiah(belanja) + '</strong></td>' +
+          '<td><span class="badge ' + (isSafe ? 'badge-success' : 'badge-danger') + '" style="font-size: 10px; padding: 2px 6px;">' + hppMingguan.toFixed(1) + '%</span></td>' +
+          '<td><span style="color: var(--text-main); font-weight: 600;">Rp ' + formatRupiah(kas) + '</span></td>' +
+          '<td style="text-align: center; color: var(--text-muted); font-size: 11px;">' + pelaporDisplay + '</td>' +
+          '<td style="text-align: center;"><span class="badge badge-success" style="font-size: 9.5px; padding: 2px 6px;">Tervalidasi</span></td>';
+        tbody.appendChild(tr);
+      }
+    });
+  }
+
+  // Update Mini KPI Cards
+  const totalHppMonth = (monthlyOmzet > 0 && sumBelanja > 0)
+    ? (Math.round((sumBelanja / monthlyOmzet) * 1000) / 10)
+    : 0;
+
+  const isHppAman = totalHppMonth <= targetHppMax;
+  const isHppWaspada = totalHppMonth > targetHppMax && totalHppMonth <= (targetHppMax + 4);
+  const statusColor = isHppAman ? '#10B981' : (isHppWaspada ? '#F59E0B' : '#EF4444');
+  const statusBg = isHppAman ? 'rgba(16,185,129,0.18)' : (isHppWaspada ? 'rgba(245,158,11,0.18)' : 'rgba(239,68,68,0.18)');
+  const statusText = isHppAman ? 'Aman (Efisiensi Baik)' : (isHppWaspada ? 'Waspada' : 'Over Budget');
+
+  const kpiHppEl = document.getElementById('spvEfKpiHpp');
+  if (kpiHppEl) {
+    kpiHppEl.style.color = statusColor;
+    kpiHppEl.textContent = totalHppMonth.toFixed(1) + '%';
+  }
+  const kpiHppBadge = document.getElementById('spvEfKpiHppBadge');
+  if (kpiHppBadge) {
+    kpiHppBadge.style.background = statusBg;
+    kpiHppBadge.style.color = statusColor;
+    kpiHppBadge.textContent = statusText + ' • Target ≤' + targetHppMax.toFixed(1) + '%';
+  }
+
+  const kpiBelanjaEl = document.getElementById('spvEfKpiBelanja');
+  if (kpiBelanjaEl) kpiBelanjaEl.textContent = 'Rp ' + formatRupiah(sumBelanja);
+
+  const kpiOmzetSub = document.getElementById('spvEfKpiOmzetSub');
+  if (kpiOmzetSub) kpiOmzetSub.textContent = 'vs Omzet: Rp ' + formatRupiah(monthlyOmzet);
+
+  const kpiKasEl = document.getElementById('spvEfKpiKas');
+  if (kpiKasEl) kpiKasEl.textContent = 'Rp ' + formatRupiah(sumKas);
+
+  const kpiWasteSub = document.getElementById('spvEfKpiWasteSub');
+  if (kpiWasteSub) kpiWasteSub.textContent = 'Waste: ' + latestWaste.toFixed(1) + '% (Maks 1.5%)';
+
+  const summaryStrip = document.getElementById('spvEfWeeklySummary');
+  if (summaryStrip) {
+    summaryStrip.innerHTML = 
+      '<div>Total Riwayat Belanja Bahan: <strong style="color: var(--primary);">Rp ' + formatRupiah(sumBelanja) + '</strong> ' +
+      '<span style="margin-left: 6px; font-size: 10.5px; color: var(--text-muted);">(HPP 1 Bln: <strong style="color:' + statusColor + ';">' + totalHppMonth.toFixed(1) + '%</strong> • Omzet 1 Bln: <strong>Rp ' + formatRupiah(monthlyOmzet) + '</strong>)</span></div>' +
+      '<div>Total Kas Toko Terpakai: <strong style="color: var(--text-main);">Rp ' + formatRupiah(sumKas) + '</strong></div>';
+  }
+
+  openModal('modalSpvEfisiensi');
+}
+window.openSpvEfisiensiModal = openSpvEfisiensiModal;
 
 /**
  * ================================================================================
