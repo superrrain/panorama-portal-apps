@@ -1956,6 +1956,13 @@ const COL_CONFIG = { KEY: 0, VALUE: 1, KETERANGAN: 2 };
     - Tab `Perubahan Jadwal` dan tombol pengajuan perubahan jadwal dihilangkan untuk akun SPV agar tampilan fokus dan bersih.
   * **Kartu Deadline Presisi untuk SPV**:
     - Judul disesuaikan menjadi `Target Pengumpulan Jadwal [Bulan Depan] ([Nama Gerai])` dan memeriksa status penyerahan jadwal gerai SPV yang sebenarnya.
+- **Transformasi Halaman Sales Performance Menjadi Kalender Harian SPV (v5.9.1):**
+  * **Mode Breakdown Harian Kalender (`renderSpvDailySalesView`)**:
+    - Khusus untuk akun SPV Gerai (yang hanya memiliki 1 toko binaan), tabel Sales Performance tidak lagi menampilkan 1 baris cabang tunggal yang mubazir, melainkan otomatis berubah menjadi **Jurnal Penjualan Harian Kalender Bulan Berjalan (Tanggal 1 s/d 30/31)**.
+    - Judul dan banner section otomatis mengacu pada identitas gerai SPV (`Momoyo Babakan Ciparay • CBG-076`) dan menyembunyikan tombol `Input Target` yang bukan merupakan wewenang SPV.
+    - Strip 4 kartu KPI menyajikan total akumulasi omzet riil bulan berjalan, target bulanan gerai, capaian %, dan konsistensi jumlah hari pelaporan.
+    - Tabel desktop dan kartu mobile menyajikan rincian per tanggal (Target Harian, Realisasi Omzet, Total Struk, Capaian %, Selisih Gap, Status Capaian) dilengkapi tombol aksi `[Koreksi / Input]` per tanggal yang langsung membuka form input sales untuk tanggal tersebut.
+    - Baris tanggal hari ini (`Hari Ini ★`) diberikan highlight visual hijau lembut. Mode tampilan Area Manager dan COO nasional dipertahankan 100% tanpa regresi.
 
   * **DILARANG KERAS MEMBUAT LINK / DEPLOYMENT ID BARU**: Dilarang menjalankan perintah bare `clasp deploy` tanpa flag `-i`, karena akan men-generate ID dan URL baru yang memutus koneksi Vercel dan seluruh klien.
   * **WAJIB REDEPLOY KE DEPLOYMENT ID RESMI**: Setiap deployment ke Apps Script WAJIB mere-deploy ke Deployment ID produksi aktif:

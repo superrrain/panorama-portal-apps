@@ -26570,6 +26570,323 @@ function renderQuickIncidents(incidents) {
 
 /**
  * ================================================================================
+ * 2. RENDER SALES PERFORMANCE KHUSUS SPV (BREAKDOWN KALENDER HARIAN PER BULAN)
+ * ================================================================================
+ * Khusus akun SPV Gerai (hanya memiliki 1 toko):
+ * Menampilkan daftar tanggal bulan berjalan (Tgl 1 s/d Tgl 30/31) dengan target harian,
+ * realisasi omzet riil, struk, capaian %, status harian, dan tombol input/koreksi per tanggal.
+ */
+function renderSpvDailySalesView(d, user, calMonth, period) {
+  const spvCabId = (user && user.cabangId) ? String(user.cabangId).trim() : 'CBG-076';
+  const spvCabang = (Array.isArray(d.cabang) ? d.cabang : []).find(c => String(c.cabangId).trim() === spvCabId || c.namaCabang === spvCabId) || {
+    cabangId: spvCabId,
+    namaCabang: (user && user.namaCabang) ? user.namaCabang : 'Momoyo Babakan Ciparay',
+    brand: 'MOMOYO',
+    kota: 'Kab. Bandung',
+    targetBulanan: 205000000
+  };
+
+  let yr, mo;
+  if (calMonth && calMonth !== 'CURRENT' && calMonth.length >= 7) {
+    const parts = calMonth.split('-');
+    yr = parseInt(parts[0], 10);
+    mo = parseInt(parts[1], 10);
+  } else {
+    const now = new Date();
+    yr = now.getFullYear();
+    mo = now.getMonth() + 1;
+  }
+  const daysInMonth = new Date(yr, mo, 0).getDate();
+  const monthNamesIndo = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+  const monthName = monthNamesIndo[mo - 1] || 'Bulan Ini';
+  const monthShort = monthName.substring(0, 3);
+
+  const hasBranchTarget = Number(spvCabang.targetBulanan || 0) > 0;
+  const spvMonthlyTarget = hasBranchTarget ? Number(spvCabang.targetBulanan) : 205000000;
+  const spvDailyTarget = Math.round(spvMonthlyTarget / daysInMonth);
+
+  // Kumpulkan transaksi harian cabang SPV untuk bulan terpilih
+  const spvSalesMap = {};
+  const monthPrefix = yr + '-' + String(mo).padStart(2, '0');
+  if (Array.isArray(d.sales)) {
+    d.sales.forEach(s => {
+      if (String(s.cabangId).trim() === spvCabId) {
+        const sDate = normalizeDateStr(s.tanggal);
+        if (sDate && sDate.startsWith(monthPrefix)) {
+          if (!spvSalesMap[sDate] || (s.id && s.id > (spvSalesMap[sDate].id || 0))) {
+            let act = Number(s.actualSales || 0);
+            let trx = Number(s.totalTransaksi || 0);
+            if (trx > 2000 && act > 0) trx = Math.round(act / 24500);
+            spvSalesMap[sDate] = {
+              raw: s,
+              actual: act,
+              trx: trx,
+              target: Number(s.targetHarian || 0) > 0 ? Number(s.targetHarian) : spvDailyTarget
+            };
+          }
+        }
+      }
+    });
+  }
+
+  const todayStr = getTodayIsoDate();
+  const dayNamesIndo = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+  let totalMonthActual = 0;
+  let totalMonthTrx = 0;
+  let daysReported = 0;
+  let daysHitTarget = 0;
+
+  const dailyRows = [];
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dayPad = String(day).padStart(2, '0');
+    const moPad = String(mo).padStart(2, '0');
+    const dateIso = yr + '-' + moPad + '-' + dayPad;
+    const dateObj = new Date(yr, mo - 1, day);
+    const dayOfWeek = dayNamesIndo[dateObj.getDay()];
+    const isToday = (dateIso === todayStr);
+    const isFuture = (dateIso > todayStr);
+
+    const sEntry = spvSalesMap[dateIso];
+    const actual = sEntry ? sEntry.actual : 0;
+    const trx = sEntry ? sEntry.trx : 0;
+    const rowTarget = sEntry && sEntry.target > 0 ? sEntry.target : spvDailyTarget;
+    const hasInput = !!sEntry && actual > 0;
+
+    if (hasInput) {
+      totalMonthActual += actual;
+      totalMonthTrx += trx;
+      daysReported++;
+      if (actual >= rowTarget) daysHitTarget++;
+    }
+
+    const pct = rowTarget > 0 ? (Math.round((actual / rowTarget) * 1000) / 10) : 0;
+    const gap = actual - rowTarget;
+
+    dailyRows.push({
+      dayNum: day,
+      dateIso: dateIso,
+      dayOfWeek: dayOfWeek,
+      dateDisplay: dayOfWeek + ', ' + day + ' ' + monthShort + ' ' + yr,
+      isToday: isToday,
+      isFuture: isFuture,
+      hasInput: hasInput,
+      actual: actual,
+      trx: trx,
+      target: rowTarget,
+      pct: pct,
+      gap: gap
+    });
+  }
+
+  // 1. Update Judul Section & Banner Toko
+  const titleEl = document.getElementById('salesSectionTitle');
+  if (titleEl) {
+    titleEl.innerHTML = 'Sales Performance <span class="sales-title-badge">' + escapeHtml(spvCabang.namaCabang) + ' • ' + monthName + ' ' + yr + '</span>';
+  }
+
+  const bannerContainer = document.getElementById('salesAreaBannerContainer');
+  if (bannerContainer) {
+    bannerContainer.innerHTML = 
+      '<div class="sales-area-active-banner">' +
+        '<div class="sales-banner-left">' +
+          '<span class="sales-area-badge">' + escapeHtml(spvCabId) + '</span>' +
+          '<span><strong>' + escapeHtml(spvCabang.namaCabang) + '</strong> (' + escapeHtml(spvCabang.brand || 'MOMOYO') + ') • ' + escapeHtml(spvCabang.kota || 'Kab. Bandung') + ' • SPV: ' + escapeHtml((user && user.namaLengkap) ? user.namaLengkap : 'Aulia Pratiwi') + '</span>' +
+        '</div>' +
+      '</div>';
+  }
+
+  // 2. Render Strip Ringkasan KPI Gerai SPV
+  const cumPct = spvMonthlyTarget > 0 ? (Math.round((totalMonthActual / spvMonthlyTarget) * 1000) / 10) : 0;
+  const cumGap = totalMonthActual - spvMonthlyTarget;
+  const gapSign = cumGap >= 0 ? '+' : '';
+  const gapColor = cumGap >= 0 ? 'var(--forest-800)' : 'var(--danger)';
+
+  const kpiGrid = document.getElementById('salesKpiSummaryGrid');
+  if (kpiGrid) {
+    kpiGrid.innerHTML = 
+      '<div class="sales-kpi-card">' +
+        '<span class="sales-kpi-label">Total Realisasi Sales</span>' +
+        '<span class="sales-kpi-value" style="color:var(--forest-800);">Rp ' + formatCompactRupiah(totalMonthActual) + '</span>' +
+        '<span class="sales-kpi-sub" style="color:var(--text-muted);">' + escapeHtml(spvCabang.namaCabang) + ' • ' + monthName + ' ' + yr + '</span>' +
+      '</div>' +
+      '<div class="sales-kpi-card">' +
+        '<span class="sales-kpi-label">Target Sales Bulan Ini</span>' +
+        '<span class="sales-kpi-value">Rp ' + formatCompactRupiah(spvMonthlyTarget) + '</span>' +
+        '<span class="sales-kpi-sub" style="color:var(--text-muted);">Target Harian: Rp ' + formatCompactRupiah(spvDailyTarget) + ' / hari</span>' +
+      '</div>' +
+      '<div class="sales-kpi-card">' +
+        '<span class="sales-kpi-label">Capaian Bulan Ini</span>' +
+        '<span class="sales-kpi-value" style="color:' + (cumPct >= 100 ? 'var(--forest-800)' : (cumPct >= 85 ? 'var(--warning)' : 'var(--danger)')) + ';">' + cumPct + '%</span>' +
+        '<span class="sales-kpi-sub" style="color:' + gapColor + ';">Gap: ' + gapSign + 'Rp ' + formatCompactRupiah(cumGap) + '</span>' +
+      '</div>' +
+      '<div class="sales-kpi-card">' +
+        '<span class="sales-kpi-label">Konsistensi Input Laporan</span>' +
+        '<span class="sales-kpi-value" style="color:var(--forest-800);">' + daysReported + ' / ' + daysInMonth + ' Hari</span>' +
+        '<span class="sales-kpi-sub" style="color:var(--text-muted);">' + daysHitTarget + ' Hari Capai Target</span>' +
+      '</div>';
+  }
+
+  // 3. Render Kartu Mobile (salesAreaCardsContainer)
+  const cardsContainer = document.getElementById('salesAreaCardsContainer');
+  if (cardsContainer) {
+    cardsContainer.innerHTML = '';
+    dailyRows.forEach(row => {
+      const card = document.createElement('div');
+      card.className = 'sales-branch-card';
+      if (row.isToday) {
+        card.style.borderColor = 'var(--forest-500)';
+        card.style.boxShadow = '0 0 0 1px var(--forest-500)';
+      }
+
+      let statusBadge = '';
+      if (!row.hasInput) {
+        if (row.isFuture) {
+          statusBadge = '<span class="sales-area-status-pill bar-neutral-badge" style="background:#F1F5F9; color:#64748B; border:1px solid #CBD5E1; font-weight:700;">Mendatang</span>';
+        } else {
+          statusBadge = '<span class="sales-area-status-pill bar-neutral-badge" style="background:#FEF2F2; color:#DC2626; border:1px solid #FECACA; font-weight:700; display:inline-flex; align-items:center; gap:4px;">' + getPanoramaSvgIcon('clock', 11) + ' Belum Lapor</span>';
+        }
+      } else if (row.pct >= 100) {
+        statusBadge = '<span class="sales-area-status-pill bar-success-badge" style="display:inline-flex; align-items:center; gap:4px;">' + getPanoramaSvgIcon('check', 11) + ' ' + row.pct + '% Capai Target</span>';
+      } else if (row.pct >= 85) {
+        statusBadge = '<span class="sales-area-status-pill bar-warning-badge" style="display:inline-flex; align-items:center; gap:4px;">' + getPanoramaSvgIcon('zap', 11) + ' ' + row.pct + '% Hampir Capai</span>';
+      } else {
+        statusBadge = '<span class="sales-area-status-pill bar-danger-badge" style="display:inline-flex; align-items:center; gap:4px;">' + getPanoramaSvgIcon('alert', 11) + ' ' + row.pct + '% Perlu Dorongan</span>';
+      }
+
+      const barFillWidth = (!row.hasInput) ? 0 : Math.min(Math.round((row.pct / 120) * 100), 100);
+      const barColor = row.pct >= 100 ? 'linear-gradient(90deg, #10B981, #059669)' : (row.pct >= 85 ? 'linear-gradient(90deg, #F59E0B, #D97706)' : 'linear-gradient(90deg, #EF4444, #DC2626)');
+      const gapSign = row.gap >= 0 ? '+' : '';
+      const gapColor = row.gap >= 0 ? '#059669' : '#DC2626';
+
+      let metricValHtml = row.hasInput 
+        ? '<span class="sales-metric-val">Rp ' + formatRupiah(row.actual) + '</span>'
+        : '<span class="sales-metric-val" style="color:var(--text-muted); font-size:13px; font-weight:600;">Rp 0 (Belum Lapor)</span>';
+
+      let trxHtml = row.hasInput ? (' • ' + row.trx.toLocaleString('id-ID') + ' Struk') : '';
+      let metricTargetHtml = '<span class="sales-metric-target">Target: Rp ' + formatRupiah(row.target) + trxHtml + '</span>';
+      let gapHtml = row.hasInput 
+        ? '<span class="sales-area-gap-text" style="color:' + gapColor + ';">' + gapSign + 'Rp ' + formatCompactRupiah(row.gap) + ' (' + gapSign + (row.pct - 100).toFixed(1) + '%)</span>'
+        : '<span class="sales-area-gap-text" style="color:var(--text-muted);">Target: Rp ' + formatCompactRupiah(row.target) + '</span>';
+
+      card.innerHTML = 
+        '<div class="sales-branch-card-header">' +
+          '<div class="sales-branch-meta-row">' +
+            '<div class="sales-branch-brand-city">' +
+              '<span class="badge ' + (row.isToday ? 'badge-success' : 'badge-neutral') + '" style="font-size:11px; font-weight:700;">' +
+                (row.isToday ? '★ Hari Ini' : 'Tgl ' + row.dayNum) +
+              '</span>' +
+              '<span class="sales-branch-cbg-city" style="font-weight:700; color:var(--text-main);">' + escapeHtml(row.dateDisplay) + '</span>' +
+            '</div>' +
+            '<div class="sales-branch-actions">' +
+              '<button type="button" class="btn-action-edit" onclick="openEditSalesModalForBranch(\'' + spvCabId + '\', \'' + row.dateIso + '\')" title="Input / Koreksi Sales ' + escapeHtml(row.dateDisplay) + '">' + getPanoramaSvgIcon('edit', 13) + '</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="sales-area-metrics-row">' +
+          '<div class="sales-metric-block">' +
+            '<span class="sales-metric-lbl">Realisasi Penjualan Harian</span>' +
+            metricValHtml +
+            metricTargetHtml +
+          '</div>' +
+          '<div class="sales-metric-right">' +
+            statusBadge +
+            gapHtml +
+          '</div>' +
+        '</div>' +
+        '<div class="sales-area-bar-wrap" title="' + (row.hasInput ? row.pct + '% Capaian' : 'Belum Lapor') + '">' +
+          '<div class="sales-area-bar-fill" style="width:' + barFillWidth + '%; background:' + barColor + ';"></div>' +
+        '</div>';
+
+      cardsContainer.appendChild(card);
+    });
+  }
+
+  // 4. Render Tabel Desktop (Daftar Tanggal Bulan Berjalan)
+  const thead = document.getElementById('salesTableThead');
+  const tbody = document.getElementById('salesTableBody');
+  if (thead) {
+    thead.innerHTML = 
+      '<tr>' +
+        '<th style="width: 45px; text-align:center;">No</th>' +
+        '<th style="width: 170px;">Tanggal</th>' +
+        '<th style="width: 130px;">Target Harian</th>' +
+        '<th style="width: 140px;">Realisasi Omzet</th>' +
+        '<th style="width: 110px;">Total Struk</th>' +
+        '<th style="width: 120px;">Progress Capaian</th>' +
+        '<th style="width: 95px;">Capaian %</th>' +
+        '<th style="width: 120px;">Selisih (Gap)</th>' +
+        '<th style="text-align: center; width: 110px;">Status</th>' +
+        '<th style="text-align: center; width: 80px;">Aksi</th>' +
+      '</tr>';
+  }
+  if (tbody) {
+    tbody.innerHTML = '';
+    dailyRows.forEach((row, idx) => {
+      const tr = document.createElement('tr');
+      if (row.isToday) {
+        tr.style.backgroundColor = 'rgba(16, 185, 129, 0.08)';
+        tr.style.fontWeight = '600';
+      }
+
+      let statusBadge = '';
+      if (!row.hasInput) {
+        if (row.isFuture) {
+          statusBadge = '<span class="badge" style="background:#F1F5F9; color:#64748B; font-size:10px;">Mendatang</span>';
+        } else {
+          statusBadge = '<span class="badge" style="background:#FEF2F2; color:#DC2626; border:1px solid #FECACA; font-size:10px; display:inline-flex; align-items:center; gap:3px;">' + getPanoramaSvgIcon('clock', 11) + ' Belum Input</span>';
+        }
+      } else if (row.pct >= 100) {
+        statusBadge = '<span class="badge badge-success" style="display:inline-flex; align-items:center; gap:3px;">' + getPanoramaSvgIcon('check', 11) + ' ' + row.pct + '%</span>';
+      } else if (row.pct >= 85) {
+        statusBadge = '<span class="badge badge-warning" style="display:inline-flex; align-items:center; gap:3px;">' + getPanoramaSvgIcon('zap', 11) + ' ' + row.pct + '%</span>';
+      } else {
+        statusBadge = '<span class="badge badge-danger" style="display:inline-flex; align-items:center; gap:3px;">' + getPanoramaSvgIcon('alert', 11) + ' ' + row.pct + '%</span>';
+      }
+
+      const barFillWidth = (!row.hasInput) ? 0 : Math.min(Math.round((row.pct / 120) * 100), 100);
+      const barColor = row.pct >= 100 ? '#10B981' : (row.pct >= 85 ? '#F59E0B' : '#EF4444');
+      const gapSign = row.gap >= 0 ? '+' : '';
+      const gapColor = row.gap >= 0 ? 'var(--forest-800)' : 'var(--danger)';
+
+      let actualCellHtml = row.hasInput 
+        ? '<strong style="color:var(--text-main);">Rp ' + formatRupiah(row.actual) + '</strong>'
+        : '<span style="color:var(--text-muted); font-size:12px;">Rp 0</span>';
+
+      let trxCellHtml = row.hasInput 
+        ? '<span>' + row.trx.toLocaleString('id-ID') + ' Struk</span>'
+        : '<span style="color:var(--text-muted); font-size:12px;">-</span>';
+
+      let gapCellHtml = row.hasInput 
+        ? '<span style="font-weight:700; color:' + gapColor + ';">' + gapSign + 'Rp ' + formatCompactRupiah(row.gap) + '</span>'
+        : '<span style="color:var(--text-muted); font-size:12px;">-</span>';
+
+      let todayBadge = row.isToday ? ' <span class="badge badge-success" style="font-size:9.5px; padding:1px 5px; margin-left:4px;">Hari Ini ★</span>' : '';
+
+      tr.innerHTML = 
+        '<td style="text-align:center; font-weight:700; color:var(--text-muted);">' + (idx + 1) + '</td>' +
+        '<td><strong style="color:var(--text-main);">' + escapeHtml(row.dateDisplay) + '</strong>' + todayBadge + '</td>' +
+        '<td>Rp ' + formatRupiah(row.target) + '</td>' +
+        '<td>' + actualCellHtml + '</td>' +
+        '<td>' + trxCellHtml + '</td>' +
+        '<td>' +
+          '<div class="sales-area-bar-wrap" style="height:8px;" title="' + (row.hasInput ? row.pct + '%' : 'Belum Lapor') + '">' +
+            '<div class="sales-area-bar-fill" style="width:' + barFillWidth + '%; background:' + barColor + ';"></div>' +
+          '</div>' +
+        '</td>' +
+        '<td><strong>' + (row.hasInput ? (row.pct + '%') : '-') + '</strong></td>' +
+        '<td>' + gapCellHtml + '</td>' +
+        '<td style="text-align:center;">' + statusBadge + '</td>' +
+        '<td style="text-align:center;">' +
+          '<button type="button" class="btn-action-edit" onclick="openEditSalesModalForBranch(\'' + spvCabId + '\', \'' + row.dateIso + '\')" title="Input / Koreksi Sales ' + escapeHtml(row.dateDisplay) + '">' + getPanoramaSvgIcon('edit', 13) + '</button>' +
+        '</td>';
+
+      tbody.appendChild(tr);
+    });
+  }
+}
+
+/**
+ * ================================================================================
  * 2. RENDER SALES PERFORMANCE (PER-AREA AGGREGATE & DRILLDOWN)
  * ================================================================================
  */
@@ -26579,6 +26896,14 @@ function renderSalesView() {
 
   const user = window.PANORAMA_STATE.user;
   const isCOO = (user && (user.role === 'COO' || user.role === 'MASTER' || user.areaId === 'ALL'));
+  const roleInfo = typeof getUserRoleInfo === 'function' ? getUserRoleInfo(user) : { isSPV: user && user.role === 'SPV' };
+  const isSPV = roleInfo.isSPV;
+
+  // Visibilitas Tombol Set Target & Collect Sales
+  const btnSetTarget = document.querySelector('.btn-set-target');
+  if (btnSetTarget) {
+    btnSetTarget.style.display = isSPV ? 'none' : 'inline-flex';
+  }
 
   // Visibilitas Tombol Collect Sales & Analisa (Excel): Khusus Master Akun / COO
   const btnExportSalesInView = document.getElementById('btnExportSalesAnalysis');
@@ -26590,6 +26915,12 @@ function renderSalesView() {
   const areaFilter = isCOO ? (window.PANORAMA_STATE.filters.areaId || 'ALL') : (user ? user.areaId : 'AREA-01');
   const period = window.PANORAMA_STATE.filters.period || 'today';
   const calMonth = window.PANORAMA_STATE.filters.calendarMonth || 'CURRENT';
+
+  // JALUR KHUSUS SPV: Tampilkan breakdown harian tanggal kalender per bulan untuk 1 toko binaannya
+  if (isSPV) {
+    renderSpvDailySalesView(d, user, calMonth, period);
+    return;
+  }
   const isHistoricalMonth = (calMonth && calMonth !== 'CURRENT');
   const activeDaysInMonth = getDaysInMonth(isHistoricalMonth ? calMonth : 'CURRENT');
 
