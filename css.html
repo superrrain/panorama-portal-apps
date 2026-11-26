@@ -187,6 +187,7 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
+    overflow-x: clip;
     position: relative;
   }
 
@@ -199,6 +200,7 @@
     position: relative;
     background-color: var(--bg-app);
     overflow-x: hidden;
+    overflow-x: clip;
   }
 
   /* ================================================================================
@@ -4401,7 +4403,7 @@
     display: none;
     align-items: center;
     justify-content: center;
-    padding: 16px;
+    padding: max(16px, env(safe-area-inset-top, 16px)) max(16px, env(safe-area-inset-right, 16px)) max(16px, env(safe-area-inset-bottom, 16px)) max(16px, env(safe-area-inset-left, 16px));
     transition: opacity 0.42s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
@@ -4616,7 +4618,7 @@
 
   @media (max-width: 768px) {
     .toast-container {
-      bottom: 75px;
+      bottom: calc(75px + env(safe-area-inset-bottom, 0px));
       left: 50%;
       right: auto;
       transform: translateX(-50%);
@@ -4910,6 +4912,7 @@
     transition: transform 0.48s cubic-bezier(0.22, 1, 0.36, 1);
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
   .mobile-sidebar.open {
@@ -4917,13 +4920,14 @@
   }
 
   .mobile-sidebar-header {
-    height: 56px;
-    padding: 0 16px;
+    height: calc(56px + env(safe-area-inset-top, 0px));
+    padding: env(safe-area-inset-top, 0px) 16px 0 16px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     border-bottom: 1px solid var(--border-subtle);
     flex-shrink: 0;
+    box-sizing: border-box;
   }
 
   .mobile-sidebar-close {
@@ -5099,7 +5103,8 @@
       max-width: 100vw;
       min-width: 0;
       overflow-x: hidden;
-      padding-top: 54px;
+      overflow-x: clip;
+      padding-top: calc(54px + env(safe-area-inset-top, 0px));
       padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 16px) + 24px);
     }
 
@@ -5109,7 +5114,23 @@
       left: 0;
       right: 0;
       z-index: 95;
-      height: 54px;
+      padding-top: env(safe-area-inset-top, 0px);
+      height: calc(54px + env(safe-area-inset-top, 0px));
+      box-sizing: border-box;
+      background: var(--bg-surface, #FFFFFF);
+      overflow: visible;
+    }
+
+    .top-bar::before {
+      content: "";
+      position: absolute;
+      top: -120px;
+      left: 0;
+      right: 0;
+      height: 120px;
+      background: var(--bg-surface, #FFFFFF);
+      pointer-events: none;
+      z-index: -1;
     }
 
     .bottom-nav {
@@ -5155,18 +5176,16 @@
       display: none !important;
     }
 
-    /* Top Bar Header Mobile: Anti-Tabrakan, Lapang & Presisi Membeku */
+    /* Top Bar Header Mobile: Anti-Tabrakan, Lapang & Presisi Membeku (iPhone Safe-Area Aware) */
     .top-bar {
-      height: 54px;
-      padding: 0 12px;
+      height: calc(54px + env(safe-area-inset-top, 0px));
+      padding: env(safe-area-inset-top, 0px) max(12px, env(safe-area-inset-right, 12px)) 0 max(12px, env(safe-area-inset-left, 12px));
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
       z-index: 95;
-      background: rgba(255, 255, 255, 0.96);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
+      background: var(--bg-surface, #FFFFFF);
       border-bottom: 1px solid var(--border-color);
       box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
       display: flex;
@@ -5176,7 +5195,7 @@
       box-sizing: border-box;
       width: 100%;
       max-width: 100vw;
-      overflow: hidden;
+      overflow: visible;
     }
 
     .top-bar-left {
@@ -5991,7 +6010,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 16px;
+    padding: max(16px, env(safe-area-inset-top, 16px)) max(16px, env(safe-area-inset-right, 16px)) max(16px, env(safe-area-inset-bottom, 16px)) max(16px, env(safe-area-inset-left, 16px));
     box-sizing: border-box;
     opacity: 1;
     transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.4s ease;
@@ -12450,10 +12469,13 @@
   :is(html[data-theme="dark"], html.theme-dark) .mobile-sidebar { background-color: #151E1A; }
   :is(html[data-theme="dark"], html.theme-dark) .bottom-nav { background-color: #151E1A; }
   @media (max-width: 900px) {
-    :is(html[data-theme="dark"], html.theme-dark) .bottom-nav { background: rgba(21,30,26,0.94); }
+    :is(html[data-theme="dark"], html.theme-dark) .bottom-nav { background: rgba(21,30,26,0.96); }
+    :is(html[data-theme="dark"], html.theme-dark) .top-bar,
+    :is(html[data-theme="dark"], html.theme-dark) .top-bar::before { background: #151E1A !important; }
   }
   @media (max-width: 768px) {
-    :is(html[data-theme="dark"], html.theme-dark) .top-bar { background: rgba(21,30,26,0.96); }
+    :is(html[data-theme="dark"], html.theme-dark) .top-bar,
+    :is(html[data-theme="dark"], html.theme-dark) .top-bar::before { background: #151E1A !important; }
   }
   :is(html[data-theme="dark"], html.theme-dark) .btn-logout { color: #F87171 !important; }
   :is(html[data-theme="dark"], html.theme-dark) .login-entrance-box { background-color: #151E1A; }

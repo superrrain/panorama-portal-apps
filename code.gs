@@ -72,14 +72,14 @@ function doGet(e) {
       template.queryParams = (e && e.parameter) ? e.parameter : {};
       return template.evaluate()
         .setTitle('PANORAMA - Operations Portal')
-        .addMetaTag('viewport', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no')
+        .addMetaTag('viewport', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover')
         .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
     } catch (eTmpl) {
       console.warn('Gagal mengevaluasi template scriptlet: ' + candidateTemplates[i] + ' (' + eTmpl.message + '). Mencoba sajikan via HtmlOutput statis...');
       try {
         return HtmlService.createHtmlOutputFromFile(candidateTemplates[i])
           .setTitle('PANORAMA - Operations Portal')
-          .addMetaTag('viewport', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no')
+          .addMetaTag('viewport', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover')
           .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
       } catch (eStatic) {
         console.warn('Gagal membaca output statis: ' + candidateTemplates[i] + ' (' + eStatic.message + ')');

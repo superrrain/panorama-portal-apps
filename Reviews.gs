@@ -483,7 +483,7 @@ function renderCustomerReviewPage(params) {
     '<html lang="id">\n' +
     '<head>\n' +
     '  <meta charset="UTF-8">\n' +
-    '  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">\n' +
+    '  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">\n' +
     '  <meta http-equiv="refresh" content="0;url=' + targetRedirectUrl + '">\n' +
     '  <title>Membuka Survei Kepuasan - ' + namaCabang + '</title>\n' +
     '  <style>\n' +
@@ -509,7 +509,7 @@ function renderCustomerReviewPage(params) {
 
   return HtmlService.createHtmlOutput(html)
     .setTitle('Survei Kepuasan Pelanggan - ' + namaCabang)
-    .addMetaTag('viewport', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no')
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 

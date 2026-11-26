@@ -253,3 +253,47 @@ Pengguna melaporkan bug tampilan pada halaman form ulasan pelanggan (`?page=ulas
 2. ✅ **Verifikasi Visual Browser Nyata (Microsoft Edge Headless)**:
    - **Desktop (`1366x768`) Light & Dark Mode**: Kartu tampil presisi di tengah layar (`max-width: 460px`), nol overflow horizontal, kontras teks dan tombol tajam.
    - **Mobile (`375x812`) Light & Dark Mode**: Tata letak responsif 1 kolom, chip dan input berukuran nyaman disentuh (`>= 44px`), tidak ada elemen terpotong.
+
+---
+
+# 📋 PAPAN REVISI & TRACKING PERBAIKAN ZETTBOT (v5.9.9)
+**Proyek**: PANORAMA Executive Operations Portal  
+**Lead Architect**: ZettBOT by Zettbos  
+**Tanggal**: 26 November 2026  
+**Status**: 🟢 SELESAI & TERTUJI PENUH (iPhone Dynamic Island / Notch Safe-Area Fix)  
+
+---
+
+## 🎯 Latar Belakang & Analisis Masalah
+Pengguna melaporkan kendala tampilan saat halaman digulir (*scroll*) pada iPhone PWA (`media_1795677619560_038e373b.jpg`):
+> *"tampilan di iphone bug di scrool malah tembus bagian atas nya"*  
+(Lampiran screenshot: Konten halaman yang di-scroll muncul menembus area atas di belakang *Dynamic Island* / status bar di atas `.top-bar`).
+
+### Akar Masalah (Root Causes):
+1. **Tidak Ada `viewport-fit=cover` pada `<meta name="viewport">`**:
+   - Pada [index_modular.html](file:///c:/Users/Lenovo/.gemini/antigravity-ide/DASHBOARD%20HEAD%20OPS/index_modular.html#L6) (serta [code.gs](file:///c:/Users/Lenovo/.gemini/antigravity-ide/DASHBOARD%20HEAD%20OPS/code.gs#L75) dan [Reviews.gs](file:///c:/Users/Lenovo/.gemini/antigravity-ide/DASHBOARD%20HEAD%20OPS/Reviews.gs#L486)), meta viewport belum menyertakan `viewport-fit=cover`.
+   - Bersama `<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">`, WebKit iOS mengunci `.top-bar` (`position: fixed; top: 0`) di bawah area *Dynamic Island* (`y ≈ 59px`), sementara area status bar di atasnya dibiarkan transparan sehingga konten yang digulir ke atas terlihat tembus tepat di belakang status bar iPhone.
+2. **Header `.top-bar`, `.main-content`, & Drawer Belum Memperhitungkan `env(safe-area-inset-top)`**:
+   - Hanya `.bottom-nav` yang memakai `env(safe-area-inset-bottom)`, sedangkan `.top-bar` (`54px`) dan `padding-top` `.main-content` belum menyertakan `env(safe-area-inset-top, 0px)`.
+3. **`overflow-x: hidden` Ganda pada `html, body` & `overflow: hidden` pada `.top-bar`**:
+   - Pada iOS WebKit, `overflow-x: hidden` di `html` dan `body` dapat memicu perilaku kontainer scroll terpisah pada elemen `fixed`, dan `overflow: hidden` pada `.top-bar` memblokir perisai penutup area atas (*safe-area shield*).
+
+---
+
+## 🛠️ Solusi Rekayasa & Implementasi (v5.9.9)
+
+1. **Aktifkan Edge-to-Edge Viewport (`viewport-fit=cover`)**:
+   - Menambahkan `viewport-fit=cover` pada meta viewport di [index_modular.html](file:///c:/Users/Lenovo/.gemini/antigravity-ide/DASHBOARD%20HEAD%20OPS/index_modular.html#L6), [code.gs](file:///c:/Users/Lenovo/.gemini/antigravity-ide/DASHBOARD%20HEAD%20OPS/code.gs#L75-L82), dan [Reviews.gs](file:///c:/Users/Lenovo/.gemini/antigravity-ide/DASHBOARD%20HEAD%20OPS/Reviews.gs#L486-L512) sehingga `top: 0` menempel hingga tepi fisik atas layar iPhone dan `env(safe-area-inset-top)` aktif.
+2. **Header `.top-bar`, `.main-content`, & `.mobile-sidebar` Safe-Area ([css.html](file:///c:/Users/Lenovo/.gemini/antigravity-ide/DASHBOARD%20HEAD%20OPS/css.html))**:
+   - Memperbarui `.top-bar` (`@media (max-width: 900px)` dan `768px`) dengan:
+     - `padding-top: env(safe-area-inset-top, 0px)` dan `height: calc(54px + env(safe-area-inset-top, 0px))`.
+     - Latar belakang solid (`var(--bg-surface, #FFFFFF)` untuk Light Mode, `#151E1A` untuk Dark Mode).
+     - Pseudo-elemen perisai `.top-bar::before` (`top: -120px; height: 120px;`) sebagai pengaman tambahan agar konten *scroll* atau *overscroll bounce* tidak pernah menembus area atas maupun pada bookmark PWA cache lama / iframe.
+   - Menyelaraskan `padding-top: calc(54px + env(safe-area-inset-top, 0px))` pada `.main-content`, safe-area pada `.mobile-sidebar-header`, `.modal-backdrop`, `.login-entrance-overlay`, dan `.toast-container`.
+   - Menambahkan `overflow-x: clip` pada `html, body`, `.app-wrapper`, dan `.main-content` mobile untuk menjaga perilaku root *scrolling* iOS tetap stabil.
+
+---
+
+## 🚦 Status Verifikasi (v5.9.9):
+1. ✅ **Sinkronisasi Bundle**: Seluruh file bundle ([index.html](file:///c:/Users/Lenovo/.gemini/antigravity-ide/DASHBOARD%20HEAD%20OPS/index.html), [app.html](file:///c:/Users/Lenovo/.gemini/antigravity-ide/DASHBOARD%20HEAD%20OPS/app.html), [PANORAMA_VERCEL/index.html](file:///c:/Users/Lenovo/.gemini/antigravity-ide/DASHBOARD%20HEAD%20OPS/PANORAMA_VERCEL/index.html), [PANORAMA_VERCEL/app.html](file:///c:/Users/Lenovo/.gemini/antigravity-ide/DASHBOARD%20HEAD%20OPS/PANORAMA_VERCEL/app.html)) terkompilasi penuh melalui [build_bundles.js](file:///c:/Users/Lenovo/.gemini/antigravity-ide/DASHBOARD%20HEAD%20OPS/scratch/build_bundles.js).
+2. ✅ **Verifikasi Visual Scroll iPhone (`375x812`, Simulasi Dynamic Island `59px`)**: Diperiksa langsung pada mode Light dan Dark dalam posisi halaman ter-scroll ke bawah — area di atas maupun di belakang Dynamic Island tertutup solid oleh `.top-bar` dan nol kebocoran konten.
