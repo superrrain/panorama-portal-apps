@@ -1947,6 +1947,15 @@ const COL_CONFIG = { KEY: 0, VALUE: 1, KETERANGAN: 2 };
   * **Pop-Up Rincian Belanja Mingguan (`modalSpvEfisiensi`)**:
     - Klik kartu efisiensi oleh SPV membuka modal pop-up yang menyajikan mini KPI strip dan tabel riwayat belanja bahan per minggu kalender (Minggu 1 s/d Minggu 5).
     - Bersifat View-Only tanpa tombol mutasi untuk menjaga integritas data akuntansi.
+- **Isolasi Hierarki Jadwal Kerja SPV & Eliminasi Fitur Perubahan Jadwal (v5.9.0):**
+  * **Isolasi Total Jadwal Kerja SPV**:
+    - Jadwal kunjungan Area Manager (`VISIT_AREA` / `MA_TO_COO`) otomatis diblokir dari akun SPV, sehingga SPV hanya melihat jadwal kerja staf gerainya sendiri.
+    - Redaksi tombol aksi utama diselaraskan menjadi `+ Ajukan Jadwal`.
+    - Tombol `Tarik Absensi MA (Excel)` disembunyikan untuk akun SPV.
+  * **Penghapusan Fitur Perubahan Jadwal di Akun SPV**:
+    - Tab `Perubahan Jadwal` dan tombol pengajuan perubahan jadwal dihilangkan untuk akun SPV agar tampilan fokus dan bersih.
+  * **Kartu Deadline Presisi untuk SPV**:
+    - Judul disesuaikan menjadi `Target Pengumpulan Jadwal [Bulan Depan] ([Nama Gerai])` dan memeriksa status penyerahan jadwal gerai SPV yang sebenarnya.
 
   * **DILARANG KERAS MEMBUAT LINK / DEPLOYMENT ID BARU**: Dilarang menjalankan perintah bare `clasp deploy` tanpa flag `-i`, karena akan men-generate ID dan URL baru yang memutus koneksi Vercel dan seluruh klien.
   * **WAJIB REDEPLOY KE DEPLOYMENT ID RESMI**: Setiap deployment ke Apps Script WAJIB mere-deploy ke Deployment ID produksi aktif:

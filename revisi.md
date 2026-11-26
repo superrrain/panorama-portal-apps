@@ -1,31 +1,34 @@
-# 📋 PAPAN REVISI & TRACKING PERBAIKAN ZETTBOT (v5.8.9)
+# 📋 PAPAN REVISI & TRACKING PERBAIKAN ZETTBOT (v5.9.0)
 **Proyek**: PANORAMA Executive Operations Portal  
 **Lead Architect**: ZettBOT by Zettbos  
 **Tanggal**: 26 November 2026  
-**Status**: 🟢 SELESAI & TERTUJI PENUH (v5.8.9)  
+**Status**: 🟢 SELESAI & TERTUJI PENUH (v5.9.0)  
 
 ---
 
-## 🔍 Ringkasan Implementasi (Opsi 2: Kartu Efisiensi Toko + Pop-up Rincian Belanja Mingguan SPV)
+## 🔍 Ringkasan Implementasi (v5.9.0)
 
-### 1. Masalah & Solusi:
-* **Sebelumnya**: Kartu nomor 3 (`dashCardEfficiency`) disembunyikan untuk akun SPV, membuat urutan kartu melompat dari 2 ke 4 dan SPV tidak memiliki visibilitas terhadap kesehatan biaya belanja bahan gerainya.
-* **Sesudahnya**:
-  - Kartu nomor 3 aktif kembali di dashboard SPV dengan judul **`3. Efisiensi Gerai`**.
-  - Nilai dihitung khusus untuk gerai SPV:
-    * **Rasio HPP %**: Dihitung dari $\frac{\text{Total Belanja Bahan Baku Bulan Berjalan}}{\text{Realisasi Omzet Gerai Bulan Berjalan}} \times 100\%$.
-    * **Badge Status Dinamis**: 🟢 **Aman** ($\le 40\%$), 🟡 **Waspada** ($40.1\%-44\%$), 🔴 **Over Budget** ($> 44\%$).
-    * **Sub-Metrik**: Menampilkan ringkasan belanja bahan baku dan kas kecil gerai.
+### 1. Isolasi Total Jadwal Kerja Khusus SPV:
+* **Masalah Awal**: Jadwal kunjungan Area Manager (Eka Zuliyanti) bocor ke tabel SPV (Aulia Pratiwi) karena kueri hanya menyaring kesamaan wilayah (`AREA-08`).
+* **Solusi**:
+  - Jadwal berkategori `VISIT_AREA` dan level `MA_TO_COO` (kunjungan Area Manager ke gerai) otomatis dibuang dari akun SPV.
+  - Akun SPV hanya menampilkan jadwal kerja gerainya sendiri (`Momoyo Babakan Ciparay`).
+  - Redaksi tombol aksi utama diselaraskan menjadi: **`+ Ajukan Jadwal`** (bukan "Ajukan Roster").
+  - Tombol `Tarik Absensi MA (Excel)` otomatis disembunyikan untuk akun SPV.
 
-### 2. Pop-up Rincian Belanja Mingguan (`modalSpvEfisiensi`):
-* Saat SPV mengklik kartu nomor 3, sistem membuka modal pop-up yang menyajikan:
-  - Header: Nama gerai SPV dan bulan kalender aktif.
-  - Mini KPI Strip: Rasio HPP %, Total Belanja Bahan Baku vs Omzet Toko, dan Waste %.
-  - Tabel Rincian Belanja per Minggu Kalender (Minggu 1 s/d Minggu 5): Memuat tanggal transaksi, nominal belanja bahan (Rp), rasio HPP mingguan, kas toko, dan nama pelapor (Area Manager).
-  - Mode Penguncian Aman: Bersifat **View-Only** (tanpa tombol edit/hapus), menjaga data keuangan tetap valid.
+### 2. Penghapusan Fitur Perubahan Jadwal untuk SPV:
+* Tab **`Perubahan Jadwal`** pada sub-tab navigasi jadwal disembunyikan untuk akun SPV (`display: none`).
+* Tombol **`+ Ajukan Perubahan Jadwal`** disembunyikan untuk akun SPV.
+* Fungsi `switchJadwalSubTab()` dan `openModalAjukanPerubahanJadwal()` otomatis memproteksi agar SPV tidak dapat membuka formulir perubahan jadwal.
+
+### 3. Penyesuaian Kartu Deadline Khusus SPV:
+* Judul kartu deadline SPV: **`Target Pengumpulan Jadwal [Bulan Depan] (Momoyo Babakan Ciparay)`**.
+* Keterangan: *"Batas akhir penyerahan jadwal kerja toko ke Area Manager: Setiap Tanggal 15 Pukul 23:59 WIB."*
+* Indikator penyerahan hanya memeriksa apakah SPV gerai tersebut sudah mengunggah berkas jadwal tokonya, bukan memeriksa jadwal visit Area Manager.
+* Tombol aksi menggunakan redaksi **`+ Ajukan Jadwal`**.
 
 ---
 
 ## 🚀 Status Deployment:
-* Seluruh file modular (`index_modular.html`, `css.html`, `js.html`) telah dikompilasi ke bundle produksi (`index.html`, `app.html`, `PANORAMA_VERCEL/*`).
+* Seluruh file modular (`js.html`, `index_modular.html`) telah dikompilasi ke bundle produksi (`index.html`, `app.html`, `PANORAMA_VERCEL/*`).
 * Sintaks teruji 100% valid dan siap di-push ke GitHub untuk auto-deploy Vercel.

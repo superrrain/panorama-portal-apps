@@ -2044,12 +2044,12 @@ function updateUserProfileUI(user, isBackgroundSync) {
       btnAjukan.style.display = 'none';
     } else {
       btnAjukan.style.display = 'inline-flex';
-      btnAjukan.innerHTML = isSPV ? '<span>+</span> Ajukan Roster Staf' : '<span>+</span> Ajukan Jadwal Bulanan';
+      btnAjukan.innerHTML = isSPV ? '<span>+</span> Ajukan Jadwal' : '<span>+</span> Ajukan Jadwal Bulanan';
     }
   }
   const btnAjukanPerubahan = document.getElementById('btnAjukanPerubahanJadwal');
   if (btnAjukanPerubahan) {
-    if (isMasterOrCOO) {
+    if (isMasterOrCOO || isSPV) {
       btnAjukanPerubahan.style.display = 'none';
     } else {
       btnAjukanPerubahan.style.display = 'inline-flex';
@@ -2058,6 +2058,12 @@ function updateUserProfileUI(user, isBackgroundSync) {
   }
 
   // Sembunyikan modul dan aksi yang dibatasi khusus
+  const tabPerubahan = document.getElementById('tabBtnJadwalPerubahan');
+  if (tabPerubahan) tabPerubahan.style.display = isSPV ? 'none' : '';
+
+  const btnExportMa = document.getElementById('btnExportAbsensiMaExcel');
+  if (btnExportMa) btnExportMa.style.display = isSPV ? 'none' : 'inline-flex';
+
   const efNav = document.getElementById('sidebarNavEfisiensi');
   if (efNav) efNav.style.display = isSPV ? 'none' : '';
   const mobEfNav = document.getElementById('mobileNavEfisiensi');
@@ -11522,6 +11528,63 @@ function renderJadwalDeadlineCard() {
         </div>
       </div>
     `;
+  } else if (roleInfo.isSPV) {
+    // TAMPILAN KHUSUS SPV (Store Schedule Submission Tracker)
+    const myCabId = String(u.cabangId || '').toUpperCase();
+    const myName = String(u.namaLengkap || '').toLowerCase();
+    const myStoreSubmitted = allJadwal.some(j => {
+      const tp = String(j.tipe || '').trim().toUpperCase();
+      const lvl = String(j.level || '').trim().toUpperCase();
+      if (tp === 'VISIT_AREA' || lvl === 'MA_TO_COO') return false;
+      const jCab = String(j.cabangId || '').toUpperCase();
+      const jPengaju = String(j.pengaju || '').toLowerCase();
+      const matchCab = (myCabId && jCab === myCabId);
+      const matchPengaju = (myName && (jPengaju.includes(myName) || myName.includes(jPengaju)));
+      const p = String(j.periode || '');
+      const matchPeriode = p.includes(nextMonthName) || p.includes(targetPeriodeStr) ||
+                           (j.calendarMeta && j.calendarMeta.year === nextYear && j.calendarMeta.month === nextMonth);
+      return (matchCab || matchPengaju) && matchPeriode;
+    });
+
+    const storeDisplayName = u.namaCabang || u.cabangId || 'Gerai';
+
+    html = `
+      <div class="jadwal-deadline-header">
+        <div class="jadwal-deadline-title-wrap">
+          <div class="jadwal-deadline-icon"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg></div>
+          <div>
+            <div style="font-size:14px; font-weight:800; color:var(--forest-900);">Target Pengumpulan Jadwal ${nextMonthName} ${nextYear} (${storeDisplayName})</div>
+            <div style="font-size:11.5px; color:var(--text-muted); margin-top:2px;">
+              Batas akhir penyerahan jadwal kerja toko ke Area Manager: <strong>Setiap Tanggal ${deadlineDay} ${currentMonthName} Pukul 23:59 WIB</strong>.
+            </div>
+          </div>
+        </div>
+        <div>
+          ${myStoreSubmitted 
+            ? '<span class="jadwal-deadline-badge badge-ontime">✓ Jadwal Sudah Diserahkan</span>' 
+            : statusBadge}
+        </div>
+      </div>
+
+      <div class="jadwal-deadline-body">
+        <div style="font-size:12px; color:var(--text-body);">
+          ${myStoreSubmitted 
+            ? `<span style="color:#059669; font-weight:700;">✓ Terima kasih! Jadwal kerja gerai Anda untuk periode ${nextMonthName} ${nextYear} telah diajukan dan sedang dalam peninjauan Area Manager.</span>` 
+            : `<span style="color:${daysDiff < 0 ? '#DC2626' : '#D97706'}; font-weight:700;"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Anda belum menyerahkan jadwal kerja gerai untuk ${nextMonthName} ${nextYear}. Segera ajukan jadwal sebelum tanggal ${deadlineDay}!</span>`}
+        </div>
+        <div>
+          ${!myStoreSubmitted ? `
+            <button type="button" class="btn btn-primary" style="font-size:11.5px; padding:6px 14px;" onclick="openModalAjukanJadwal('ROSTER_CABANG')">
+              + Ajukan Jadwal
+            </button>
+          ` : `
+            <button type="button" class="btn btn-outline" style="font-size:11px; padding:5px 10px;" onclick="openModalAjukanJadwal('ROSTER_CABANG')">
+              Perbarui / Kirim Ulang Jadwal
+            </button>
+          `}
+        </div>
+      </div>
+    `;
   } else {
     // TAMPILAN KHUSUS AREA MANAGER (Personal Responsibility Card)
     const myAreaSubmitted = submittedAreaIds.has(u.areaId);
@@ -11681,18 +11744,25 @@ function renderJadwalView() {
       btnAjukan.style.display = 'none';
     } else {
       btnAjukan.style.display = 'inline-flex';
-      btnAjukan.innerHTML = roleInfo.isSPV ? '<span>+</span> Ajukan Roster Staf' : '<span>+</span> Ajukan Jadwal Bulanan';
+      btnAjukan.innerHTML = roleInfo.isSPV ? '<span>+</span> Ajukan Jadwal' : '<span>+</span> Ajukan Jadwal Bulanan';
     }
   }
   const btnAjukanPerubahan = document.getElementById('btnAjukanPerubahanJadwal');
   if (btnAjukanPerubahan) {
-    if (isMasterOrCOO) {
+    if (isMasterOrCOO || roleInfo.isSPV) {
       btnAjukanPerubahan.style.display = 'none';
     } else {
       btnAjukanPerubahan.style.display = 'inline-flex';
       btnAjukanPerubahan.innerHTML = roleInfo.isManager ? '<span>+</span> Ajukan Perubahan Visit' : '<span>+</span> Ajukan Perubahan Jadwal';
     }
   }
+
+  // Sembunyikan subtab Perubahan Jadwal & Tombol Tarik Absensi MA untuk SPV
+  const tabPerubahan = document.getElementById('tabBtnJadwalPerubahan');
+  if (tabPerubahan) tabPerubahan.style.display = roleInfo.isSPV ? 'none' : '';
+
+  const btnExportMa = document.getElementById('btnExportAbsensiMaExcel');
+  if (btnExportMa) btnExportMa.style.display = roleInfo.isSPV ? 'none' : 'inline-flex';
 
   // Strict Hierarchical Data Isolation check + Siklus Bulanan (Jadwal yang diupload bulan lalu dihapus dari tampilan bulan ini):
   let list = filterJadwalByActiveMonth(d.jadwal || []);
@@ -11702,6 +11772,22 @@ function renderJadwalView() {
       const st = String(j.status || '').trim().toUpperCase();
       const tp = String(j.tipe || '').trim().toUpperCase();
       return lvl === 'MA_TO_COO' || st === 'MENUNGGU_COO' || tp === 'VISIT_AREA' || j.areaId === 'ALL';
+    });
+  } else if (roleInfo.isSPV) {
+    // KHUSUS SPV: Blokir jadwal visit Area Manager (VISIT_AREA / MA_TO_COO)
+    // Hanya tampilkan jadwal gerai SPV sendiri
+    const myCabId = String(u.cabangId || '').toUpperCase();
+    const myName = String(u.namaLengkap || '').toLowerCase();
+    list = list.filter(j => {
+      const tp = String(j.tipe || '').trim().toUpperCase();
+      const lvl = String(j.level || '').trim().toUpperCase();
+      if (tp === 'VISIT_AREA' || lvl === 'MA_TO_COO') return false;
+
+      const jCab = String(j.cabangId || '').toUpperCase();
+      const jPengaju = String(j.pengaju || '').toLowerCase();
+      if (myCabId && jCab && jCab === myCabId) return true;
+      if (myName && (jPengaju.includes(myName) || myName.includes(jPengaju))) return true;
+      return (lvl === 'SPV_TO_MA' && String(j.areaId || '').trim() === String(targetArea || '').trim());
     });
   } else {
     list = list.filter(j => String(j.areaId || '').trim() === String(targetArea || '').trim());
@@ -11742,7 +11828,11 @@ function renderJadwalView() {
   const tbody = document.getElementById('jadwalTableBody');
   if (tbody) {
     if (filtered.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 35px; font-size: 13px;">Tidak ada rencana jadwal kerja yang cocok dengan filter atau pencarian.</td></tr>';
+      if (roleInfo.isSPV) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 35px; font-size: 13px;">Belum ada rencana jadwal kerja yang diajukan untuk gerai Anda.<div style="margin-top: 10px;"><button type="button" class="btn btn-primary" onclick="openModalAjukanJadwal(\'ROSTER_CABANG\')" style="font-size: 12px; padding: 6px 14px;">+ Ajukan Jadwal</button></div></td></tr>';
+      } else {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 35px; font-size: 13px;">Tidak ada rencana jadwal kerja yang cocok dengan filter atau pencarian.</td></tr>';
+      }
     } else {
       let rowsHtml = '';
       filtered.forEach(j => {
@@ -11853,7 +11943,11 @@ function renderJadwalView() {
   const mobileContainer = document.getElementById('jadwalMobileCards');
   if (mobileContainer) {
     if (filtered.length === 0) {
-      mobileContainer.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 30px; font-size: 13px;">Tidak ada rencana jadwal kerja pada kategori ini.</div>';
+      if (roleInfo.isSPV) {
+        mobileContainer.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 30px; font-size: 13px;">Belum ada rencana jadwal kerja yang diajukan untuk gerai Anda.<div style="margin-top: 10px;"><button type="button" class="btn btn-primary" onclick="openModalAjukanJadwal(\'ROSTER_CABANG\')" style="font-size: 12px; padding: 6px 14px;">+ Ajukan Jadwal</button></div></div>';
+      } else {
+        mobileContainer.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 30px; font-size: 13px;">Tidak ada rencana jadwal kerja pada kategori ini.</div>';
+      }
     } else {
       let cardsHtml = '';
       filtered.forEach(j => {
@@ -13083,6 +13177,10 @@ function switchJadwalSubTab(tabName) {
   const roleInfo = getUserRoleInfo(u);
   const isMasterOrCOO = (roleInfo.isMaster || roleInfo.isCOO || (u && u.areaId === 'ALL'));
 
+  if (roleInfo.isSPV && tabName === 'perubahan') {
+    tabName = 'roster';
+  }
+
   if (tabName === 'perubahan') {
     if (btnRoster) btnRoster.classList.remove('active');
     if (btnKendala) btnKendala.classList.remove('active');
@@ -14069,6 +14167,12 @@ function openModalAjukanPerubahanJadwal() {
   // Master COO & Akun Tamu tidak mengajukan jadwal / visit
   if (isMasterOrGuest) {
     showToast(roleInfo.isGuest ? 'Akses Dibatasi: Akun Tamu hanya memiliki izin pantau (View-Only).' : 'Master COO bertindak sebagai approver dan tidak mengajukan perubahan jadwal.', 'info');
+    return;
+  }
+
+  // Khusus Akun SPV: Fitur Perubahan Jadwal Ditiadakan
+  if (roleInfo.isSPV) {
+    showToast('Akses Dibatasi: Fitur permohonan perubahan jadwal tidak tersedia untuk akun SPV.', 'warning');
     return;
   }
 
