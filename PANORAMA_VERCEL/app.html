@@ -30735,6 +30735,20 @@ function renderSalesDailyBreakdown(selectedCId) {
   const d = window.PANORAMA_STATE.data;
   if (!d) return;
 
+  const breakdownSec = document.getElementById('salesDailyBreakdownSection');
+  const user = window.PANORAMA_STATE.user || {};
+  const roleInfo = typeof getUserRoleInfo === 'function' ? getUserRoleInfo(user) : { isSPV: user && user.role === 'SPV' };
+
+  // Khusus Akun SPV: Sembunyikan section rincian harian di dalam modal input sales (v5.9.2)
+  if (breakdownSec) {
+    if (roleInfo.isSPV) {
+      breakdownSec.style.display = 'none';
+      return;
+    } else {
+      breakdownSec.style.display = '';
+    }
+  }
+
   const selectCabang = document.getElementById('salesInputCabang');
   const targetCId = selectedCId || (selectCabang ? selectCabang.value : '');
   const cbg = d.cabang ? d.cabang.find(c => c.cabangId === targetCId) : null;
@@ -30951,6 +30965,12 @@ function checkExistingSalesData(isExplicitEdit) {
  */
 function openEditSalesModalForBranch(cabangId, tanggal) {
   openInputSalesModal();
+  const user = window.PANORAMA_STATE.user || {};
+  const roleInfo = typeof getUserRoleInfo === 'function' ? getUserRoleInfo(user) : { isSPV: user && user.role === 'SPV' };
+  const breakdownSec = document.getElementById('salesDailyBreakdownSection');
+  if (breakdownSec) {
+    breakdownSec.style.display = roleInfo.isSPV ? 'none' : '';
+  }
   const selectCabang = document.getElementById('salesInputCabang');
   if (selectCabang && cabangId) {
     selectCabang.value = cabangId;
@@ -31039,6 +31059,12 @@ function populateRoleCabangSelect(selectEl, selectedCabangId) {
 
 function openInputSalesModal() {
   const d = window.PANORAMA_STATE.data;
+  const user = window.PANORAMA_STATE.user || {};
+  const roleInfo = typeof getUserRoleInfo === 'function' ? getUserRoleInfo(user) : { isSPV: user && user.role === 'SPV' };
+  const breakdownSec = document.getElementById('salesDailyBreakdownSection');
+  if (breakdownSec) {
+    breakdownSec.style.display = roleInfo.isSPV ? 'none' : '';
+  }
   const selectCabang = document.getElementById('salesInputCabang');
   if (selectCabang) {
     populateRoleCabangSelect(selectCabang);

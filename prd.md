@@ -1963,6 +1963,11 @@ const COL_CONFIG = { KEY: 0, VALUE: 1, KETERANGAN: 2 };
     - Strip 4 kartu KPI menyajikan total akumulasi omzet riil bulan berjalan, target bulanan gerai, capaian %, dan konsistensi jumlah hari pelaporan.
     - Tabel desktop dan kartu mobile menyajikan rincian per tanggal (Target Harian, Realisasi Omzet, Total Struk, Capaian %, Selisih Gap, Status Capaian) dilengkapi tombol aksi `[Koreksi / Input]` per tanggal yang langsung membuka form input sales untuk tanggal tersebut.
     - Baris tanggal hari ini (`Hari Ini ★`) diberikan highlight visual hijau lembut. Mode tampilan Area Manager dan COO nasional dipertahankan 100% tanpa regresi.
+- **Pembersihan Modal Input Sales Khusus SPV (v5.9.2):**
+  * **Eliminasi Sub-Section Rincian Riwayat Harian di Pop-Up Modal**:
+    - Bagian `#salesDailyBreakdownSection` (*RINCIAN SALES HARIAN BULAN INI*) di dalam formulir pop-up `#modalInputSales` otomatis disembunyikan (`display: none`) untuk akun SPV.
+    - Mencegah redundansi visual karena SPV sudah memiliki tabel kalender harian lengkap di layar utama, sehingga formulir modal input sales SPV menjadi ringkas, fokus, dan nyaman digunakan di ponsel maupun laptop.
+    - Area Manager dan COO tetap memiliki opsi melihat tabel rincian saat membantu menginputkan penjualan cabang binaan.
 
   * **DILARANG KERAS MEMBUAT LINK / DEPLOYMENT ID BARU**: Dilarang menjalankan perintah bare `clasp deploy` tanpa flag `-i`, karena akan men-generate ID dan URL baru yang memutus koneksi Vercel dan seluruh klien.
   * **WAJIB REDEPLOY KE DEPLOYMENT ID RESMI**: Setiap deployment ke Apps Script WAJIB mere-deploy ke Deployment ID produksi aktif:
