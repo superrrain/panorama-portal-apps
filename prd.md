@@ -132,6 +132,12 @@ flowchart TD
 | `8` (I) | `TotalTransaksi` | Number | Jumlah bill / struk (`245`) |
 | `9` (J) | `CreatedBy` | String | User penginput (`kenny`) |
 | `10` (K) | `CreatedAt` | String | Timestamp ISO |
+| `11` (L) | `SalesOffline` | Number | Omzet Offline kasir toko / QRIS / EDC / e-wallet toko (Rp 2.145.000) |
+| `12` (M) | `SalesGrabFood` | Number | Omzet platform GrabFood (Rp 703.110) |
+| `13` (N) | `SalesShopeeFood` | Number | Omzet platform ShopeeFood / Shopee Integrasi (Rp 625.400) |
+| `14` (O) | `SalesGoFood` | Number | Omzet platform GoFood / Gojek POS (Rp 172.500) |
+| `15` (P) | `SalesTikTok` | Number | Omzet TikTok / TikTok Go (Rp 938.200) |
+| `16` (Q) | `SalesQpon` | Number | Omzet voucher Qpon (Rp 395.000) |
 
 ### Tab 4: `DataInsiden` (Kasus Operasional, SLA & Bukti Drive)
 | Indeks | Nama Kolom | Tipe Data | Keterangan & Contoh |

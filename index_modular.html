@@ -1492,6 +1492,10 @@
                   <div class="sales-hero-stat-val" id="metricSalesAvgStore">Rp 0</div>
                 </div>
               </div>
+
+              <!-- Ringkasan Mix Channel Penjualan (Offline vs Delivery Online) -->
+              <div id="dashHeroChannelMixContainer" class="dash-channel-mix-wrap" style="display:none;"
+                onclick="event.stopPropagation();"></div>
             </div>
 
             <!-- Sisi Kanan: Grafik Analitik Sales Interaktif (Donezo Capsule Bar Chart) -->
@@ -1831,6 +1835,9 @@
             <div class="sales-kpi-summary-grid" id="salesKpiSummaryGrid">
               <!-- Rendered via JS -->
             </div>
+
+            <!-- Kartu Agregat Komposisi Channel (Offline, GrabFood, ShopeeFood, GoFood, TikTok, Qpon) -->
+            <div class="sales-channel-mix-card" id="salesChannelMixContainer" style="display:none;"></div>
 
             <!-- Container Kartu Eksekutif Per-Area / Per-Cabang (Khusus Mobile) -->
             <div class="sales-area-cards-container" id="salesAreaCardsContainer">
@@ -3853,8 +3860,8 @@
             </div>
             <span class="ai-scanner-title">Scan Struk / Screenshot POS</span>
           </div>
-          <p class="ai-scanner-desc">Foto struk kasir atau upload screenshot closing POS (Moka, Pawoon, ESB,
-            Grab/Gojek). AI akan membaca total penjualan & jumlah transaksi secara otomatis.</p>
+          <p class="ai-scanner-desc">Foto layar POS atau struk closing (Momoyo, Wedrink, Tomoro, Mixue, Tianlala).
+            AI otomatis memisahkan omzet Offline, GrabFood, ShopeeFood, GoFood, TikTok & Qpon — dukung hingga 3 foto scroll.</p>
 
           <!-- Tombol Trigger Upload & Kamera -->
           <div class="ai-scanner-actions" id="aiScannerActionButtons">
@@ -3864,38 +3871,47 @@
                 <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
                 <circle cx="12" cy="13" r="4"></circle>
               </svg>
-              <span>Foto Struk (Kamera)</span>
+              <span>Foto Layar POS</span>
             </label>
             <input type="file" id="salesReceiptCameraInput" accept="image/*" capture="environment" style="display:none;"
-              onchange="handleSalesReceiptUpload(this)">
+              onchange="handleSalesReceiptUpload(this, false)">
 
-            <label class="btn-ai-scan btn-ai-file" for="salesReceiptFileInput" title="Pilih dari Galeri / Screenshot">
+            <label class="btn-ai-scan btn-ai-file" for="salesReceiptFileInput" title="Pilih 1–3 Foto dari Galeri">
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                 <circle cx="8.5" cy="8.5" r="1.5"></circle>
                 <polyline points="21 15 16 10 5 21"></polyline>
               </svg>
-              <span>Screenshot / Galeri</span>
+              <span>Pilih 1–3 Foto Galeri</span>
             </label>
-            <input type="file" id="salesReceiptFileInput" accept="image/*" style="display:none;"
-              onchange="handleSalesReceiptUpload(this)">
+            <input type="file" id="salesReceiptFileInput" accept="image/*" multiple style="display:none;"
+              onchange="handleSalesReceiptUpload(this, false)">
           </div>
 
           <!-- Preview & Animasi Laser Scanning -->
           <div class="ai-scanner-preview-box" id="aiScannerPreviewBox" style="display:none;">
-            <div class="ai-scanner-thumb-wrap">
-              <img id="aiScannerImageThumb" src="" alt="Preview Struk">
-              <div class="ai-scanline" id="aiScannerScanline"></div>
+            <div style="display:flex; flex-direction:column; gap:6px; align-items:center;">
+              <div class="ai-scanner-thumb-wrap">
+                <img id="aiScannerImageThumb" src="" alt="Preview Struk">
+                <div class="ai-scanline" id="aiScannerScanline"></div>
+              </div>
+              <div class="ai-scanner-multi-strip" id="aiScannerMultiThumbStrip" style="display:none;"></div>
             </div>
             <div class="ai-scanner-status-wrap">
               <div class="ai-scanner-status-text" id="aiScannerStatusText">
                 <span class="ai-spinner"></span>
-                <span>AI sedang membaca data struk...</span>
+                <span>AI sedang membaca data POS...</span>
               </div>
-              <div class="ai-scanner-meta" id="aiScannerMeta">Memproses gambar & mendeteksi angka...</div>
-              <div class="ai-scanner-btns">
-                <button type="button" class="btn-ai-reset" onclick="resetSalesAiScanner()">✕ Hapus / Ganti Foto</button>
+              <div class="ai-scanner-meta" id="aiScannerMeta">Memproses gambar & memetakan 6 channel...</div>
+              <div class="ai-scanner-btns" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;">
+                <label id="btnAiAddNextPhoto" for="salesReceiptAppendInput" class="btn-ai-add-more"
+                  style="display:none;" title="Tambahkan foto bagian bawah POS yang di-scroll">
+                  + Foto Lanjutan (<span id="aiPhotoCountBadge">1</span>/3)
+                </label>
+                <input type="file" id="salesReceiptAppendInput" accept="image/*" multiple style="display:none;"
+                  onchange="handleSalesReceiptUpload(this, true)">
+                <button type="button" class="btn-ai-reset" onclick="resetSalesAiScanner()">✕ Hapus / Ulang</button>
               </div>
             </div>
           </div>
@@ -3956,17 +3972,63 @@
           <input type="number" class="form-input" id="inputSalesTarget" placeholder="Contoh: 5000000"
             autocomplete="off">
         </div>
+        <!-- BREAKDOWN SALES 6 CHANNEL (OTOMATIS DIJUMLAHKAN) -->
+        <div class="sales-channel-input-box" id="salesChannelInputSection">
+          <div class="sales-channel-box-header">
+            <span class="sales-channel-box-title">Rincian Omzet per Channel (Rp)</span>
+            <span class="sales-channel-ratio-pill" id="salesChannelRatioPill">Belum diisi</span>
+          </div>
+          <div class="sales-channel-input-grid">
+            <div class="sales-ch-field" data-channel="offline">
+              <label for="inputSalesOffline"><span class="ch-dot ch-dot-offline"></span>Omset Offline (Kasir/QRIS)</label>
+              <input type="number" min="0" step="any" class="form-input ch-num-input" id="inputSalesOffline"
+                placeholder="0" autocomplete="off" oninput="recalculateSalesChannelInputs()">
+            </div>
+            <div class="sales-ch-field" data-channel="grabfood">
+              <label for="inputSalesGrabFood"><span class="ch-dot ch-dot-grab"></span>GrabFood</label>
+              <input type="number" min="0" step="any" class="form-input ch-num-input" id="inputSalesGrabFood"
+                placeholder="0" autocomplete="off" oninput="recalculateSalesChannelInputs()">
+            </div>
+            <div class="sales-ch-field" data-channel="shopeefood">
+              <label for="inputSalesShopeeFood"><span class="ch-dot ch-dot-shopee"></span>ShopeeFood</label>
+              <input type="number" min="0" step="any" class="form-input ch-num-input" id="inputSalesShopeeFood"
+                placeholder="0" autocomplete="off" oninput="recalculateSalesChannelInputs()">
+            </div>
+            <div class="sales-ch-field" data-channel="gofood">
+              <label for="inputSalesGoFood"><span class="ch-dot ch-dot-gofood"></span>GoFood</label>
+              <input type="number" min="0" step="any" class="form-input ch-num-input" id="inputSalesGoFood"
+                placeholder="0" autocomplete="off" oninput="recalculateSalesChannelInputs()">
+            </div>
+            <div class="sales-ch-field" data-channel="tiktok">
+              <label for="inputSalesTikTok"><span class="ch-dot ch-dot-tiktok"></span>TikTok / TikTok Go</label>
+              <input type="number" min="0" step="any" class="form-input ch-num-input" id="inputSalesTikTok"
+                placeholder="0" autocomplete="off" oninput="recalculateSalesChannelInputs()">
+            </div>
+            <div class="sales-ch-field" data-channel="qpon">
+              <label for="inputSalesQpon"><span class="ch-dot ch-dot-qpon"></span>Qpon (Voucher)</label>
+              <input type="number" min="0" step="any" class="form-input ch-num-input" id="inputSalesQpon"
+                placeholder="0" autocomplete="off" oninput="recalculateSalesChannelInputs()">
+            </div>
+          </div>
+          <div class="sales-channel-live-summary" id="salesChannelLiveSummary">
+            <div>Offline: <strong id="sumOfflineText">Rp 0</strong> • Online: <strong id="sumOnlineText">Rp 0</strong></div>
+            <div id="sumTargetGapText" style="font-weight:700;">-</div>
+          </div>
+        </div>
+
         <div class="form-group">
-          <label class="form-label">Realisasi Penjualan / Actual Sales (Rp) <span class="ai-fill-tag" id="tagActualAi"
+          <label class="form-label">Total Realisasi Omzet / Actual Sales (Rp)
+            <span class="badge" id="salesActualAutoBadge" style="display:none; font-size:9.5px; background:rgba(16,185,129,0.14); color:#047857; padding:2px 6px; margin-left:4px;">AUTO-SUM 6 CHANNEL</span>
+            <span class="ai-fill-tag" id="tagActualAi"
               style="display:none;"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
                 <path
                   d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" />
                 <path d="M9 18h6" />
                 <path d="M10 22h4" />
-              </svg> Terisi Otomatis</span></label>
-          <input type="number" class="form-input" id="inputSalesActual" placeholder="Contoh: 5450000"
-            autocomplete="off">
+              </svg> Terisi AI</span></label>
+          <input type="number" class="form-input" id="inputSalesActual" placeholder="Otomatis dijumlah dari rincian channel di atas"
+            autocomplete="off" oninput="onManualActualSalesInput()">
         </div>
         <div class="form-group">
           <label class="form-label">Total Struk / Bill Transaksi <span class="ai-fill-tag" id="tagTrxAi"

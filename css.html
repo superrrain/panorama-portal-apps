@@ -15562,4 +15562,455 @@ body.dark-mode .insiden-file-thumb-wrap {
   }
 }
 
+/* ============================================================================
+   MULTI-CHANNEL SALES BREAKDOWN & MULTI-PHOTO POS SCANNER (LIGHT + DARK)
+   ============================================================================ */
+.ai-scanner-multi-strip {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.ai-mini-thumb-btn {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 7px;
+  overflow: hidden;
+  border: 1.5px solid rgba(20, 74, 50, 0.35);
+  background: #F1F5F9;
+  cursor: pointer;
+}
+
+.ai-mini-thumb-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ai-mini-thumb-btn span {
+  position: absolute;
+  bottom: 1px;
+  right: 1px;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 4px;
+  background: rgba(15, 23, 42, 0.78);
+  color: #FFFFFF;
+}
+
+.btn-ai-add-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(20, 74, 50, 0.1);
+  color: var(--forest-800);
+  border: 1px dashed rgba(20, 74, 50, 0.4);
+  cursor: pointer;
+  min-height: 32px;
+}
+
+.btn-ai-add-more:hover {
+  background: rgba(20, 74, 50, 0.16);
+}
+
+.sales-channel-input-box {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 12px 13px;
+  margin-bottom: 14px;
+}
+
+.sales-channel-box-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.sales-channel-box-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+}
+
+.sales-channel-ratio-pill {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #E2E8F0;
+  color: #475569;
+  font-variant-numeric: tabular-nums;
+}
+
+.sales-channel-ratio-pill.active {
+  background: rgba(16, 185, 129, 0.14);
+  color: #047857;
+}
+
+.sales-channel-input-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.sales-ch-field label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-sub);
+  margin-bottom: 4px;
+}
+
+.sales-ch-field .ch-num-input {
+  min-height: 44px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.input-auto-calculated {
+  background-color: #ECFDF5 !important;
+  border-color: #10B981 !important;
+  color: #065F46 !important;
+  font-weight: 800 !important;
+}
+
+.sales-channel-live-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px dashed #CBD5E1;
+  font-size: 11px;
+  color: var(--text-sub);
+  font-variant-numeric: tabular-nums;
+}
+
+.ch-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.ch-dot-offline, .ch-pill-offline-dot { background: #10B981; }
+.ch-dot-grab, .ch-pill-grab-dot { background: #00B14F; }
+.ch-dot-shopee, .ch-pill-shopee-dot { background: #EE4D2D; }
+.ch-dot-gofood, .ch-pill-gofood-dot { background: #DC2626; }
+.ch-dot-tiktok, .ch-pill-tiktok-dot { background: #0F172A; }
+.ch-dot-qpon, .ch-pill-qpon-dot { background: #7C3AED; }
+
+.ch-pill-offline-bg { background: #10B981; }
+.ch-pill-grab-bg { background: #00B14F; }
+.ch-pill-shopee-bg { background: #EE4D2D; }
+.ch-pill-gofood-bg { background: #DC2626; }
+.ch-pill-tiktok-bg { background: #0F172A; }
+.ch-pill-qpon-bg { background: #7C3AED; }
+.ch-pill-legacy-bg { background: #94A3B8; }
+
+.ch-stacked-bar {
+  display: flex;
+  width: 100%;
+  height: 9px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #E2E8F0;
+  gap: 1.5px;
+}
+
+.ch-bar-seg {
+  height: 100%;
+  min-width: 3px;
+  transition: width 0.35s ease;
+}
+
+.sales-channel-mix-card {
+  background: var(--bg-surface, #FFFFFF);
+  border: 1px solid var(--border-subtle, #E2E8F0);
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.sales-ch-mix-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.sales-ch-mix-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.sales-ch-mix-sub {
+  font-size: 11.5px;
+  color: var(--text-sub);
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+.sales-ch-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.sales-ch-summary-item {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+
+.sales-ch-summary-top {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  color: var(--text-sub);
+  font-weight: 700;
+}
+
+.sales-ch-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sales-ch-pct {
+  margin-left: auto;
+  font-weight: 800;
+  color: var(--text-main);
+  font-variant-numeric: tabular-nums;
+}
+
+.sales-ch-val {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-top: 3px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ch-mini-chips-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 5px;
+}
+
+.ch-mini-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 9.5px;
+  font-weight: 600;
+  background: #F1F5F9;
+  color: #334155;
+  border: 1px solid #E2E8F0;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ch-mini-chip.ch-pill-offline { background: rgba(16, 185, 129, 0.1); color: #065F46; border-color: rgba(16, 185, 129, 0.25); }
+.ch-mini-chip.ch-pill-grab { background: rgba(0, 177, 79, 0.1); color: #065F46; border-color: rgba(0, 177, 79, 0.25); }
+.ch-mini-chip.ch-pill-shopee { background: rgba(238, 77, 45, 0.1); color: #9A3412; border-color: rgba(238, 77, 45, 0.25); }
+.ch-mini-chip.ch-pill-gofood { background: rgba(220, 38, 38, 0.1); color: #991B1B; border-color: rgba(220, 38, 38, 0.25); }
+.ch-mini-chip.ch-pill-tiktok { background: rgba(15, 23, 42, 0.08); color: #0F172A; border-color: rgba(15, 23, 42, 0.2); }
+.ch-mini-chip.ch-pill-qpon { background: rgba(124, 58, 237, 0.1); color: #5B21B6; border-color: rgba(124, 58, 237, 0.25); }
+.ch-mini-chip.ch-pill-legacy { background: rgba(148, 163, 184, 0.15); color: #475569; border-color: rgba(148, 163, 184, 0.35); }
+
+/* Dashboard Hero Dark-Green Card Channel Mix */
+.dash-channel-mix-wrap {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.dash-ch-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 7px;
+  flex-wrap: wrap;
+}
+
+.dash-ch-title {
+  font-size: 10.5px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.92);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.dash-ch-split {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #A7F3D0;
+  font-variant-numeric: tabular-nums;
+}
+
+.dash-ch-bar {
+  height: 7px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.dash-ch-bar .ch-pill-tiktok-bg {
+  background: #38BDF8;
+}
+
+.dash-ch-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px 10px;
+  margin-top: 8px;
+}
+
+.dash-ch-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.dash-ch-lbl {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9.5px;
+  color: rgba(255, 255, 255, 0.78);
+  font-weight: 600;
+}
+
+.dash-ch-item .ch-pill-tiktok-dot {
+  background: #38BDF8;
+}
+
+.dash-ch-val {
+  font-size: 11px;
+  font-weight: 800;
+  color: #FFFFFF;
+  font-variant-numeric: tabular-nums;
+}
+
+.dash-ch-val small {
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.ch-legacy-note {
+  margin-top: 6px;
+  font-size: 9.5px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+@media (max-width: 960px) {
+  .sales-ch-summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .sales-ch-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .sales-channel-input-grid {
+    grid-template-columns: 1fr;
+  }
+  .dash-ch-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Dark Mode Overrides for Multi-Channel Sales */
+:is(html[data-theme="dark"], html.theme-dark) .sales-channel-input-box {
+  background: #13221A;
+  border-color: #243C2F;
+}
+
+:is(html[data-theme="dark"], html.theme-dark) .sales-channel-ratio-pill {
+  background: #1F3429;
+  color: #CBD5E1;
+}
+
+:is(html[data-theme="dark"], html.theme-dark) .sales-channel-ratio-pill.active {
+  background: rgba(16, 185, 129, 0.22);
+  color: #6EE7B7;
+}
+
+:is(html[data-theme="dark"], html.theme-dark) .input-auto-calculated {
+  background-color: rgba(16, 185, 129, 0.14) !important;
+  border-color: #34D399 !important;
+  color: #6EE7B7 !important;
+}
+
+:is(html[data-theme="dark"], html.theme-dark) .sales-channel-live-summary {
+  border-top-color: #243C2F;
+}
+
+:is(html[data-theme="dark"], html.theme-dark) .btn-ai-add-more {
+  background: rgba(52, 211, 153, 0.14);
+  color: #6EE7B7;
+  border-color: rgba(52, 211, 153, 0.45);
+}
+
+:is(html[data-theme="dark"], html.theme-dark) .sales-channel-mix-card {
+  background: #13221A;
+  border-color: #243C2F;
+}
+
+:is(html[data-theme="dark"], html.theme-dark) .ch-stacked-bar {
+  background: #1F3429;
+}
+
+:is(html[data-theme="dark"], html.theme-dark) .sales-ch-summary-item {
+  background: #0D1812;
+  border-color: #20372B;
+}
+
+:is(html[data-theme="dark"], html.theme-dark) .ch-dot-tiktok,
+:is(html[data-theme="dark"], html.theme-dark) .ch-pill-tiktok-dot,
+:is(html[data-theme="dark"], html.theme-dark) .ch-pill-tiktok-bg {
+  background: #38BDF8;
+}
+
+:is(html[data-theme="dark"], html.theme-dark) .ch-mini-chip.ch-pill-offline { background: rgba(16, 185, 129, 0.18); color: #6EE7B7; border-color: rgba(16, 185, 129, 0.35); }
+:is(html[data-theme="dark"], html.theme-dark) .ch-mini-chip.ch-pill-grab { background: rgba(0, 177, 79, 0.18); color: #6EE7B7; border-color: rgba(0, 177, 79, 0.35); }
+:is(html[data-theme="dark"], html.theme-dark) .ch-mini-chip.ch-pill-shopee { background: rgba(238, 77, 45, 0.18); color: #FDBA74; border-color: rgba(238, 77, 45, 0.35); }
+:is(html[data-theme="dark"], html.theme-dark) .ch-mini-chip.ch-pill-gofood { background: rgba(220, 38, 38, 0.18); color: #FCA5A5; border-color: rgba(220, 38, 38, 0.35); }
+:is(html[data-theme="dark"], html.theme-dark) .ch-mini-chip.ch-pill-tiktok { background: rgba(56, 189, 248, 0.18); color: #7DD3FC; border-color: rgba(56, 189, 248, 0.35); }
+:is(html[data-theme="dark"], html.theme-dark) .ch-mini-chip.ch-pill-qpon { background: rgba(139, 92, 246, 0.22); color: #C4B5FD; border-color: rgba(139, 92, 246, 0.4); }
+:is(html[data-theme="dark"], html.theme-dark) .ch-mini-chip.ch-pill-legacy { background: rgba(148, 163, 184, 0.18); color: #CBD5E1; border-color: rgba(148, 163, 184, 0.3); }
+
 </style>

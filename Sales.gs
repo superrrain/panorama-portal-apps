@@ -13,7 +13,7 @@
  */
 
 // Konstanta Pemetaan Kolom Baku DataSales
-var COL_SALES = { ID: 0, TANGGAL: 1, AREA_ID: 2, CABANG_ID: 3, NAMA: 4, TARGET: 5, ACTUAL: 6, PERSEN: 7, TRX: 8, CREATED_BY: 9, CREATED_AT: 10 };
+var COL_SALES = { ID: 0, TANGGAL: 1, AREA_ID: 2, CABANG_ID: 3, NAMA: 4, TARGET: 5, ACTUAL: 6, PERSEN: 7, TRX: 8, CREATED_BY: 9, CREATED_AT: 10, OFFLINE: 11, GRABFOOD: 12, SHOPEEFOOD: 13, GOFOOD: 14, TIKTOK: 15, QPON: 16 };
 
 // Global Aliases untuk Dukungan Pemanggilan google.script.run
 function saveSales(payload) { return apiSaveSales(payload); }
@@ -496,17 +496,53 @@ function hitungLeaderboardNasional(dCabang, dSales, dEff, dInsiden, operationalC
 }
 
 /**
+ * Self-Healing Schema: Pastikan header kolom breakdown channel (L..Q / idx 11..16) ada di tab DataSales
+ */
+function ensureSalesChannelHeaders_(sheet) {
+  try {
+    var channelHeaders = ['SalesOffline', 'SalesGrabFood', 'SalesShopeeFood', 'SalesGoFood', 'SalesTikTok', 'SalesQpon'];
+    var startCol = COL_SALES.OFFLINE + 1;
+    var existingHeaders = sheet.getRange(1, startCol, 1, channelHeaders.length).getValues()[0];
+    var needsUpdate = false;
+    for (var i = 0; i < channelHeaders.length; i++) {
+      if (String(existingHeaders[i] || '').trim() !== channelHeaders[i]) {
+        needsUpdate = true;
+        break;
+      }
+    }
+    if (needsUpdate) {
+      var headerRange = sheet.getRange(1, startCol, 1, channelHeaders.length);
+      headerRange.setValues([channelHeaders]);
+      try {
+        headerRange.setBackground('#144A32').setFontColor('#FFFFFF').setFontWeight('bold');
+      } catch (eStyle) {}
+    }
+  } catch (eHdr) {
+    Logger.log('ensureSalesChannelHeaders_ notice: ' + eHdr.message);
+  }
+}
+
+/**
  * API: Input / Simpan & Revisi Laporan Penjualan Cabang (Smart Upsert)
  */
 function apiSaveSales(payload) {
   try {
     var nowIso = new Date().toISOString();
     var sheet = getSheet(TAB.SALES);
+    ensureSalesChannelHeaders_(sheet);
     var targetDate = normalizeDateStr(payload.tanggal) || nowIso.split('T')[0];
     var targetCabangId = String(payload.cabangId || '').trim();
 
+    var salesOffline = Math.max(0, Number(payload.salesOffline || 0));
+    var salesGrabFood = Math.max(0, Number(payload.salesGrabFood || 0));
+    var salesShopeeFood = Math.max(0, Number(payload.salesShopeeFood || 0));
+    var salesGoFood = Math.max(0, Number(payload.salesGoFood || 0));
+    var salesTikTok = Math.max(0, Number(payload.salesTikTok || 0));
+    var salesQpon = Math.max(0, Number(payload.salesQpon || 0));
+    var channelSum = salesOffline + salesGrabFood + salesShopeeFood + salesGoFood + salesTikTok + salesQpon;
+
     var target = Number(payload.targetHarian || 0);
-    var actual = Number(payload.actualSales || 0);
+    var actual = channelSum > 0 ? channelSum : Math.max(0, Number(payload.actualSales || 0));
     var persen = target > 0 ? Math.round((actual / target) * 1000) / 10 : 0;
 
     // Cek apakah data sales untuk gerai & tanggal ini sudah pernah tercatat
@@ -531,6 +567,9 @@ function apiSaveSales(payload) {
       sheet.getRange(primaryRow, COL_SALES.TRX + 1).setValue(Number(payload.totalTransaksi || 0));
       sheet.getRange(primaryRow, COL_SALES.CREATED_BY + 1).setValue(payload.createdBy + ' (Koreksi)');
       sheet.getRange(primaryRow, COL_SALES.CREATED_AT + 1).setValue(nowIso);
+      sheet.getRange(primaryRow, COL_SALES.OFFLINE + 1, 1, 6).setValues([[
+        salesOffline, salesGrabFood, salesShopeeFood, salesGoFood, salesTikTok, salesQpon
+      ]]);
 
       // JIKA DITEMUKAN BARIS DUPLIKAT SEBELUMNYA, BERSIHKAN / HAPUS BARIS EKSTRA!
       // Hapus dari urutan index terbesar ke terkecil agar index baris tidak bergeser
@@ -573,7 +612,13 @@ function apiSaveSales(payload) {
         persen,
         Number(payload.totalTransaksi || 0),
         payload.createdBy,
-        nowIso
+        nowIso,
+        salesOffline,
+        salesGrabFood,
+        salesShopeeFood,
+        salesGoFood,
+        salesTikTok,
+        salesQpon
       ];
 
       sheet.appendRow(newRow);
@@ -610,8 +655,12 @@ function apiSaveSales(payload) {
 
 
 /**
- * API: Scan Struk & POS Screenshot dengan Gemini Vision / AI
- * Payload: { imageBase64: "...", mimeType: "image/jpeg" }
+ * API: Scan Struk & Layar POS Multi-Brand (Multi-Foto) dengan Gemini Vision AI
+ * Payload: {
+ *   images: [{ imageBase64: "...", mimeType: "image/jpeg" }], // (atau legacy single imageBase64)
+ *   brand: "MOMOYO" | "WEDRINK" | "TOMORO" | "MIXUE" | "TIANLALA",
+ *   cabangName: "Momoyo ..."
+ * }
  */
 function apiScanReceiptWithAI(payload) {
   try {
@@ -620,30 +669,52 @@ function apiScanReceiptWithAI(payload) {
       return { success: false, useClientOCR: true, message: 'Gemini API Key belum diset, menggunakan Client-side OCR.' };
     }
 
-    var base64Data = payload.imageBase64.replace(/^data:image\/[a-z]+;base64,/, '');
-    var mimeType = payload.mimeType || 'image/jpeg';
+    var rawImages = Array.isArray(payload.images) && payload.images.length > 0
+      ? payload.images
+      : (payload.imageBase64 ? [{ imageBase64: payload.imageBase64, mimeType: payload.mimeType || 'image/jpeg' }] : []);
 
-    var promptText = "Kamu adalah sistem AI pembaca struk kasir dan screenshot aplikasi POS F&B Indonesia (seperti Moka, Pawoon, ESB, Majoo, Grab/Gojek Merchant). " +
-      "Tugasmu adalah membaca gambar ini dan mengekstrak data berikut secara presisi: " +
-      "1. actualSales: Total omset / penjualan bersih / grand total / total penjualan (hanya angka integer bulat, tanpa titik/koma/Rp). " +
-      "2. totalTransaksi: Jumlah struk / bill / transaksi / order (hanya angka integer, jika tidak tertulis beri null). " +
-      "3. tanggal: Tanggal transaksi dalam format YYYY-MM-DD (Cari di header, footer, jam/tanggal, atau tgl cetak struk seperti '23/10/2026', '23 Okt 2026', 'Date:', 'Tgl:', dll. Jika tahun hanya 2 digit seperti 26 ubah jadi 2026). WAJIB sertakan jika tertera di gambar. " +
-      "4. namaCabang: Nama toko atau cabang jika tertera pada struk. " +
-      "Keluarkan HANYA format JSON valid tanpa markdown, contoh: {\"actualSales\":5450000,\"totalTransaksi\":200,\"tanggal\":\"2026-10-23\",\"namaCabang\":\"Gerai Utama\"}";
+    if (rawImages.length === 0) {
+      return { success: false, useClientOCR: false, message: 'Gambar struk tidak ditemukan.' };
+    }
 
-    var url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + apiKey;
+    var brandHint = String(payload.brand || '').trim().toUpperCase();
+    var cabangHint = String(payload.cabangName || '').trim();
+
+    var promptText = "Kamu adalah sistem AI pembaca foto layar POS kasir dan struk closing F&B Indonesia (khususnya POS Momoyo, Wedrink ESB POS, Tomoro Coffee POS, Mixue HiStone POS, dan Tianlala Olsera/Rekapan Shift). " +
+      (brandHint ? ("Konteks cabang aktif saat ini adalah brand " + brandHint + (cabangHint ? (" (" + cabangHint + ")") : "") + ". ") : "") +
+      "Analisis " + rawImages.length + " gambar berikut dan ekstrak rincian omzet ke dalam 6 channel ini (dalam integer Rupiah bulat, tanpa titik/koma, isi 0 jika tidak ada di gambar):\n" +
+      "1. salesOffline: Seluruh penjualan toko/kasir langsung (Cash/Tunai/POS + QRIS/Debit/EDC/E-Wallet kasir seperti BCA, BRI, QRIS Manual, Gopay kasir, ShopeePay/SPayLater, OVO, DANA, Online transfer kasir). PENTING: Gopay & ShopeePay di layar payment kasir adalah salesOffline, JANGAN tertukar dengan GoFood/ShopeeFood!\n" +
+      "2. salesGrabFood: Penjualan GrabFood ('GRAB FOOD', 'GRABFOOD', 'grabfood', 'GrabFood Integrasi').\n" +
+      "3. salesShopeeFood: Penjualan ShopeeFood ('Shopee food', 'SHOPEEFOOD', 'ShopeeFood', 'Shopee Integrasi'). Bila ada HP Shopee Partner terfoto di samping monitor POS Mixue, utamakan angka di monitor POS agar tidak double count.\n" +
+      "4. salesGoFood: Penjualan GoFood ('Gojek' di Momoyo, 'GoFood manual input' di Mixue, 'GoFood Integrasi' di Tianlala, 'GOFOOD').\n" +
+      "5. salesTikTok: Penjualan TikTok ('Tiktok', 'TIKTOK GO' di Wedrink, 'TikTok').\n" +
+      "6. salesQpon: Penjualan voucher Qpon ('Qpon', 'QPON').\n\n" +
+      "ATURAN KHUSUS PER BRAND POS:\n" +
+      "- MOMOYO (HiStone 'Detail platform'): 'POS' -> salesOffline, 'Tiktok' -> salesTikTok, 'Shopee food' -> salesShopeeFood, 'Qpon' -> salesQpon, 'Gojek' -> salesGoFood. Jumlah Qty = totalTransaksi ('Persamaan').\n" +
+      "- WEDRINK (ESB POS 'Sales Payment Recapitulation'): 'CASH' + 'QRIS MANUAL' -> salesOffline, 'GRAB FOOD' -> salesGrabFood, 'QPON' -> salesQpon, 'TIKTOK GO' -> salesTikTok. Abaikan baris 'Menu Discount'/'Sales Menu' di tabel bawah.\n" +
+      "- TOMORO (POS Daily Report Closing, sering terbagi 2 foto scroll): Cash + Gopay + ShopeePay/SPayLater + DANA + OVO + BCA + BRI -> salesOffline; 'SHOPEEFOOD' -> salesShopeeFood; 'GRABFOOD' -> salesGrabFood; 'TikTok' -> salesTikTok; 'QPON' -> salesQpon. WAJIB DEDUPLIKASI: jika baris yang sama (misal OVO) terlihat berulang di 2 foto screenshot yang di-scroll, hitung HANYA 1 KALI! Jumlahkan kolom Quantity payment unik sebagai totalTransaksi.\n" +
+      "- MIXUE (HiStone 'Laporan'): Baca blok 'Rincian penerimaan uang' (jumlahnya = 'Uang yang diterima'). 'Tunai' + 'Gopay' + 'Online' -> salesOffline; 'GoFood manual input' -> salesGoFood; 'ShopeeFood' -> salesShopeeFood; 'TikTok' -> salesTikTok; 'grabfood' -> salesGrabFood. Ambil 'Jumlah pesanan pelanggan' sebagai totalTransaksi.\n" +
+      "- TIANLALA (Rekapan Shift 'Ringkasan'): Baca HANYA kolom 'TERCATAT' (abaikan kolom TERHITUNG, kolom SELISIH yang minus, dan angka Rp 0 di panel kiri). 'QRIS' + 'DEBIT CARD' + tunai -> salesOffline; 'QPON' -> salesQpon; 'GoFood Integrasi' -> salesGoFood; 'Shopee Integrasi' -> salesShopeeFood; 'GrabFood Integrasi' -> salesGrabFood. Khusus baris 'Uang tunai': jika bagian rincian 'Uang tunai' di bawah menampilkan angka 'Penjualan' terpisah dari 'Kas Masuk' (modal awal), gunakan nominal 'Penjualan' agar modal awal tidak ikut terhitung.\n" +
+      "- TANGGAL & CABANG: Ekstrak tanggal YYYY-MM-DD (baca dari layar POS seperti 'Report Date', header jam, atau watermark tanggal kamera bila layar tidak mencantumkan tanggal). totalTransaksi integer bulat atau null jika tidak tercantum.\n" +
+      "- actualSales: Jumlah dari salesOffline + salesGrabFood + salesShopeeFood + salesGoFood + salesTikTok + salesQpon.\n\n" +
+      "Keluarkan HANYA JSON valid tanpa markdown: " +
+      "{\"detectedBrand\":\"MOMOYO\",\"actualSales\":4276100,\"salesOffline\":2145000,\"salesGrabFood\":0,\"salesShopeeFood\":625400,\"salesGoFood\":172500,\"salesTikTok\":938200,\"salesQpon\":395000,\"totalTransaksi\":136,\"tanggal\":\"2026-11-25\",\"namaCabang\":\"Momoyo Babakan\"}";
+
+    var parts = [{ text: promptText }];
+    for (var imgIdx = 0; imgIdx < Math.min(rawImages.length, 3); imgIdx++) {
+      var imgObj = rawImages[imgIdx];
+      var b64 = String(imgObj.imageBase64 || '').replace(/^data:image\/[a-zA-Z0-9+.-]+;base64,/, '');
+      if (!b64) continue;
+      parts.push({
+        inline_data: {
+          mime_type: imgObj.mimeType || 'image/jpeg',
+          data: b64
+        }
+      });
+    }
+
     var requestBody = {
-      contents: [{
-        parts: [
-          { text: promptText },
-          {
-            inline_data: {
-              mime_type: mimeType,
-              data: base64Data
-            }
-          }
-        ]
-      }],
+      contents: [{ parts: parts }],
       generationConfig: {
         response_mime_type: 'application/json',
         temperature: 0.1
@@ -657,21 +728,27 @@ function apiScanReceiptWithAI(payload) {
       muteHttpExceptions: true
     };
 
-    var res = UrlFetchApp.fetch(url, options);
-    var json = JSON.parse(res.getContentText());
+    var models = ['gemini-2.5-flash', 'gemini-2.0-flash'];
+    for (var mIdx = 0; mIdx < models.length; mIdx++) {
+      var url = 'https://generativelanguage.googleapis.com/v1beta/models/' + models[mIdx] + ':generateContent?key=' + apiKey;
+      var res = UrlFetchApp.fetch(url, options);
+      if (res.getResponseCode() !== 200) continue;
 
-    if (json.candidates && json.candidates[0] && json.candidates[0].content && json.candidates[0].content.parts[0]) {
-      var rawOutput = json.candidates[0].content.parts[0].text;
-      var cleanOutput = rawOutput.replace(/```json/g, '').replace(/```/g, '').trim();
-      var parsedData = JSON.parse(cleanOutput);
-      return {
-        success: true,
-        data: parsedData,
-        message: 'Berhasil membaca data struk via Gemini Vision AI'
-      };
-    } else {
-      return { success: false, useClientOCR: true, message: 'AI tidak dapat mendeteksi struk, beralih ke Client-side OCR.' };
+      var json = JSON.parse(res.getContentText());
+      if (json.candidates && json.candidates[0] && json.candidates[0].content && json.candidates[0].content.parts[0]) {
+        var rawOutput = json.candidates[0].content.parts[0].text;
+        var cleanOutput = rawOutput.replace(/```json/g, '').replace(/```/g, '').trim();
+        var parsedData = JSON.parse(cleanOutput);
+        return {
+          success: true,
+          model: models[mIdx],
+          data: parsedData,
+          message: 'Berhasil membaca ' + (parts.length - 1) + ' foto POS via Gemini Vision AI (' + models[mIdx] + ')'
+        };
+      }
     }
+
+    return { success: false, useClientOCR: true, message: 'AI tidak dapat mendeteksi struk, beralih ke Client-side OCR.' };
   } catch (err) {
     return { success: false, useClientOCR: true, message: 'Error backend: ' + err.message };
   }

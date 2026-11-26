@@ -2958,6 +2958,159 @@ function formatManagerShortName(name) {
  * Agregator Metrik Sales Presisi Berdasarkan Periode & Wilayah
  * Memastikan filter 'Hari Ini' HANYA membaca transaksi tanggal hari ini (anti-akumulasi tanggal kemarin)
  */
+/**
+ * Definisi Terpusat Channel Sales Panorama (6 Channel + Legacy Compatibility)
+ */
+const PANORAMA_SALES_CHANNELS = [
+  { key: 'offline', payloadKey: 'salesOffline', inputId: 'inputSalesOffline', label: 'Offline', shortLabel: 'Offline', color: '#10B981', pillClass: 'ch-pill-offline' },
+  { key: 'grabFood', payloadKey: 'salesGrabFood', inputId: 'inputSalesGrabFood', label: 'GrabFood', shortLabel: 'Grab', color: '#00B14F', pillClass: 'ch-pill-grab' },
+  { key: 'shopeeFood', payloadKey: 'salesShopeeFood', inputId: 'inputSalesShopeeFood', label: 'ShopeeFood', shortLabel: 'Shopee', color: '#EE4D2D', pillClass: 'ch-pill-shopee' },
+  { key: 'goFood', payloadKey: 'salesGoFood', inputId: 'inputSalesGoFood', label: 'GoFood', shortLabel: 'GoFood', color: '#DC2626', pillClass: 'ch-pill-gofood' },
+  { key: 'tikTok', payloadKey: 'salesTikTok', inputId: 'inputSalesTikTok', label: 'TikTok', shortLabel: 'TikTok', color: '#0F172A', pillClass: 'ch-pill-tiktok' },
+  { key: 'qpon', payloadKey: 'salesQpon', inputId: 'inputSalesQpon', label: 'Qpon', shortLabel: 'Qpon', color: '#7C3AED', pillClass: 'ch-pill-qpon' }
+];
+
+function createEmptyChannelBucket() {
+  return {
+    offline: 0,
+    grabFood: 0,
+    shopeeFood: 0,
+    goFood: 0,
+    tikTok: 0,
+    qpon: 0,
+    onlineTotal: 0,
+    legacyUnclassified: 0
+  };
+}
+
+function extractSalesRecordChannels(record) {
+  const r = record || {};
+  const ch = createEmptyChannelBucket();
+  ch.offline = Math.max(0, Number(r.salesOffline || 0));
+  ch.grabFood = Math.max(0, Number(r.salesGrabFood || 0));
+  ch.shopeeFood = Math.max(0, Number(r.salesShopeeFood || 0));
+  ch.goFood = Math.max(0, Number(r.salesGoFood || 0));
+  ch.tikTok = Math.max(0, Number(r.salesTikTok || 0));
+  ch.qpon = Math.max(0, Number(r.salesQpon || 0));
+  ch.onlineTotal = ch.grabFood + ch.shopeeFood + ch.goFood + ch.tikTok + ch.qpon;
+  const act = Math.max(0, Number(r.actualSales || 0));
+  const knownSum = ch.offline + ch.onlineTotal;
+  if (act > knownSum) {
+    ch.legacyUnclassified = act - knownSum;
+  }
+  return ch;
+}
+
+function addChannelBuckets(target, addition) {
+  if (!target || !addition) return target;
+  target.offline += Number(addition.offline || 0);
+  target.grabFood += Number(addition.grabFood || 0);
+  target.shopeeFood += Number(addition.shopeeFood || 0);
+  target.goFood += Number(addition.goFood || 0);
+  target.tikTok += Number(addition.tikTok || 0);
+  target.qpon += Number(addition.qpon || 0);
+  target.onlineTotal += Number(addition.onlineTotal || 0);
+  target.legacyUnclassified += Number(addition.legacyUnclassified || 0);
+  return target;
+}
+
+/**
+ * Helper UI Modular: Render Stacked Channel Composition Bar & Pills
+ */
+function buildChannelMixStripHtml(channels, totalActual, options) {
+  const opts = options || {};
+  const mode = opts.mode || 'summary'; // 'summary' | 'dashboard' | 'inline' | 'compact-pills'
+  const ch = channels || createEmptyChannelBucket();
+  const total = Math.max(0, Number(totalActual || 0));
+  const knownTotal = Number(ch.offline || 0) + Number(ch.onlineTotal || 0);
+  const legacy = Math.max(0, Number(ch.legacyUnclassified || 0));
+
+  if (total <= 0 && knownTotal <= 0) {
+    return '';
+  }
+
+  const denom = total > 0 ? total : knownTotal;
+  const offlinePct = denom > 0 ? Math.round((ch.offline / denom) * 1000) / 10 : 0;
+  const onlinePct = denom > 0 ? Math.round((ch.onlineTotal / denom) * 1000) / 10 : 0;
+
+  if (mode === 'compact-pills' || mode === 'inline') {
+    const activeChips = [];
+    PANORAMA_SALES_CHANNELS.forEach(meta => {
+      const val = Number(ch[meta.key] || 0);
+      if (val > 0) {
+        activeChips.push(
+          '<span class="ch-mini-chip ' + meta.pillClass + '" title="' + meta.label + ': Rp ' + formatRupiah(val) + '">' +
+            meta.shortLabel + ' <strong>' + formatCompactRupiah(val) + '</strong>' +
+          '</span>'
+        );
+      }
+    });
+    if (legacy > 0 && activeChips.length === 0) {
+      activeChips.push('<span class="ch-mini-chip ch-pill-legacy" title="Data historis sebelum breakdown channel">Legacy <strong>' + formatCompactRupiah(legacy) + '</strong></span>');
+    } else if (legacy > 0) {
+      activeChips.push('<span class="ch-mini-chip ch-pill-legacy">Legacy ' + formatCompactRupiah(legacy) + '</span>');
+    }
+    if (activeChips.length === 0) return '';
+    return '<div class="ch-mini-chips-wrap">' + activeChips.join('') + '</div>';
+  }
+
+  // Stacked proportional progress bar
+  const segs = [];
+  PANORAMA_SALES_CHANNELS.forEach(meta => {
+    const val = Number(ch[meta.key] || 0);
+    if (val > 0 && denom > 0) {
+      const pct = (val / denom) * 100;
+      segs.push('<div class="ch-bar-seg ' + meta.pillClass + '-bg" style="width:' + pct.toFixed(2) + '%;" title="' + meta.label + ': Rp ' + formatRupiah(val) + ' (' + pct.toFixed(1) + '%)"></div>');
+    }
+  });
+  if (legacy > 0 && denom > 0) {
+    const legPct = (legacy / denom) * 100;
+    segs.push('<div class="ch-bar-seg ch-pill-legacy-bg" style="width:' + legPct.toFixed(2) + '%;" title="Belum Dirinci (Legacy): Rp ' + formatRupiah(legacy) + ' (' + legPct.toFixed(1) + '%)"></div>');
+  }
+
+  if (mode === 'dashboard') {
+    const itemsHtml = PANORAMA_SALES_CHANNELS.map(meta => {
+      const val = Number(ch[meta.key] || 0);
+      const pct = denom > 0 ? Math.round((val / denom) * 1000) / 10 : 0;
+      return '<div class="dash-ch-item">' +
+        '<span class="dash-ch-lbl"><span class="ch-dot ' + meta.pillClass + '-dot"></span>' + meta.shortLabel + '</span>' +
+        '<span class="dash-ch-val">Rp ' + formatCompactRupiah(val) + ' <small>(' + pct + '%)</small></span>' +
+      '</div>';
+    }).join('');
+    return '<div class="dash-ch-header">' +
+      '<span class="dash-ch-title">Breakdown Channel Penjualan</span>' +
+      '<span class="dash-ch-split">Offline ' + offlinePct + '% • Online ' + onlinePct + '%</span>' +
+    '</div>' +
+    '<div class="ch-stacked-bar dash-ch-bar">' + segs.join('') + '</div>' +
+    '<div class="dash-ch-grid">' + itemsHtml + '</div>' +
+    (legacy > 0 ? '<div class="ch-legacy-note">*Rp ' + formatCompactRupiah(legacy) + ' berasal dari histori pra-breakdown (Legacy)</div>' : '');
+  }
+
+  // Full Summary Card Mode ('summary')
+  const cardsHtml = PANORAMA_SALES_CHANNELS.map(meta => {
+    const val = Number(ch[meta.key] || 0);
+    const pct = denom > 0 ? Math.round((val / denom) * 1000) / 10 : 0;
+    return '<div class="sales-ch-summary-item ' + meta.pillClass + '-card">' +
+      '<div class="sales-ch-summary-top">' +
+        '<span class="ch-dot ' + meta.pillClass + '-dot"></span>' +
+        '<span class="sales-ch-name">' + meta.label + '</span>' +
+        '<span class="sales-ch-pct">' + pct + '%</span>' +
+      '</div>' +
+      '<div class="sales-ch-val">Rp ' + formatCompactRupiah(val) + '</div>' +
+    '</div>';
+  }).join('');
+
+  return '<div class="sales-ch-mix-header">' +
+    '<div>' +
+      '<div class="sales-ch-mix-title">' + escapeHtml(opts.title || 'Komposisi Channel Omzet (Offline vs Platform Online)') + '</div>' +
+      '<div class="sales-ch-mix-sub">Offline: <strong>Rp ' + formatRupiah(ch.offline) + '</strong> (' + offlinePct + '%) • Online & Qpon: <strong>Rp ' + formatRupiah(ch.onlineTotal) + '</strong> (' + onlinePct + '%)' +
+      (legacy > 0 ? ' • Legacy: <strong>Rp ' + formatCompactRupiah(legacy) + '</strong>' : '') + '</div>' +
+    '</div>' +
+  '</div>' +
+  '<div class="ch-stacked-bar">' + segs.join('') + '</div>' +
+  '<div class="sales-ch-summary-grid">' + cardsHtml + '</div>';
+}
+
 function getPeriodFilteredSalesData(d, period, calMonth, areaFilter, brandFilter) {
   period = period || 'today';
   calMonth = calMonth || 'CURRENT';
@@ -3026,10 +3179,11 @@ function getPeriodFilteredSalesData(d, period, calMonth, areaFilter, brandFilter
     filteredSales = dedupSales.filter(s => normalizeDateStr(s.tanggal) === todayStr);
   }
 
-  // 4. Hitung Target & Realisasi
+  // 4. Hitung Target & Realisasi + Breakdown 6 Channel
   let totalActual = 0;
   let totalTarget = 0;
   let totalTrx = 0;
+  const channelTotals = createEmptyChannelBucket();
 
   const areaAgg = {};
   const cabangAgg = {};
@@ -3048,7 +3202,8 @@ function getPeriodFilteredSalesData(d, period, calMonth, areaFilter, brandFilter
       target: branchTargetForPeriod,
       actual: 0,
       trx: 0,
-      hasInput: false
+      hasInput: false,
+      channels: createEmptyChannelBucket()
     };
 
     if (!areaAgg[c.areaId]) {
@@ -3058,7 +3213,8 @@ function getPeriodFilteredSalesData(d, period, calMonth, areaFilter, brandFilter
         target: 0,
         actual: 0,
         trx: 0,
-        inputCount: 0
+        inputCount: 0,
+        channels: createEmptyChannelBucket()
       };
     }
     areaAgg[c.areaId].baseDailyTarget += branchTargetForPeriod;
@@ -3068,6 +3224,7 @@ function getPeriodFilteredSalesData(d, period, calMonth, areaFilter, brandFilter
     const act = Number(s.actualSales || 0);
     const sTgt = Number(s.targetHarian || 0);
     let trx = Number(s.totalTransaksi || 0);
+    const rowChannels = extractSalesRecordChannels(s);
 
     // Smart Sanitizer: Cegah anomali jika ada kasir/staf yang salah input nominal rupiah ke kolom struk (> 2000 struk/hari/toko)
     if (trx > 2000 && act > 0) {
@@ -3076,11 +3233,13 @@ function getPeriodFilteredSalesData(d, period, calMonth, areaFilter, brandFilter
 
     totalActual += act;
     totalTrx += trx;
+    addChannelBuckets(channelTotals, rowChannels);
 
     if (cabangAgg[s.cabangId]) {
       cabangAgg[s.cabangId].actual += act;
       cabangAgg[s.cabangId].trx += trx;
       cabangAgg[s.cabangId].hasInput = true;
+      addChannelBuckets(cabangAgg[s.cabangId].channels, rowChannels);
       if (period === 'today' && sTgt > 0) {
         cabangAgg[s.cabangId].target = sTgt;
       }
@@ -3090,6 +3249,7 @@ function getPeriodFilteredSalesData(d, period, calMonth, areaFilter, brandFilter
       areaAgg[s.areaId].actual += act;
       areaAgg[s.areaId].trx += trx;
       areaAgg[s.areaId].inputCount++;
+      addChannelBuckets(areaAgg[s.areaId].channels, rowChannels);
     }
   });
 
@@ -3126,6 +3286,7 @@ function getPeriodFilteredSalesData(d, period, calMonth, areaFilter, brandFilter
     salesPersen: salesPersen,
     totalTrx: totalTrx,
     avgStoreSales: avgStoreSales,
+    channelTotals: channelTotals,
     areaAgg: areaAgg,
     cabangAgg: cabangAgg
   };
@@ -3597,6 +3758,18 @@ function renderDashboardView() {
   const elAvgStore = document.getElementById('metricSalesAvgStore');
   const avgSalesPerTrx = (totalTrx > 0 && totalActual > 0) ? Math.round(totalActual / totalTrx) : 0;
   if (elAvgStore) elAvgStore.textContent = 'Rp ' + formatRupiah(avgSalesPerTrx);
+
+  const elDashChMix = document.getElementById('dashHeroChannelMixContainer');
+  if (elDashChMix) {
+    const dashMixHtml = buildChannelMixStripHtml(salesMetrics.channelTotals, totalActual, { mode: 'dashboard' });
+    if (dashMixHtml) {
+      elDashChMix.innerHTML = dashMixHtml;
+      elDashChMix.style.display = 'block';
+    } else {
+      elDashChMix.innerHTML = '';
+      elDashChMix.style.display = 'none';
+    }
+  }
 
   // Render Rincian Ranking Top & Bottom Cabang di Hero Sales Panel (Skala Nasional & Area)
   renderHeroSalesRankings(salesMetrics, areaFilter);
@@ -5012,6 +5185,7 @@ function renderSpvDailySalesView(d, user, calMonth, period) {
               raw: s,
               actual: act,
               trx: trx,
+              channels: extractSalesRecordChannels(s),
               target: Number(s.targetHarian || 0) > 0 ? Number(s.targetHarian) : spvDailyTarget
             };
           }
@@ -5026,6 +5200,7 @@ function renderSpvDailySalesView(d, user, calMonth, period) {
   let totalMonthTrx = 0;
   let daysReported = 0;
   let daysHitTarget = 0;
+  const monthChannels = createEmptyChannelBucket();
 
   const dailyRows = [];
   for (let day = 1; day <= daysInMonth; day++) {
@@ -5040,6 +5215,7 @@ function renderSpvDailySalesView(d, user, calMonth, period) {
     const sEntry = spvSalesMap[dateIso];
     const actual = sEntry ? sEntry.actual : 0;
     const trx = sEntry ? sEntry.trx : 0;
+    const rowChannels = sEntry && sEntry.channels ? sEntry.channels : createEmptyChannelBucket();
     const rowTarget = sEntry && sEntry.target > 0 ? sEntry.target : spvDailyTarget;
     const hasInput = !!sEntry && actual > 0;
 
@@ -5047,6 +5223,7 @@ function renderSpvDailySalesView(d, user, calMonth, period) {
       totalMonthActual += actual;
       totalMonthTrx += trx;
       daysReported++;
+      addChannelBuckets(monthChannels, rowChannels);
       if (actual >= rowTarget) daysHitTarget++;
     }
 
@@ -5063,6 +5240,7 @@ function renderSpvDailySalesView(d, user, calMonth, period) {
       hasInput: hasInput,
       actual: actual,
       trx: trx,
+      channels: rowChannels,
       target: rowTarget,
       pct: pct,
       gap: gap
@@ -5117,6 +5295,21 @@ function renderSpvDailySalesView(d, user, calMonth, period) {
       '</div>';
   }
 
+  const spvChMixEl = document.getElementById('salesChannelMixContainer');
+  if (spvChMixEl) {
+    const spvMixHtml = buildChannelMixStripHtml(monthChannels, totalMonthActual, {
+      mode: 'summary',
+      title: 'Komposisi Channel Gerai (' + spvCabang.namaCabang + ' • ' + monthName + ' ' + yr + ')'
+    });
+    if (spvMixHtml) {
+      spvChMixEl.innerHTML = spvMixHtml;
+      spvChMixEl.style.display = 'block';
+    } else {
+      spvChMixEl.innerHTML = '';
+      spvChMixEl.style.display = 'none';
+    }
+  }
+
   // 3. Render Kartu Mobile (salesAreaCardsContainer)
   const cardsContainer = document.getElementById('salesAreaCardsContainer');
   if (cardsContainer) {
@@ -5154,7 +5347,8 @@ function renderSpvDailySalesView(d, user, calMonth, period) {
         : '<span class="sales-metric-val" style="color:var(--text-muted); font-size:13px; font-weight:600;">Rp 0 (Belum Lapor)</span>';
 
       let trxHtml = row.hasInput ? (' • ' + row.trx.toLocaleString('id-ID') + ' Struk') : '';
-      let metricTargetHtml = '<span class="sales-metric-target">Target: Rp ' + formatRupiah(row.target) + trxHtml + '</span>';
+      let chCardHtml = row.hasInput ? buildChannelMixStripHtml(row.channels, row.actual, { mode: 'compact-pills' }) : '';
+      let metricTargetHtml = '<span class="sales-metric-target">Target: Rp ' + formatRupiah(row.target) + trxHtml + '</span>' + chCardHtml;
       let gapHtml = row.hasInput 
         ? '<span class="sales-area-gap-text" style="color:' + gapColor + ';">' + gapSign + 'Rp ' + formatCompactRupiah(row.gap) + ' (' + gapSign + (row.pct - 100).toFixed(1) + '%)</span>'
         : '<span class="sales-area-gap-text" style="color:var(--text-muted);">Target: Rp ' + formatCompactRupiah(row.target) + '</span>';
@@ -5240,7 +5434,7 @@ function renderSpvDailySalesView(d, user, calMonth, period) {
       const gapColor = row.gap >= 0 ? 'var(--forest-800)' : 'var(--danger)';
 
       let actualCellHtml = row.hasInput 
-        ? '<strong style="color:var(--text-main);">Rp ' + formatRupiah(row.actual) + '</strong>'
+        ? ('<strong style="color:var(--text-main);">Rp ' + formatRupiah(row.actual) + '</strong>' + buildChannelMixStripHtml(row.channels, row.actual, { mode: 'compact-pills' }))
         : '<span style="color:var(--text-muted); font-size:12px;">Rp 0</span>';
 
       let trxCellHtml = row.hasInput 
@@ -5345,7 +5539,8 @@ function renderSalesView() {
       cabangList: [],
       totalTarget: 0,
       totalActual: 0,
-      totalTrx: 0
+      totalTrx: 0,
+      channels: createEmptyChannelBucket()
     };
   });
 
@@ -5397,6 +5592,7 @@ function renderSalesView() {
 
     const cActual = agg ? Number(agg.actual || 0) : 0;
     const cTrx = agg ? Number(agg.trx || 0) : 0;
+    const cChannels = (agg && agg.channels) ? agg.channels : createEmptyChannelBucket();
     const hasInput = agg ? !!agg.hasInput : false;
     const cPct = cTarget > 0 ? (Math.round((cActual / cTarget) * 1000) / 10) : 0;
     const lastReport = lastReportMap[c.cabangId] || null;
@@ -5409,6 +5605,7 @@ function renderSalesView() {
       target: cTarget,
       actual: cActual,
       trx: cTrx,
+      channels: cChannels,
       persen: cPct,
       gap: cActual - cTarget,
       hasInput: hasInput,
@@ -5418,6 +5615,7 @@ function renderSalesView() {
     areaGroups[targetArea].totalTarget += cTarget;
     areaGroups[targetArea].totalActual += cActual;
     areaGroups[targetArea].totalTrx += cTrx;
+    addChannelBuckets(areaGroups[targetArea].channels, cChannels);
   });
 
   // Hitung persentase dan gap per area (Eliminasi area UNASSIGNED atau area tanpa ID resmi)
@@ -5542,6 +5740,35 @@ function renderSalesView() {
     }
   }
 
+  const chMixEl = document.getElementById('salesChannelMixContainer');
+  if (chMixEl) {
+    let mixHtml = '';
+    if (isSpecificArea && activeArea) {
+      mixHtml = buildChannelMixStripHtml(activeArea.channels, activeArea.totalActual, {
+        mode: 'summary',
+        title: 'Komposisi Channel Wilayah ' + activeArea.id + ' (' + toTitleCase(activeArea.mgr || '') + ' • ' + periodLabel + ')'
+      });
+    } else {
+      const grandChannels = createEmptyChannelBucket();
+      let grandChTotal = 0;
+      areaDataList.forEach(a => {
+        grandChTotal += Number(a.totalActual || 0);
+        addChannelBuckets(grandChannels, a.channels);
+      });
+      mixHtml = buildChannelMixStripHtml(grandChannels, grandChTotal, {
+        mode: 'summary',
+        title: 'Komposisi Channel Nasional (' + areaDataList.length + ' Area • ' + periodLabel + ')'
+      });
+    }
+    if (mixHtml) {
+      chMixEl.innerHTML = mixHtml;
+      chMixEl.style.display = 'block';
+    } else {
+      chMixEl.innerHTML = '';
+      chMixEl.style.display = 'none';
+    }
+  }
+
   // 3. Render Kartu Mobile (salesAreaCardsContainer)
   const cardsContainer = document.getElementById('salesAreaCardsContainer');
   if (cardsContainer) {
@@ -5585,7 +5812,7 @@ function renderSalesView() {
           gapHtml = '<span class="sales-area-gap-text" style="color:var(--text-muted);">Target: Rp ' + formatCompactRupiah(cb.target) + '</span>';
         } else {
           metricValHtml = '<span class="sales-metric-val">Rp ' + formatRupiah(cb.actual) + '</span>';
-          metricTargetHtml = '<span class="sales-metric-target">Target: Rp ' + formatRupiah(cb.target) + '</span>';
+          metricTargetHtml = '<span class="sales-metric-target">Target: Rp ' + formatRupiah(cb.target) + '</span>' + buildChannelMixStripHtml(cb.channels, cb.actual, { mode: 'compact-pills' });
           gapHtml = '<span class="sales-area-gap-text" style="color:' + gapColor + ';">' + gapSign + 'Rp ' + formatCompactRupiah(cb.gap) + ' (' + gapSign + (cb.persen - 100).toFixed(1) + '%)</span>';
         }
 
@@ -5688,6 +5915,7 @@ function renderSalesView() {
               '<span class="sales-metric-lbl">Realisasi Omzet</span>' +
               '<span class="sales-metric-val">Rp ' + formatRupiah(a.totalActual) + '</span>' +
               '<span class="sales-metric-target">Target: Rp ' + formatRupiah(a.totalTarget) + '</span>' +
+              buildChannelMixStripHtml(a.channels, a.totalActual, { mode: 'compact-pills' }) +
             '</div>' +
             '<div class="sales-metric-right">' +
               statusBadge +
@@ -5769,7 +5997,7 @@ function renderSalesView() {
           actualCellHtml = '<span style="color:var(--text-muted); font-size:12px;">Rp 0</span>' + 
             (cb.lastReport && cb.lastReport.date ? '<div style="font-size:10px; color:var(--text-sub);">Terakhir: ' + formatDateDisplay(cb.lastReport.date) + ' (Rp ' + formatCompactRupiah(cb.lastReport.actual) + ')</div>' : '');
         } else {
-          actualCellHtml = '<strong style="color:var(--text-main);">Rp ' + formatRupiah(cb.actual) + '</strong>';
+          actualCellHtml = '<strong style="color:var(--text-main);">Rp ' + formatRupiah(cb.actual) + '</strong>' + buildChannelMixStripHtml(cb.channels, cb.actual, { mode: 'compact-pills' });
         }
 
         tr.innerHTML = 
@@ -5836,7 +6064,7 @@ function renderSalesView() {
           '<td><strong style="color:var(--text-main); font-weight:700;">' + escapeHtml(displayMgr) + '</strong></td>' +
           '<td><span class="badge badge-neutral">' + a.totalCabang + ' Gerai</span></td>' +
           '<td>Rp ' + formatRupiah(a.totalTarget) + '</td>' +
-          '<td><strong style="color:var(--text-main);">Rp ' + formatRupiah(a.totalActual) + '</strong></td>' +
+          '<td><strong style="color:var(--text-main);">Rp ' + formatRupiah(a.totalActual) + '</strong>' + buildChannelMixStripHtml(a.channels, a.totalActual, { mode: 'compact-pills' }) + '</td>' +
           '<td>' +
             '<div class="sales-area-bar-wrap" style="height:8px;" title="' + a.persen + '%">' +
               '<div class="sales-area-bar-fill" style="width:' + barFillWidth + '%; background:' + barColor + ';"></div>' +
@@ -9074,6 +9302,116 @@ function setKanbanMobileTab(stage) {
 // ============================================================================
 
 /**
+ * Helper Input Modal Sales: Bersihkan, Isi, & Hitung Ulang 6 Channel Otomatis
+ */
+function clearSalesChannelInputs(removeHighlight) {
+  PANORAMA_SALES_CHANNELS.forEach(ch => {
+    const el = document.getElementById(ch.inputId);
+    if (el) {
+      el.value = '';
+      if (removeHighlight) el.classList.remove('input-ai-highlight');
+    }
+  });
+  recalculateSalesChannelInputs();
+}
+
+function populateSalesChannelInputsFromRecord(record, isAiSource) {
+  if (!record) return;
+  let filledCount = 0;
+  PANORAMA_SALES_CHANNELS.forEach(ch => {
+    const el = document.getElementById(ch.inputId);
+    if (!el) return;
+    const rawVal = Number(record[ch.payloadKey] !== undefined ? record[ch.payloadKey] : (record[ch.key] || 0));
+    if (rawVal > 0) {
+      el.value = Math.round(rawVal);
+      if (isAiSource) el.classList.add('input-ai-highlight');
+      filledCount++;
+    } else {
+      el.value = '';
+      if (isAiSource) el.classList.remove('input-ai-highlight');
+    }
+  });
+  recalculateSalesChannelInputs({ preserveManualActual: filledCount === 0 });
+}
+
+function recalculateSalesChannelInputs(options) {
+  const opts = options || {};
+  let offline = 0;
+  let online = 0;
+  PANORAMA_SALES_CHANNELS.forEach(ch => {
+    const el = document.getElementById(ch.inputId);
+    const val = el ? Math.max(0, Number(el.value || 0)) : 0;
+    if (ch.key === 'offline') offline += val;
+    else online += val;
+  });
+
+  const totalChannels = offline + online;
+  const actualInput = document.getElementById('inputSalesActual');
+  const autoBadge = document.getElementById('salesActualAutoBadge');
+  const ratioPill = document.getElementById('salesChannelRatioPill');
+  const sumOffEl = document.getElementById('sumOfflineText');
+  const sumOnEl = document.getElementById('sumOnlineText');
+  const sumGapEl = document.getElementById('sumTargetGapText');
+  const targetInput = document.getElementById('inputSalesTarget');
+
+  if (actualInput) {
+    if (totalChannels > 0) {
+      actualInput.value = Math.round(totalChannels);
+      actualInput.readOnly = true;
+      actualInput.classList.add('input-auto-calculated');
+      if (autoBadge) autoBadge.style.display = 'inline-block';
+    } else {
+      actualInput.readOnly = false;
+      actualInput.classList.remove('input-auto-calculated');
+      if (!opts.preserveManualActual && opts.clearWhenEmpty) {
+        actualInput.value = '';
+      }
+      if (autoBadge) autoBadge.style.display = 'none';
+    }
+  }
+
+  const effectiveTotal = totalChannels > 0 ? totalChannels : (actualInput ? Math.max(0, Number(actualInput.value || 0)) : 0);
+  if (sumOffEl) sumOffEl.textContent = 'Rp ' + formatRupiah(offline);
+  if (sumOnEl) sumOnEl.textContent = 'Rp ' + formatRupiah(online);
+
+  if (ratioPill) {
+    if (totalChannels > 0) {
+      const offPct = Math.round((offline / totalChannels) * 100);
+      const onPct = 100 - offPct;
+      ratioPill.textContent = 'Offline ' + offPct + '% • Online ' + onPct + '%';
+      ratioPill.classList.add('active');
+    } else if (effectiveTotal > 0) {
+      ratioPill.textContent = 'Mode Manual / Legacy';
+      ratioPill.classList.remove('active');
+    } else {
+      ratioPill.textContent = 'Belum diisi';
+      ratioPill.classList.remove('active');
+    }
+  }
+
+  if (sumGapEl) {
+    const tgt = targetInput ? Number(targetInput.value || 0) : 0;
+    if (tgt > 0 && effectiveTotal > 0) {
+      const diff = effectiveTotal - tgt;
+      const pct = Math.round((effectiveTotal / tgt) * 1000) / 10;
+      const sign = diff >= 0 ? '+' : '-';
+      sumGapEl.style.color = diff >= 0 ? '#059669' : '#DC2626';
+      sumGapEl.textContent = pct + '% Target (' + sign + 'Rp ' + formatCompactRupiah(Math.abs(diff)) + ')';
+    } else if (effectiveTotal > 0) {
+      sumGapEl.style.color = 'var(--text-main)';
+      sumGapEl.textContent = 'Total: Rp ' + formatRupiah(effectiveTotal);
+    } else {
+      sumGapEl.style.color = 'var(--text-muted)';
+      sumGapEl.textContent = '-';
+    }
+  }
+}
+
+function onManualActualSalesInput() {
+  recalculateSalesChannelInputs({ preserveManualActual: true });
+}
+
+/**
  * Handler saat Cabang atau Tanggal diubah pada Modal Input Sales
  */
 function onSalesBranchOrDateChange(isBranchOrDateChange, isExplicitEdit) {
@@ -9087,12 +9425,14 @@ function onSalesBranchOrDateChange(isBranchOrDateChange, isExplicitEdit) {
   const actualInput = document.getElementById('inputSalesActual');
   const trxInput = document.getElementById('inputSalesTrx');
 
-  // Bersihkan input angka actual dan total transaksi jika bukan aksi edit eksplisit / scan AI
+  // Bersihkan input angka actual, 6 channel, dan total transaksi jika bukan aksi edit eksplisit / scan AI
   // Menjamin saat user ganti cabang atau buka form, angka bekas cabang sebelumnya TIDAK PERNAH tersisa!
   if (!isExplicitEdit) {
+    clearSalesChannelInputs(true);
     if (actualInput) {
       actualInput.value = '';
-      actualInput.classList.remove('input-ai-highlight');
+      actualInput.readOnly = false;
+      actualInput.classList.remove('input-ai-highlight', 'input-auto-calculated');
     }
     if (trxInput) {
       trxInput.value = '';
@@ -9113,9 +9453,16 @@ function onSalesBranchOrDateChange(isBranchOrDateChange, isExplicitEdit) {
     } else {
       targetInput.value = '';
     }
+    if (!targetInput.dataset.chGapBound) {
+      targetInput.dataset.chGapBound = '1';
+      targetInput.addEventListener('input', function() {
+        recalculateSalesChannelInputs({ preserveManualActual: true });
+      });
+    }
   }
 
   checkExistingSalesData(isExplicitEdit);
+  recalculateSalesChannelInputs({ preserveManualActual: true });
   renderSalesDailyBreakdown(selectedCId);
 }
 
@@ -9244,11 +9591,12 @@ function renderSalesDailyBreakdown(selectedCId) {
 
     const dateParts = sDate.split('-');
     const formattedDate = dateParts.length === 3 ? (dateParts[2] + '/' + dateParts[1] + '/' + dateParts[0]) : sDate;
+    const chHtml = buildChannelMixStripHtml(extractSalesRecordChannels(s), actualH, { mode: 'compact-pills' });
 
     tr.innerHTML = 
       '<td><div style="font-weight: 700; color: var(--text-main); font-size: 11.5px;">' + formattedDate + '</div></td>' +
       '<td><span style="color: var(--text-muted);">Rp ' + formatRupiah(targetH) + '</span></td>' +
-      '<td><strong style="color: ' + (isTargetAchieved ? 'var(--success)' : 'var(--text-main)') + ';">Rp ' + formatRupiah(actualH) + '</strong></td>' +
+      '<td><strong style="color: ' + (isTargetAchieved ? 'var(--success)' : 'var(--text-main)') + ';">Rp ' + formatRupiah(actualH) + '</strong>' + chHtml + '</td>' +
       '<td style="text-align: center; color: var(--text-muted);">' + trx + '</td>' +
       '<td style="text-align: center;"><span class="badge ' + (isTargetAchieved ? 'badge-success' : 'badge-danger') + '" style="font-size: 10px; padding: 2px 6px;">' + pct.toFixed(1) + '%</span></td>' +
       '<td style="text-align: center;"><button type="button" class="btn-breakdown-edit" onclick="editSalesDayRow(\'' + sDate + '\')" title="Koreksi tanggal ini"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> Edit</button></td>';
@@ -9281,16 +9629,19 @@ function editSalesDayRow(targetDate) {
 
   const actualInput = document.getElementById('inputSalesActual');
   const trxInput = document.getElementById('inputSalesTrx');
+  clearSalesChannelInputs(true);
   if (existing) {
     if (actualInput) actualInput.value = existing.actualSales || '';
     if (trxInput) trxInput.value = existing.totalTransaksi || '';
+    populateSalesChannelInputsFromRecord(existing, false);
   }
 
   onSalesBranchOrDateChange(false, true);
 
-  if (actualInput) {
-    actualInput.focus();
-    actualInput.select();
+  const firstChannelInput = document.getElementById('inputSalesOffline') || actualInput;
+  if (firstChannelInput) {
+    firstChannelInput.focus();
+    if (typeof firstChannelInput.select === 'function') firstChannelInput.select();
   }
   showToast('Mode Koreksi aktif untuk tgl ' + normDate + '. Mengubah angka akan menimpa data lama (tidak double).', 'info');
 }
@@ -9325,14 +9676,25 @@ function checkExistingSalesData(isExplicitEdit) {
 
   if (existing) {
     // Mode Koreksi Terdeteksi: ganti angka lama
+    const ch = extractSalesRecordChannels(existing);
+    const hasCh = (ch.offline + ch.onlineTotal) > 0;
+    const chDesc = hasCh
+      ? (' (Offline Rp ' + formatCompactRupiah(ch.offline) + ' • Online/Qpon Rp ' + formatCompactRupiah(ch.onlineTotal) + ')')
+      : '';
     if (alertBanner) alertBanner.style.display = 'flex';
     if (alertDetail) {
-      alertDetail.textContent = 'Actual tercatat: Rp ' + formatRupiah(existing.actualSales) + ' (' + (existing.totalTransaksi || 0) + ' Trx). Masukkan angka baru untuk mengoreksi (tidak double).';
+      alertDetail.textContent = 'Actual tercatat: Rp ' + formatRupiah(existing.actualSales) + chDesc + ' (' + (existing.totalTransaksi || 0) + ' Trx). Masukkan angka baru untuk mengoreksi.';
     }
     // HANYA isi otomatis kolom input jika aksi Edit eksplisit (klik tombol Edit di tabel atau buka mode edit)
     // JANGAN PERNAH mengisi otomatis hanya karena user memilih cabang di dropdown!
     if (isExplicitEdit === true) {
-      if (actualInput && !actualInput.value) {
+      const hasAnyTypedChannel = PANORAMA_SALES_CHANNELS.some(meta => {
+        const el = document.getElementById(meta.inputId);
+        return el && String(el.value || '').trim() !== '';
+      });
+      if (!hasAnyTypedChannel && hasCh) {
+        populateSalesChannelInputsFromRecord(existing, false);
+      } else if (actualInput && !actualInput.value) {
         actualInput.value = existing.actualSales || '';
       }
       if (trxInput && !trxInput.value) {
@@ -9375,9 +9737,11 @@ function openEditSalesModalForBranch(cabangId, tanggal) {
   const existing = (d && d.sales) ? d.sales.find(s => String(s.cabangId) === String(cabangId) && normalizeDateStr(s.tanggal) === normTanggal) : null;
   const actualInput = document.getElementById('inputSalesActual');
   const trxInput = document.getElementById('inputSalesTrx');
+  clearSalesChannelInputs(true);
   if (existing) {
     if (actualInput) actualInput.value = existing.actualSales || '';
     if (trxInput) trxInput.value = existing.totalTransaksi || '';
+    populateSalesChannelInputsFromRecord(existing, false);
   }
   onSalesBranchOrDateChange(false, true);
 }
@@ -9469,8 +9833,10 @@ function openInputSalesModal() {
   const actualInput = document.getElementById('inputSalesActual');
   if (actualInput) {
     actualInput.value = '';
-    actualInput.classList.remove('input-ai-highlight');
+    actualInput.readOnly = false;
+    actualInput.classList.remove('input-ai-highlight', 'input-auto-calculated');
   }
+  clearSalesChannelInputs(true);
 
   const trxInput = document.getElementById('inputSalesTrx');
   if (trxInput) {
@@ -9724,22 +10090,102 @@ function applyTargetToLocalState(payload) {
 window.PANORAMA_STATE.aiOcrLoading = false;
 window.PANORAMA_STATE.lastOcrResult = null;
 
+// State Queue Multi-Foto AI Scanner POS (Hingga 3 Foto per Scan, e.g. Layar Scroll Tomoro)
+window.PANORAMA_SCAN_IMAGES = [];
+
+function renderAiScannerThumbStrip(imageList) {
+  const imgThumb = document.getElementById('aiScannerImageThumb');
+  const strip = document.getElementById('aiScannerMultiThumbStrip');
+  const countBadge = document.getElementById('aiPhotoCountBadge');
+  const btnAddMore = document.getElementById('btnAiAddNextPhoto');
+  const list = Array.isArray(imageList) ? imageList : [];
+
+  if (imgThumb && list[0]) {
+    imgThumb.src = list[0].dataUri;
+  }
+  if (countBadge) {
+    countBadge.textContent = String(list.length);
+  }
+  if (btnAddMore) {
+    btnAddMore.style.display = (list.length > 0 && list.length < 3) ? 'inline-flex' : 'none';
+  }
+  if (strip) {
+    if (list.length > 1) {
+      strip.style.display = 'flex';
+      strip.innerHTML = list.map((item, idx) =>
+        '<button type="button" class="ai-mini-thumb-btn" onclick="(function(){ var el=document.getElementById(\'aiScannerImageThumb\'); if(el) el.src=\'' + item.dataUri.replace(/'/g, '') + '\'; })()" title="Lihat Foto ' + (idx + 1) + '">' +
+          '<img src="' + item.dataUri + '" alt="Foto ' + (idx + 1) + '">' +
+          '<span>' + (idx + 1) + '</span>' +
+        '</button>'
+      ).join('');
+    } else {
+      strip.style.display = 'none';
+      strip.innerHTML = '';
+    }
+  }
+}
+
+function prepareCompressedAiImage(file, callback) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const rawDataUri = e.target.result;
+    const img = new Image();
+    img.onload = function() {
+      try {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        let w = img.naturalWidth || img.width || 1000;
+        let h = img.naturalHeight || img.height || 1000;
+        const maxDim = 1500;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          } else {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+        }
+        canvas.width = w;
+        canvas.height = h;
+        ctx.drawImage(img, 0, 0, w, h);
+        callback({ dataUri: canvas.toDataURL('image/jpeg', 0.86), mimeType: 'image/jpeg' });
+      } catch (errCanvas) {
+        callback({ dataUri: rawDataUri, mimeType: file.type || 'image/jpeg' });
+      }
+    };
+    img.onerror = function() {
+      callback({ dataUri: rawDataUri, mimeType: file.type || 'image/jpeg' });
+    };
+    img.src = rawDataUri;
+  };
+  reader.readAsDataURL(file);
+}
+
 // Reset status scanner AI
 function resetSalesAiScanner(silent) {
   const cameraInput = document.getElementById('salesReceiptCameraInput');
   const fileInput = document.getElementById('salesReceiptFileInput');
+  const appendInput = document.getElementById('salesReceiptAppendInput');
   if (cameraInput) cameraInput.value = '';
   if (fileInput) fileInput.value = '';
+  if (appendInput) appendInput.value = '';
+
+  window.PANORAMA_SCAN_IMAGES = [];
 
   const actions = document.getElementById('aiScannerActionButtons');
   const previewBox = document.getElementById('aiScannerPreviewBox');
   const resultBadge = document.getElementById('aiScannerResultBadge');
   const scanline = document.getElementById('aiScannerScanline');
+  const strip = document.getElementById('aiScannerMultiThumbStrip');
+  const btnAddMore = document.getElementById('btnAiAddNextPhoto');
 
   if (actions) actions.style.display = 'flex';
   if (previewBox) previewBox.style.display = 'none';
   if (resultBadge) resultBadge.style.display = 'none';
   if (scanline) scanline.style.display = 'block';
+  if (strip) { strip.style.display = 'none'; strip.innerHTML = ''; }
+  if (btnAddMore) btnAddMore.style.display = 'none';
 
   // Sembunyikan badge terisi AI
   const tagActual = document.getElementById('tagActualAi');
@@ -9758,28 +10204,41 @@ function resetSalesAiScanner(silent) {
   if (inActual) inActual.classList.remove('input-ai-highlight');
   if (inTrx) inTrx.classList.remove('input-ai-highlight');
   if (inDate) inDate.classList.remove('input-ai-highlight');
+  PANORAMA_SALES_CHANNELS.forEach(ch => {
+    const chEl = document.getElementById(ch.inputId);
+    if (chEl) chEl.classList.remove('input-ai-highlight');
+  });
 
   window.PANORAMA_STATE.lastOcrResult = null;
   window.PANORAMA_STATE.aiOcrLoading = false;
 
   if (!silent) {
-    showToast('Scanner AI direset. Anda dapat memilih foto struk baru.', 'info');
+    showToast('Scanner AI direset. Anda dapat memilih foto struk/POS baru.', 'info');
   }
 }
 
-// Handler saat foto struk / screenshot dipilih
-function handleSalesReceiptUpload(inputEl) {
-  const file = inputEl && inputEl.files && inputEl.files[0];
-  if (!file) return;
-
-  if (!file.type.startsWith('image/')) {
-    showToast('Format berkas harus berupa gambar (JPG, PNG, WebP).', 'danger');
+// Handler saat foto struk / screenshot dipilih (Mendukung 1-3 foto sekaligus atau append)
+function handleSalesReceiptUpload(inputEl, isAppend) {
+  const files = Array.from((inputEl && inputEl.files) || []).filter(f => f && f.type && f.type.startsWith('image/'));
+  if (inputEl) inputEl.value = '';
+  if (files.length === 0) {
+    if (!isAppend) showToast('Format berkas harus berupa gambar (JPG, PNG, WebP).', 'danger');
     return;
   }
 
+  if (!isAppend) {
+    window.PANORAMA_SCAN_IMAGES = [];
+  }
+
+  const remainingSlots = 3 - window.PANORAMA_SCAN_IMAGES.length;
+  if (remainingSlots <= 0) {
+    showToast('Maksimal 3 foto per sesi scan AI.', 'warning');
+    return;
+  }
+  const filesToRead = files.slice(0, remainingSlots);
+
   const actions = document.getElementById('aiScannerActionButtons');
   const previewBox = document.getElementById('aiScannerPreviewBox');
-  const imgThumb = document.getElementById('aiScannerImageThumb');
   const scanline = document.getElementById('aiScannerScanline');
   const statusText = document.getElementById('aiScannerStatusText');
   const metaText = document.getElementById('aiScannerMeta');
@@ -9791,52 +10250,66 @@ function handleSalesReceiptUpload(inputEl) {
   if (resultBadge) resultBadge.style.display = 'none';
 
   if (statusText) {
-    statusText.innerHTML = '<span class="ai-spinner"></span><span>AI sedang membaca data struk...</span>';
+    statusText.innerHTML = '<span class="ai-spinner"></span><span>AI sedang membaca layar POS (' + (window.PANORAMA_SCAN_IMAGES.length + filesToRead.length) + ' foto)...</span>';
   }
   if (metaText) {
-    metaText.textContent = 'Memuat gambar & mempertajam teks thermal...';
+    metaText.textContent = 'Mengoptimasi resolusi gambar & mendeteksi channel...';
   }
 
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    const rawDataUri = e.target.result;
-    if (imgThumb) imgThumb.src = rawDataUri;
-    
-    // Jalankan pipeline AI & OCR
-    processReceiptImageWithAi(file, rawDataUri);
-  };
-  reader.readAsDataURL(file);
+  let processedCount = 0;
+  filesToRead.forEach(file => {
+    prepareCompressedAiImage(file, function(compressed) {
+      window.PANORAMA_SCAN_IMAGES.push(compressed);
+      processedCount++;
+      if (processedCount === filesToRead.length) {
+        renderAiScannerThumbStrip(window.PANORAMA_SCAN_IMAGES);
+        processReceiptImagesWithAi(window.PANORAMA_SCAN_IMAGES);
+      }
+    });
+  });
 }
 
-// Pipeline Pemrosesan Citra & Pembacaan AI
-function processReceiptImageWithAi(file, dataUri) {
+// Pipeline Pemrosesan Citra & Pembacaan AI (Bekerja di GAS & Vercel PWA)
+function processReceiptImagesWithAi(imageList) {
+  if (!Array.isArray(imageList) || imageList.length === 0) return;
   window.PANORAMA_STATE.aiOcrLoading = true;
   const metaText = document.getElementById('aiScannerMeta');
 
-  // Coba Backend Gemini Vision terlebih dahulu jika di lingkungan Google Apps Script
-  if (IS_GAS) {
-    if (metaText) metaText.textContent = 'Mengirim citra ke Gemini Vision AI...';
-    google.script.run
-      .withSuccessHandler(function(res) {
-        if (res && res.success && res.data) {
-          applyAiScanResult(res.data, 'Gemini Vision AI');
-        } else {
-          // Fallback ke Client-Side OCR jika Gemini key belum diset
-          if (metaText) metaText.textContent = 'Beralih ke OCR Client-Side lokal...';
-          runClientSideOcr(dataUri);
-        }
-      })
-      .withFailureHandler(function() {
-        runClientSideOcr(dataUri);
-      })
-      .apiScanReceiptWithAI({
-        imageBase64: dataUri,
-        mimeType: file.type || 'image/jpeg'
-      });
-  } else {
-    // Mode Mandiri / Web Browser: Langsung Client-Side OCR
-    runClientSideOcr(dataUri);
+  const d = window.PANORAMA_STATE.data || {};
+  const selectCabang = document.getElementById('salesInputCabang');
+  const selectedCId = selectCabang ? selectCabang.value : '';
+  const selectedBranch = (d.cabang && selectedCId) ? d.cabang.find(c => String(c.cabangId) === String(selectedCId)) : null;
+  const activeBrand = selectedBranch ? String(selectedBranch.brand || '').trim() : '';
+  const activeCabangName = selectedBranch ? String(selectedBranch.namaCabang || '').trim() : '';
+
+  if (metaText) {
+    metaText.textContent = 'Mengirim ' + imageList.length + ' foto POS ke Gemini Vision AI' + (activeBrand ? (' (Profil: ' + activeBrand + ')') : '') + '...';
   }
+
+  const scanPayload = {
+    images: imageList.map(img => ({ imageBase64: img.dataUri, mimeType: img.mimeType || 'image/jpeg' })),
+    imageBase64: imageList[0].dataUri,
+    mimeType: imageList[0].mimeType || 'image/jpeg',
+    brand: activeBrand,
+    cabangName: activeCabangName
+  };
+
+  callPanoramaApi('apiScanReceiptWithAI', scanPayload, function(res) {
+    if (res && res.success && res.data) {
+      const sourceName = res.model ? ('Gemini Vision (' + res.model + ')') : 'Gemini Vision AI';
+      applyAiScanResult(res.data, sourceName);
+    } else {
+      if (metaText) metaText.textContent = 'Beralih ke Multi-Brand OCR Client-Side lokal...';
+      runClientSideOcrQueue(imageList, activeBrand);
+    }
+  }, function() {
+    if (metaText) metaText.textContent = 'Beralih ke Multi-Brand OCR Client-Side lokal...';
+    runClientSideOcrQueue(imageList, activeBrand);
+  });
+}
+
+function processReceiptImageWithAi(file, dataUri) {
+  processReceiptImagesWithAi([{ dataUri: dataUri, mimeType: (file && file.type) || 'image/jpeg' }]);
 }
 
 // Pra-pemrosesan citra pada Canvas tersembunyi (Grayscale + High Contrast)
@@ -9914,49 +10387,81 @@ function loadTesseractOcrEngine(callback) {
   document.head.appendChild(script);
 }
 
-// Eksekusi OCR Sisi Klien
-function runClientSideOcr(rawDataUri) {
+// Eksekusi OCR Sisi Klien Multi-Foto
+function runClientSideOcrQueue(imageList, brandHint) {
+  const list = Array.isArray(imageList) ? imageList : (imageList ? [{ dataUri: imageList }] : []);
+  if (list.length === 0) {
+    handleAiOcrFailure('Tidak ada gambar untuk dipindai.');
+    return;
+  }
   const metaText = document.getElementById('aiScannerMeta');
-  if (metaText) metaText.textContent = 'Mempertajam kontras teks struk...';
+  if (metaText) metaText.textContent = 'Memuat modul OCR AI...';
 
-  preprocessReceiptCanvas(rawDataUri, function(enhancedDataUri) {
-    if (metaText) metaText.textContent = 'Memuat modul OCR AI...';
+  loadTesseractOcrEngine(function(err, tesseractInstance) {
+    if (err || !tesseractInstance) {
+      handleAiOcrFailure('Tidak dapat memuat modul OCR online. Silakan isi form secara manual.');
+      return;
+    }
 
-    loadTesseractOcrEngine(function(err, tesseractInstance) {
-      if (err || !tesseractInstance) {
-        handleAiOcrFailure('Tidak dapat memuat modul OCR online. Silakan isi form secara manual.');
+    const ocrTexts = [];
+    let currentIdx = 0;
+
+    function processNext() {
+      if (currentIdx >= list.length) {
+        const parsed = parseReceiptOcrText(ocrTexts, brandHint);
+        applyAiScanResult(parsed, 'Client-Side Multi-Brand OCR (' + ocrTexts.length + ' foto)');
         return;
       }
-
-      if (metaText) metaText.textContent = 'AI sedang memindai angka & transaksi...';
-
-      tesseractInstance.recognize(
-        enhancedDataUri,
-        'eng',
-        {
-          logger: function(m) {
-            if (m && m.status === 'recognizing text' && metaText) {
-              const pct = Math.round((m.progress || 0) * 100);
-              metaText.textContent = 'Membaca teks struk... ' + pct + '%';
+      const imgObj = list[currentIdx];
+      if (metaText) {
+        metaText.textContent = 'Mempertajam gambar ' + (currentIdx + 1) + ' dari ' + list.length + '...';
+      }
+      preprocessReceiptCanvas(imgObj.dataUri, function(enhancedDataUri) {
+        tesseractInstance.recognize(
+          enhancedDataUri,
+          'eng',
+          {
+            logger: function(m) {
+              if (m && m.status === 'recognizing text' && metaText) {
+                const pct = Math.round((m.progress || 0) * 100);
+                metaText.textContent = 'Membaca teks foto ' + (currentIdx + 1) + '/' + list.length + '... ' + pct + '%';
+              }
             }
           }
-        }
-      ).then(function(result) {
-        const text = result && result.data && result.data.text ? result.data.text : '';
-        const parsed = parseReceiptOcrText(text);
-        applyAiScanResult(parsed, 'Client-Side Neural OCR');
-      }).catch(function(ocrErr) {
-        console.error('OCR Error:', ocrErr);
-        handleAiOcrFailure('Gagal memproses gambar struk. Silakan coba foto lebih terang.');
+        ).then(function(result) {
+          ocrTexts.push((result && result.data && result.data.text) ? result.data.text : '');
+          currentIdx++;
+          processNext();
+        }).catch(function(ocrErr) {
+          console.error('OCR Error:', ocrErr);
+          currentIdx++;
+          processNext();
+        });
       });
-    });
+    }
+
+    processNext();
   });
 }
 
-// Parser Cerdas Heuristik Regex untuk Struk F&B & POS Screenshot Indonesia
-function parseReceiptOcrText(rawText) {
-  if (!rawText) return { actualSales: null, totalTransaksi: null, tanggal: null, cabangId: null };
+function runClientSideOcr(rawDataUri) {
+  runClientSideOcrQueue([{ dataUri: rawDataUri }], '');
+}
 
+// Parser Cerdas Heuristik Regex Multi-Brand POS (Momoyo, Wedrink, Tomoro, Mixue, Tianlala) & Deduplikasi Multi-Foto
+function parseReceiptOcrText(rawTextsInput, brandHint) {
+  const texts = Array.isArray(rawTextsInput)
+    ? rawTextsInput.map(t => String(t || '')).filter(Boolean)
+    : (rawTextsInput ? [String(rawTextsInput)] : []);
+
+  if (texts.length === 0) {
+    return {
+      actualSales: null, totalTransaksi: null, tanggal: null, cabangId: null,
+      salesOffline: 0, salesGrabFood: 0, salesShopeeFood: 0, salesGoFood: 0, salesTikTok: 0, salesQpon: 0
+    };
+  }
+
+  const rawText = texts.join('\n');
   const lines = rawText.split('\n').map(l => l.trim()).filter(Boolean);
   let bestSales = null;
   let bestSalesScore = 0;
@@ -9981,7 +10486,7 @@ function parseReceiptOcrText(rawText) {
     des: '12', desember: '12', dec: '12', december: '12'
   };
 
-  // 1a. Cek nama bulan teks Indonesia & Inggris (misal: 23 Okt 2026, 23-Oktober-2026, 23 Oct 26)
+  // 1a. Cek nama bulan teks Indonesia & Inggris (misal: 23 Okt 2026, 25 Nov 2026)
   const monthTextMatch = rawText.match(/(?:tgl|tanggal|date|waktu)?[:\s]*\b([0-2]?[1-9]|[123]0|31)[-\s/.]([a-z]{3,9})[-\s/.](20\d{2}|\d{2})\b/i);
   if (monthTextMatch) {
     const d = monthTextMatch[1].padStart(2, '0');
@@ -9993,7 +10498,14 @@ function parseReceiptOcrText(rawText) {
     }
   }
 
-  // 1b. Cek tanggal berlabel (misal: Tanggal: 23/10/2026, Tgl : 23-10-2026, Date: 23/10/26)
+  // 1b. Cek tanggal berlabel (misal: Report Date 2026-11-24 atau Tanggal: 26/11/2026)
+  if (!detectedDate) {
+    const labeledIsoMatch = rawText.match(/(?:report\s*date|tgl|tanggal|date|waktu)\s*[:=]?\s*(20\d{2})[-/.](0?[1-9]|1[0-2])[-/.]([0-2]?[1-9]|[123]0|31)\b/i);
+    if (labeledIsoMatch) {
+      detectedDate = `${labeledIsoMatch[1]}-${labeledIsoMatch[2].padStart(2, '0')}-${labeledIsoMatch[3].padStart(2, '0')}`;
+    }
+  }
+
   if (!detectedDate) {
     const labeledDateMatch = rawText.match(/(?:tgl|tanggal|date|waktu|printed|transaksi)\s*[:=]?\s*([0-2]?[1-9]|[123]0|31)[-/.](0?[1-9]|1[0-2])[-/.](20\d{2}|\d{2})\b/i);
     if (labeledDateMatch) {
@@ -10013,7 +10525,7 @@ function parseReceiptOcrText(rawText) {
     }
   }
 
-  // 1d. Cek format numerik DD/MM/YYYY atau DD-MM-YYYY atau DD.MM.YYYY atau DD/MM/YY
+  // 1d. Cek format numerik DD/MM/YYYY atau DD-MM-YYYY
   if (!detectedDate) {
     const dmyMatch = rawText.match(/\b([0-2]?[1-9]|[123]0|31)[-/.](0?[1-9]|1[0-2])[-/.](20\d{2}|\d{2})\b/);
     if (dmyMatch) {
@@ -10025,13 +10537,12 @@ function parseReceiptOcrText(rawText) {
     }
   }
 
-  // 2. Cocokkan Cabang dari Master Cabang secara Akurat (Anti-Salah Cabang)
-  const cabangList = (window.PANORAMA_STATE && window.PANORAMA_STATE.data && window.PANORAMA_STATE.data.cabang) || [];
+  // 2. Cocokkan Cabang dari Master Cabang secara Akurat
+  const cabangList = (typeof window !== 'undefined' && window.PANORAMA_STATE && window.PANORAMA_STATE.data && window.PANORAMA_STATE.data.cabang) || [];
   const lowerText = rawText.toLowerCase();
 
-  // Brand stopwords & kata umum yang bukan penanda lokasi spesifik
   const brandStopwords = new Set([
-    'momoyo', 'tomoro', 'mixue', 'fore', 'kopi', 'kenangan', 'janji', 'jiwa',
+    'momoyo', 'tomoro', 'mixue', 'wedrink', 'tianlala', 'fore', 'kopi', 'kenangan', 'janji', 'jiwa',
     'chatime', 'point', 'indomaret', 'alfamart', 'starbucks', 'gacoan',
     'area', 'pos', 'store', 'cabang', 'outlet', 'gerai', 'resto', 'cafe',
     'bistro', 'indonesia', 'jaya', 'pt', 'cv', 'tbk', 'kitchen', 'food', 'beverage'
@@ -10044,31 +10555,22 @@ function parseReceiptOcrText(rawText) {
     const cid = (c.cabangId || '').toLowerCase().trim();
     let currentScore = 0;
 
-    // 2a. Jika seluruh nama cabang lengkap muncul di teks (misal: "momoyo puspitek")
     if (nama.length >= 4 && lowerText.includes(nama)) {
       currentScore += 1000 + (nama.length * 5);
     }
-
-    // 2b. Jika Cabang ID persis muncul (misal: "M012" atau "CAB-01")
     if (cid && lowerText.includes(cid)) {
       currentScore += 500;
     }
-
-    // 2c. Penskoran token kata lokasi unik (di luar kata brand/generic)
     const tokens = nama.split(/[\s\-_/]+/).filter(t => t.length >= 3 && !brandStopwords.has(t));
     for (let t of tokens) {
       if (lowerText.includes(t)) {
-        // Semakin panjang token lokasi spesifik (misal: "puspitek", "pamulang", "dago"), semakin tinggi bobotnya
         currentScore += t.length * 15;
-        // Bonus jika token lokasi berada di batas kata (word boundary)
         const wordBoundaryRegex = new RegExp('\\b' + t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
         if (wordBoundaryRegex.test(lowerText)) {
           currentScore += 30;
         }
       }
     }
-
-    // Ambil cabang dengan skor tertinggi yang paling relevan
     if (currentScore > bestCabangScore) {
       bestCabangScore = currentScore;
       matchedCabangId = c.cabangId;
@@ -10076,19 +10578,16 @@ function parseReceiptOcrText(rawText) {
     }
   }
 
-  // 3. Ekstrak Total Transaksi / Struk / Bill
-  // Contoh: "Total Bill : 200", "Total Transaksi : 142", "200 Trx", "Bill Count: 185", "Paid Bills 200"
+  // 3. Ekstrak Total Transaksi / Struk / Bill (Momoyo 'Persamaan', Mixue 'Jumlah pesanan pelanggan', umum)
   const trxRegexes = [
-    /(?:total\s*(?:struk|bill|transaksi|trx|order)|bill\s*count|jumlah\s*transaksi|paid\s*bills|pesanan\s*selesai)\s*[:=]?\s*(\d{1,5})/i,
-    /(\d{1,5})\s*(?:struk|bills?|transaksi|trx|orders?)\b/i,
-    /(?:pax|guest|tamu)\s*[:=]?\s*(\d{1,4})/i
+    /(?:jumlah\s*pesanan\s*pelanggan|persamaan|total\s*(?:struk|bill|transaksi|trx|order)|bill\s*count|jumlah\s*transaksi|paid\s*bills|pesanan\s*selesai)\s*[:=]?\s*(\d{1,4})\b/i,
+    /(\d{1,4})\s*(?:struk|bills?|transaksi|trx|orders?)\b/i
   ];
-
   for (let reg of trxRegexes) {
     const m = rawText.match(reg);
     if (m && m[1]) {
       const val = parseInt(m[1], 10);
-      if (val > 0 && val < 50000) {
+      if (val > 0 && val < 5000) {
         bestTrx = val;
         break;
       }
@@ -10098,52 +10597,192 @@ function parseReceiptOcrText(rawText) {
   // Helper untuk membersihkan string nominal uang
   function cleanToAmount(str) {
     if (!str) return 0;
-    // Hapus Rp, IDR, spasi
     let s = str.replace(/[rR][pP]\.?|[iI][dD][rR]\.?/g, '').trim();
-    // Hilangkan desimal di akhir seperti .00 atau ,00
     s = s.replace(/[,.]00$/, '');
-    // Hapus pemisah ribuan titik atau koma
     s = s.replace(/[.,]/g, '');
     const num = parseInt(s, 10);
     return isNaN(num) ? 0 : num;
   }
 
-  // 4. Ekstrak Total Penjualan / Actual Sales
-  // Urutan prioritas kata kunci:
-  // Level 3 (Super Tinggi): GRAND TOTAL, NET SALES, TOTAL SALES, TOTAL PENJUALAN, TOTAL OMSET
-  // Level 2 (Tinggi): TOTAL BAYAR, TOTAL TAGIHAN, JUMLAH PENJUALAN, TOTAL BERSIH
-  // Level 1 (Sedang): TOTAL (bukan diskon / pajak / struk / bill)
+  // 4. Ekstraksi 6 Channel Multi-Brand POS dengan Deduplikasi Antar-Foto Scroll
+  const channelTotals = {
+    salesOffline: 0,
+    salesGrabFood: 0,
+    salesShopeeFood: 0,
+    salesGoFood: 0,
+    salesTikTok: 0,
+    salesQpon: 0
+  };
+  let tianlalaCashReplacement = null;
+  let tianlalaRecordedCash = null;
+  let sumRowQty = 0;
+  const seenRowKeys = new Set();
+
+  texts.forEach(pageText => {
+    const pageLines = pageText.split('\n').map(l => l.trim()).filter(Boolean);
+    let inUangTunaiDetailBlock = false;
+    let inDiscountOrExcludeBlock = false;
+
+    for (let idx = 0; idx < pageLines.length; idx++) {
+      const line = pageLines[idx];
+      const l = line.toLowerCase();
+
+      // Deteksi akhir/masuk blok khusus
+      if (/\b(?:rincian\s*diskon|sales\s*menu|discount\s*detail|penukaran\s*hari\s*ini)\b/i.test(l)) {
+        inDiscountOrExcludeBlock = true;
+        inUangTunaiDetailBlock = false;
+        continue;
+      }
+      if (/\b(?:rincian\s*penerimaan\s*uang|detail\s*platform|sales\s*payment\s*recapitulation|daily\s*report)\b/i.test(l)) {
+        inDiscountOrExcludeBlock = false;
+        inUangTunaiDetailBlock = false;
+      }
+      if (/^uang\s*tunai\s*$/i.test(l) || (inUangTunaiDetailBlock === false && /^tipe\s+nominal$/i.test(l))) {
+        inUangTunaiDetailBlock = true;
+        inDiscountOrExcludeBlock = false;
+        continue;
+      }
+
+      if (inDiscountOrExcludeBlock) continue;
+      if (l.includes('kembali') || l.includes('change') || l.includes('kembalian') || l.includes('diskon') || l.includes('kas masuk') || l.includes('pajak') || l.includes('biaya kotak')) {
+        continue;
+      }
+      // Abaikan baris alamat / koordinat watermark kamera
+      if (/(?:jalan|jl\.|kecamatan|kabupaten|jawa|timemark|berawan|°)/i.test(l)) continue;
+
+      // Khusus Tianlala blok detail "Uang tunai -> Penjualan: 963.000" (menggantikan Uang tunai Tercatat yg mengandung Kas Masuk)
+      if (inUangTunaiDetailBlock) {
+        if (/penjualan/i.test(l)) {
+          const posMatches = line.replace(/(?:^|\s)-\s*\d[\d.,]*/g, ' ').match(/(?:[rR][pP]\.?\s*)?(\d{1,3}(?:[.,]\d{3})+|\d{5,9})/g);
+          if (posMatches) {
+            const pVal = cleanToAmount(posMatches[posMatches.length - 1]);
+            if (pVal >= 1000 && pVal <= 250000000) {
+              tianlalaCashReplacement = pVal;
+            }
+          }
+          continue;
+        }
+        if (/^(?:qpon|qris|total)\b/i.test(l)) {
+          inUangTunaiDetailBlock = false;
+        } else {
+          continue;
+        }
+      }
+
+      // Pemetaan label baris POS -> Channel Target
+      let targetKey = '';
+      let rowNormTag = '';
+      if (/\bgrab\s*food(?:\s*integrasi)?\b|\bgrabfood\b/i.test(l)) {
+        targetKey = 'salesGrabFood'; rowNormTag = 'grabfood';
+      } else if (/\bshopee\s*food\b|\bshopeefood\b|\bshopee\s*integrasi\b/i.test(l)) {
+        targetKey = 'salesShopeeFood'; rowNormTag = 'shopeefood';
+      } else if (/\bgo\s*food(?:\s*manual\s*input|\s*integrasi)?\b|\bgofood\b|\bgojek\b/i.test(l)) {
+        targetKey = 'salesGoFood'; rowNormTag = 'gofood';
+      } else if (/\btiktok(?:\s*go)?\b/i.test(l) && !/^\d+\s*\.\s*\[\s*tiktok\s*\]/i.test(l)) {
+        targetKey = 'salesTikTok'; rowNormTag = 'tiktok';
+      } else if (/\bqpon\b/i.test(l)) {
+        targetKey = 'salesQpon'; rowNormTag = 'qpon';
+      } else if (
+        /\bpos\b/i.test(l) ||
+        /\buang\s*tunai\b|\btunai\b|\bcash\b/i.test(l) ||
+        /\bqris(?:\s*manual)?\b|\bdebit(?:\s*card)?\b|\bedc\b/i.test(l) ||
+        /\bbca\b|\bbri\b|\bmandiri\b|\bbni\b/i.test(l) ||
+        (/\bgopay\b/i.test(l) && !/gofood|gojek/i.test(l)) ||
+        (/\b(?:shopeepay|spaylater)\b/i.test(l) && !/shopeefood/i.test(l)) ||
+        /\bdana\b|\bovo\b/i.test(l) ||
+        /^(?:\d+\s*\.\s*)?online\b/i.test(l)
+      ) {
+        targetKey = 'salesOffline';
+        rowNormTag = l.replace(/[^a-z]/g, '').slice(0, 14);
+      }
+
+      if (!targetKey) continue;
+
+      // Hapus angka minus (misal kolom SELISIH -1.463.000 di Tianlala) sebelum mencocokkan nominal positif
+      const positiveOnlyLine = line.replace(/(?:^|\s)-\s*\d[\d.,]*/g, ' ');
+      const numMatches = positiveOnlyLine.match(/(?:[rR][pP]\.?\s*)?(\d{1,3}(?:[.,]\d{3})+(?:[.,]00)?|\d{5,9})/g);
+      let lineScan = positiveOnlyLine;
+      if (!numMatches && pageLines[idx + 1] && /^\s*(?:[rR][pP]\.?\s*)?\d/.test(pageLines[idx + 1])) {
+        lineScan = pageLines[idx + 1].replace(/(?:^|\s)-\s*\d[\d.,]*/g, ' ');
+      }
+      const finalNums = lineScan.match(/(?:[rR][pP]\.?\s*)?(\d{1,3}(?:[.,]\d{3})+(?:[.,]00)?|\d{4,9})/g);
+      if (!finalNums || finalNums.length === 0) continue;
+
+      let rowAmount = 0;
+      for (let nIdx = finalNums.length - 1; nIdx >= 0; nIdx--) {
+        const cand = cleanToAmount(finalNums[nIdx]);
+        if (cand >= 1000 && cand <= 250000000) {
+          rowAmount = cand;
+          break;
+        }
+      }
+      if (rowAmount < 1000) continue;
+
+      // Cari Quantity transaksi kolom tengah (contoh Momoyo "POS 84 Rp 2.145.000" atau Tomoro "Cash 27 Rp 889.000")
+      let rowQty = 0;
+      const qtyMatch = positiveOnlyLine.match(/\b(\d{1,3})\s+(?=[rR][pP]\.?\s*\d|\d{1,3}[.,]\d{3})/);
+      if (qtyMatch && qtyMatch[1]) {
+        const q = parseInt(qtyMatch[1], 10);
+        if (q > 0 && q < 1000 && q !== rowAmount) rowQty = q;
+      }
+
+      // Deduplikasi baris yang muncul berulang pada 2 foto scroll (seperti OVO 1 Rp 14.600 di Tomoro)
+      const rowSig = targetKey + '_' + rowNormTag + '_' + rowAmount + '_' + rowQty;
+      if (seenRowKeys.has(rowSig)) {
+        continue;
+      }
+      seenRowKeys.add(rowSig);
+
+      channelTotals[targetKey] += rowAmount;
+      if (rowQty > 0) sumRowQty += rowQty;
+      if (/\buang\s*tunai\b/i.test(l)) {
+        tianlalaRecordedCash = rowAmount;
+      }
+    }
+  });
+
+  // Koreksi Tianlala Cash jika blok detail Penjualan terpisah dari Kas Masuk terbaca
+  if (tianlalaCashReplacement !== null && tianlalaRecordedCash !== null && tianlalaRecordedCash > tianlalaCashReplacement) {
+    channelTotals.salesOffline = Math.max(0, channelTotals.salesOffline - tianlalaRecordedCash + tianlalaCashReplacement);
+  }
+
+  if (!bestTrx && sumRowQty > 0) {
+    bestTrx = sumRowQty;
+  }
+
+  const totalFromChannels =
+    channelTotals.salesOffline +
+    channelTotals.salesGrabFood +
+    channelTotals.salesShopeeFood +
+    channelTotals.salesGoFood +
+    channelTotals.salesTikTok +
+    channelTotals.salesQpon;
+
+  // 5. Ekstrak Total Penjualan Fallback (jika tidak ada rincian channel terdeteksi)
   lines.forEach((line, idx) => {
     const l = line.toLowerCase();
-    // Abaikan baris kembalian / change / pajak / diskon
-    if (l.includes('kembali') || l.includes('change') || l.includes('kembalian') || l.includes('diskon')) {
+    if (l.includes('kembali') || l.includes('change') || l.includes('kembalian') || l.includes('diskon') || l.includes('kas masuk')) {
       return;
     }
 
     let score = 0;
-    if (l.includes('grand total') || l.includes('net sales') || l.includes('total sales') || l.includes('total penjualan') || l.includes('total omset')) {
+    if (l.includes('uang yang diterima') || l.includes('grand total') || l.includes('net sales') || l.includes('total sales') || l.includes('total penjualan') || l.includes('total omset')) {
       score = 300;
-    } else if (l.includes('total bayar') || l.includes('total tagihan') || l.includes('jumlah bayar') || l.includes('penjualan kotor')) {
+    } else if (l.includes('persamaan') || l.includes('subtotal') || l.includes('total bayar') || l.includes('total tagihan') || l.includes('jumlah bayar') || l.includes('penjualan kotor')) {
       score = 200;
-    } else if (/\btotal\b/.test(l) && !l.includes('struk') && !l.includes('bill') && !l.includes('transaksi') && !l.includes('item')) {
+    } else if (/\btotal\b/.test(l) && !l.includes('struk') && !l.includes('bill') && !l.includes('transaksi') && !l.includes('item') && !l.includes('diskon')) {
       score = 100;
-    } else if ((l.includes('tunai') || l.includes('qris') || l.includes('paid')) && bestSalesScore < 100) {
-      // Pembayaran hanya sebagai cadangan jika kata kunci TOTAL belum ditemukan sama sekali
-      score = 50;
     }
 
     if (score > 0) {
-      // Prioritaskan mencari angka pada baris yang sama terlebih dahulu
-      let numMatches = line.match(/(?:[rR][pP]\.?\s*)?(\d{1,3}(?:[.,]\d{3})+(?:[.,]00)?|\d{5,9})/g);
-      // Jika baris hanya berisi label kata kunci tanpa angka, cari di baris berikutnya
+      const posLine = line.replace(/(?:^|\s)-\s*\d[\d.,]*/g, ' ');
+      let numMatches = posLine.match(/(?:[rR][pP]\.?\s*)?(\d{1,3}(?:[.,]\d{3})+(?:[.,]00)?|\d{5,9})/g);
       if (!numMatches && lines[idx + 1]) {
-        numMatches = lines[idx + 1].match(/(?:[rR][pP]\.?\s*)?(\d{1,3}(?:[.,]\d{3})+(?:[.,]00)?|\d{5,9})/g);
+        numMatches = lines[idx + 1].replace(/(?:^|\s)-\s*\d[\d.,]*/g, ' ').match(/(?:[rR][pP]\.?\s*)?(\d{1,3}(?:[.,]\d{3})+(?:[.,]00)?|\d{5,9})/g);
       }
-
       if (numMatches) {
         numMatches.forEach(nm => {
           const val = cleanToAmount(nm);
-          // Batasan wajar sales cabang F&B harian: Rp 100.000 s/d Rp 250.000.000
           if (val >= 100000 && val <= 250000000) {
             if (score > bestSalesScore) {
               bestSales = val;
@@ -10157,9 +10796,8 @@ function parseReceiptOcrText(rawText) {
     }
   });
 
-  // Jika belum ketemu dari kata kunci di atas, cari angka terbesar yang ada tanda "Rp"
-  if (!bestSales) {
-    const rpMatches = rawText.match(/[rR][pP]\.?\s*(\d{1,3}(?:[.,]\d{3})+|\d{5,9})/g);
+  if (!bestSales && totalFromChannels === 0) {
+    const rpMatches = rawText.replace(/(?:^|\s)-\s*\d[\d.,]*/g, ' ').match(/[rR][pP]\.?\s*(\d{1,3}(?:[.,]\d{3})+|\d{5,9})/g);
     if (rpMatches) {
       rpMatches.forEach(rm => {
         const val = cleanToAmount(rm);
@@ -10173,7 +10811,13 @@ function parseReceiptOcrText(rawText) {
   }
 
   return {
-    actualSales: bestSales,
+    actualSales: totalFromChannels > 0 ? totalFromChannels : bestSales,
+    salesOffline: channelTotals.salesOffline,
+    salesGrabFood: channelTotals.salesGrabFood,
+    salesShopeeFood: channelTotals.salesShopeeFood,
+    salesGoFood: channelTotals.salesGoFood,
+    salesTikTok: channelTotals.salesTikTok,
+    salesQpon: channelTotals.salesQpon,
     totalTransaksi: bestTrx,
     tanggal: detectedDate,
     cabangId: matchedCabangId,
@@ -10195,12 +10839,21 @@ function applyAiScanResult(data, engineSource) {
 
   if (scanline) scanline.style.display = 'none';
 
-  if (!data || (!data.actualSales && !data.totalTransaksi)) {
+  const chSum = data ? (
+    Math.max(0, Number(data.salesOffline || 0)) +
+    Math.max(0, Number(data.salesGrabFood || 0)) +
+    Math.max(0, Number(data.salesShopeeFood || 0)) +
+    Math.max(0, Number(data.salesGoFood || 0)) +
+    Math.max(0, Number(data.salesTikTok || 0)) +
+    Math.max(0, Number(data.salesQpon || 0))
+  ) : 0;
+
+  if (!data || (!data.actualSales && chSum === 0 && !data.totalTransaksi)) {
     if (statusText) {
       statusText.innerHTML = '<span style="color:#D97706;"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Angka Total Tidak Terbaca Jelas</span>';
     }
     if (metaText) {
-      metaText.textContent = 'Pastikan foto struk terang & tidak terpotong, atau isi angka secara manual.';
+      metaText.textContent = 'Pastikan foto layar POS terang & tajam, atau isi angka per channel secara manual.';
     }
     showToast('AI tidak dapat mendeteksi angka total secara pasti. Silakan isi angka secara manual.', 'warning');
     return;
@@ -10208,27 +10861,42 @@ function applyAiScanResult(data, engineSource) {
 
   // Berhasil membaca data
   if (statusText) {
-    statusText.innerHTML = '<span style="color:#059669;">✓ Data Struk Berhasil Dibaca AI</span>';
+    statusText.innerHTML = '<span style="color:#059669;">✓ Data POS Berhasil Dibaca AI</span>';
   }
   if (metaText) {
-    metaText.textContent = 'Dianalisis oleh ' + (engineSource || 'AI Engine') + ' • Siap disimpan';
+    const brandNote = data.detectedBrand ? (' [' + data.detectedBrand + ']') : '';
+    metaText.textContent = 'Dianalisis oleh ' + (engineSource || 'AI Engine') + brandNote + ' • Siap cek & simpan';
   }
 
   const tags = [];
 
-  // Isi Kolom Actual Sales
-  if (data.actualSales) {
+  // 1. Isi 6 Input Channel jika terdeteksi > 0
+  if (chSum > 0) {
+    populateSalesChannelInputsFromRecord(data, true);
+    PANORAMA_SALES_CHANNELS.forEach(meta => {
+      const v = Math.max(0, Number(data[meta.payloadKey] || 0));
+      if (v > 0) {
+        tags.push('<div class="ai-result-tag-item">' + meta.label + ': <strong>Rp ' + formatRupiah(v) + '</strong></div>');
+      }
+    });
+  } else {
+    clearSalesChannelInputs(true);
+  }
+
+  // 2. Isi Kolom Actual Sales (Auto-Sum dari 6 channel atau Fallback Total Tunggal)
+  const effectiveActual = chSum > 0 ? chSum : Number(data.actualSales || 0);
+  if (effectiveActual > 0) {
     const inputActual = document.getElementById('inputSalesActual');
     const tagActual = document.getElementById('tagActualAi');
     if (inputActual) {
-      inputActual.value = data.actualSales;
+      inputActual.value = Math.round(effectiveActual);
       inputActual.classList.add('input-ai-highlight');
     }
     if (tagActual) tagActual.style.display = 'inline-block';
-    tags.push('<div class="ai-result-tag-item"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M14.8 9A2 2 0 0 0 13 8h-2a2 2 0 0 0 0 4h2a2 2 0 0 1 0 4h-2a2 2 0 0 1-1.8-1"/><path d="M12 6v2m0 8v2"/></svg> Total Sales: <strong>Rp ' + formatRupiah(data.actualSales) + '</strong></div>');
+    tags.push('<div class="ai-result-tag-item"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M14.8 9A2 2 0 0 0 13 8h-2a2 2 0 0 0 0 4h2a2 2 0 0 1 0 4h-2a2 2 0 0 1-1.8-1"/><path d="M12 6v2m0 8v2"/></svg> Total Omzet: <strong>Rp ' + formatRupiah(effectiveActual) + '</strong></div>');
   }
 
-  // Isi Kolom Total Transaksi
+  // 3. Isi Kolom Total Transaksi
   if (data.totalTransaksi) {
     const inputTrx = document.getElementById('inputSalesTrx');
     const tagTrx = document.getElementById('tagTrxAi');
@@ -10240,7 +10908,7 @@ function applyAiScanResult(data, engineSource) {
     tags.push('<div class="ai-result-tag-item"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Total Struk: <strong>' + data.totalTransaksi + ' Trx</strong></div>');
   }
 
-  // Set Tanggal jika terdeteksi dari struk
+  // 4. Set Tanggal jika terdeteksi dari struk
   if (data.tanggal) {
     const normScannedDate = normalizeDateStr(data.tanggal);
     const inputDate = document.getElementById('inputSalesDate');
@@ -10253,25 +10921,25 @@ function applyAiScanResult(data, engineSource) {
     tags.push('<div class="ai-result-tag-item"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg> Tanggal: <strong>' + normScannedDate + '</strong></div>');
   }
 
-  // Set Cabang jika cocok
-  if (data.cabangId) {
-    const selectCabang = document.getElementById('salesInputCabang');
+  // 5. Set Cabang jika cocok & bukan terkunci role SPV
+  const selectCabang = document.getElementById('salesInputCabang');
+  if (data.cabangId && selectCabang && !selectCabang.disabled) {
     const tagCabang = document.getElementById('tagCabangAi');
-    if (selectCabang) selectCabang.value = data.cabangId;
+    selectCabang.value = data.cabangId;
     if (tagCabang) tagCabang.style.display = 'inline-block';
     tags.push('<div class="ai-result-tag-item"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1.5-5h15L21 9"/><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/><path d="M5 12v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8"/><path d="M10 15h4v6h-4z"/></svg> Toko: <strong>' + (data.namaCabang || data.cabangId) + '</strong></div>');
   }
 
-  // Perbarui target harian dan rincian tabel untuk tanggal dan cabang yang terdeteksi
+  // Perbarui target harian & ringkasan channel untuk tanggal/cabang yang terdeteksi
   onSalesBranchOrDateChange(false, true);
+  recalculateSalesChannelInputs({ preserveManualActual: true });
 
-  // Tampilkan Badge Ringkasan Hasil
   if (resultBadge && resultDetails) {
     resultDetails.innerHTML = tags.join('');
     resultBadge.style.display = 'block';
   }
 
-  showToast('Sukses! AI memindai data struk (Tanggal, Omset, Struk). Silakan cek & simpan.', 'success');
+  showToast('Sukses! AI memindai rincian channel POS. Silakan cek & simpan.', 'success');
 }
 
 // Penanganan Kegagalan OCR
@@ -10291,17 +10959,26 @@ function handleAiOcrFailure(errorMsg) {
   showToast(errorMsg || 'Gagal membaca struk. Anda tetap dapat mengisi data secara manual.', 'warning');
 }
 
-// Simpan Sales Harian
+// Simpan Sales Harian (Dukungan 6 Channel + Auto-Sum)
 function submitSalesForm() {
   const cabangId = document.getElementById('salesInputCabang').value;
   const rawTanggal = document.getElementById('inputSalesDate').value;
   const tanggal = normalizeDateStr(rawTanggal);
   const target = Number(document.getElementById('inputSalesTarget').value || 0);
-  const actual = Number(document.getElementById('inputSalesActual').value || 0);
+
+  const salesOffline = Math.max(0, Number((document.getElementById('inputSalesOffline') && document.getElementById('inputSalesOffline').value) || 0));
+  const salesGrabFood = Math.max(0, Number((document.getElementById('inputSalesGrabFood') && document.getElementById('inputSalesGrabFood').value) || 0));
+  const salesShopeeFood = Math.max(0, Number((document.getElementById('inputSalesShopeeFood') && document.getElementById('inputSalesShopeeFood').value) || 0));
+  const salesGoFood = Math.max(0, Number((document.getElementById('inputSalesGoFood') && document.getElementById('inputSalesGoFood').value) || 0));
+  const salesTikTok = Math.max(0, Number((document.getElementById('inputSalesTikTok') && document.getElementById('inputSalesTikTok').value) || 0));
+  const salesQpon = Math.max(0, Number((document.getElementById('inputSalesQpon') && document.getElementById('inputSalesQpon').value) || 0));
+  const channelSum = salesOffline + salesGrabFood + salesShopeeFood + salesGoFood + salesTikTok + salesQpon;
+
+  const actual = channelSum > 0 ? channelSum : Math.max(0, Number(document.getElementById('inputSalesActual').value || 0));
   const trx = Number(document.getElementById('inputSalesTrx').value || 0);
 
   if (!cabangId || !actual) {
-    showToast('Silakan pilih cabang dan isi nominal actual sales.', 'danger');
+    showToast('Silakan pilih cabang dan isi rincian channel atau total omzet sales.', 'danger');
     return;
   }
 
@@ -10319,6 +10996,12 @@ function submitSalesForm() {
     namaCabang: selectedCabang ? selectedCabang.namaCabang : 'Cabang F&B',
     targetHarian: target || 5000000,
     actualSales: actual,
+    salesOffline: salesOffline,
+    salesGrabFood: salesGrabFood,
+    salesShopeeFood: salesShopeeFood,
+    salesGoFood: salesGoFood,
+    salesTikTok: salesTikTok,
+    salesQpon: salesQpon,
     totalTransaksi: trx || 150,
     createdBy: window.PANORAMA_STATE.user.namaLengkap
   };
@@ -10333,12 +11016,19 @@ function submitSalesForm() {
 
   if (existingIdx >= 0) {
     // Mode Koreksi: Ganti angka lama dengan angka baru
-    window.PANORAMA_STATE.data.sales[existingIdx].actualSales = actual;
-    window.PANORAMA_STATE.data.sales[existingIdx].targetHarian = target || 5000000;
-    window.PANORAMA_STATE.data.sales[existingIdx].persentase = persen;
-    window.PANORAMA_STATE.data.sales[existingIdx].totalTransaksi = trx;
-    window.PANORAMA_STATE.data.sales[existingIdx].tanggal = tanggal;
-    window.PANORAMA_STATE.data.sales[existingIdx].createdBy = payload.createdBy + ' (Koreksi)';
+    const ex = window.PANORAMA_STATE.data.sales[existingIdx];
+    ex.actualSales = actual;
+    ex.salesOffline = salesOffline;
+    ex.salesGrabFood = salesGrabFood;
+    ex.salesShopeeFood = salesShopeeFood;
+    ex.salesGoFood = salesGoFood;
+    ex.salesTikTok = salesTikTok;
+    ex.salesQpon = salesQpon;
+    ex.targetHarian = target || 5000000;
+    ex.persentase = persen;
+    ex.totalTransaksi = trx;
+    ex.tanggal = tanggal;
+    ex.createdBy = payload.createdBy + ' (Koreksi)';
 
     // Bersihkan entri duplikat lain jika sebelumnya sempat tersimpan ganda
     window.PANORAMA_STATE.data.sales = window.PANORAMA_STATE.data.sales.filter((s, idx) => {
@@ -10356,6 +11046,12 @@ function submitSalesForm() {
       namaCabang: payload.namaCabang,
       targetHarian: target || 5000000,
       actualSales: actual,
+      salesOffline: salesOffline,
+      salesGrabFood: salesGrabFood,
+      salesShopeeFood: salesShopeeFood,
+      salesGoFood: salesGoFood,
+      salesTikTok: salesTikTok,
+      salesQpon: salesQpon,
       persentase: persen,
       totalTransaksi: trx,
       createdBy: payload.createdBy
@@ -10382,12 +11078,14 @@ function submitSalesForm() {
   renderSalesDailyBreakdown(cabangId);
   closeModal('modalInputSales');
 
-  // Bersihkan input angka actual dan total transaksi setelah submit berhasil
+  // Bersihkan input angka actual, 6 channel, dan total transaksi setelah submit berhasil
+  clearSalesChannelInputs(true);
   const actualInputEl = document.getElementById('inputSalesActual');
   const trxInputEl = document.getElementById('inputSalesTrx');
   if (actualInputEl) {
     actualInputEl.value = '';
-    actualInputEl.classList.remove('input-ai-highlight');
+    actualInputEl.readOnly = false;
+    actualInputEl.classList.remove('input-ai-highlight', 'input-auto-calculated');
   }
   if (trxInputEl) {
     trxInputEl.value = '';
@@ -17250,6 +17948,26 @@ function buildExecutivePresentationSlides() {
           ? 'Evaluasi Pencapaian Omzet Mingguan Terhadap Target & Strategi Jam Sibuk'
           : (isManager ? 'Evaluasi Capaian Omset per Gerai Binaan Terhadap Target yang Ditetapkan' : 'Evaluasi Capaian Omset per Brand Terhadap Target yang Ditetapkan');
 
+        const slideCh = createEmptyChannelBucket();
+        let slideChTotal = 0;
+        salesList.forEach(s => {
+          slideChTotal += Number(s.actualSales || 0);
+          addChannelBuckets(slideCh, extractSalesRecordChannels(s));
+        });
+        let slideChBanner = '';
+        if (slideChTotal > 0 && (slideCh.offline + slideCh.onlineTotal) > 0) {
+          const chBadges = PANORAMA_SALES_CHANNELS.map(meta => {
+            const v = Number(slideCh[meta.key] || 0);
+            const pct = Math.round((v / slideChTotal) * 1000) / 10;
+            return '<span style="background:#FFFFFF; border:1px solid #CBD5E1; border-radius:6px; padding:3px 7px; font-size:10px; font-weight:700; color:#0F172A;">' +
+              meta.label + ': Rp ' + formatCompactRupiah(v) + ' (' + pct + '%)</span>';
+          }).join('');
+          slideChBanner = '<div style="margin-top:8px; padding:8px 10px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px;">' +
+            '<div style="font-size:10.5px; font-weight:800; color:var(--forest-900); margin-bottom:5px;">Distribusi Channel Omzet (' + (isSPV ? escapeHtml(storeName) : (isManager ? escapeHtml(targetAreaId) : 'Nasional')) + '):</div>' +
+            '<div style="display:flex; flex-wrap:wrap; gap:6px;">' + chBadges + '</div>' +
+          '</div>';
+        }
+
         return '<div class="presentation-slide">' +
           createSlideHeader(cat, mainTitle, subTitle) +
           '<div class="slide-content-body">' +
@@ -17263,6 +17981,7 @@ function buildExecutivePresentationSlides() {
                 bulletBox2 +
               '</div>' +
             '</div>' +
+            slideChBanner +
           '</div>' +
           createSlideFooter(currIdx, totalCount) +
         '</div>';
@@ -22374,6 +23093,7 @@ function exportSalesAnalysisToExcel() {
 
     const cActual = agg ? Number(agg.actual || 0) : 0;
     const cTrx = agg ? Number(agg.trx || 0) : 0;
+    const cChannels = (agg && agg.channels) ? agg.channels : createEmptyChannelBucket();
     const cPct = cTarget > 0 ? (Math.round((cActual / cTarget) * 1000) / 10) : 0;
     const cGap = cActual - cTarget;
     const cAov = cTrx > 0 ? Math.round(cActual / cTrx) : 0;
@@ -22419,6 +23139,7 @@ function exportSalesAnalysisToExcel() {
       target: cTarget,
       actual: cActual,
       trx: cTrx,
+      channels: cChannels,
       persen: cPct,
       gap: cGap,
       aov: cAov,
@@ -22441,12 +23162,14 @@ function exportSalesAnalysisToExcel() {
         totalTarget: 0,
         totalActual: 0,
         totalTrx: 0,
+        channels: createEmptyChannelBucket(),
         branches: []
       };
     }
     areaGroupMap[aId].totalTarget += b.target;
     areaGroupMap[aId].totalActual += b.actual;
     areaGroupMap[aId].totalTrx += b.trx;
+    addChannelBuckets(areaGroupMap[aId].channels, b.channels);
     areaGroupMap[aId].branches.push(b);
   });
 
@@ -22498,10 +23221,12 @@ function exportSalesAnalysisToExcel() {
   let nationalTarget = 0;
   let nationalActual = 0;
   let nationalTrx = 0;
+  const nationalChannels = createEmptyChannelBucket();
   allBranches.forEach(b => {
     nationalTarget += b.target;
     nationalActual += b.actual;
     nationalTrx += b.trx;
+    addChannelBuckets(nationalChannels, b.channels);
   });
   const nationalPersen = nationalTarget > 0 ? (Math.round((nationalActual / nationalTarget) * 1000) / 10) : 0;
   const nationalGap = nationalActual - nationalTarget;
@@ -22581,13 +23306,14 @@ function exportSalesAnalysisToExcel() {
 
   // Bagian A: Banner Header Laporan
   xml += '<table>' +
-    '<tr><td colspan="14" class="title-main">REKAPITULASI SALES PERFORMANCE &amp; ANALISA EKSEKUTIF NASIONAL</td></tr>' +
-    '<tr><td colspan="14" class="title-sub">PORTAL MONITORING EKSEKUTIF PANORAMA • REVENUE &amp; FINANCIAL INTELLIGENCE</td></tr>' +
-    '<tr><td colspan="14" style="font-size:9pt; color:#64748B;">Dicetak otomatis pada: ' + dateStr + ' pk ' + timeStr + ' WIB | Periode Filter: ' + escapeXml(periodLabel) + ' | Cakupan: Seluruh Jaringan Gerai Nasional (' + allBranches.length + ' Gerai)</td></tr>' +
-    '<tr><td colspan="14"></td></tr>' +
+    '<tr><td colspan="20" class="title-main">REKAPITULASI SALES PERFORMANCE &amp; ANALISA EKSEKUTIF NASIONAL</td></tr>' +
+    '<tr><td colspan="20" class="title-sub">PORTAL MONITORING EKSEKUTIF PANORAMA • REVENUE &amp; FINANCIAL INTELLIGENCE</td></tr>' +
+    '<tr><td colspan="20" style="font-size:9pt; color:#64748B;">Dicetak otomatis pada: ' + dateStr + ' pk ' + timeStr + ' WIB | Periode Filter: ' + escapeXml(periodLabel) + ' | Cakupan: Seluruh Jaringan Gerai Nasional (' + allBranches.length + ' Gerai)</td></tr>' +
+    '<tr><td colspan="20"></td></tr>' +
   '</table>';
 
-  // Bagian B: Executive KPI Snapshot Board
+  // Bagian B: Executive KPI Snapshot Board + Channel Mix Nasional
+  const natChDenom = nationalActual > 0 ? nationalActual : 1;
   xml += '<table>' +
     '<tr><td colspan="8" style="background:#F1F5F9; font-weight:bold; font-size:11pt; color:#0F172A; padding:6px 10px;">RINGKASAN KPI REVENUE NASIONAL</td></tr>' +
     '<tr class="kpi-header">' +
@@ -22609,11 +23335,33 @@ function exportSalesAnalysisToExcel() {
       '<td colspan="2" class="txt-bold" style="color:#0F172A;">' + targetReachedCount + ' Gerai Tercapai Target | ' + zeroReportCount + ' Gerai Belum Lapor</td>' +
     '</tr>' +
     '<tr><td colspan="8"></td></tr>' +
+  '</table>' +
+  '<table>' +
+    '<tr><td colspan="7" style="background:#0F172A; color:#FFFFFF; font-weight:bold; font-size:10.5pt; padding:6px 10px;">KOMPOSISI CHANNEL OMZET NASIONAL (6 CHANNEL + LEGACY)</td></tr>' +
+    '<tr class="kpi-header">' +
+      '<th>Omset Offline (' + formatPctCell((nationalChannels.offline / natChDenom) * 100) + ')</th>' +
+      '<th>GrabFood (' + formatPctCell((nationalChannels.grabFood / natChDenom) * 100) + ')</th>' +
+      '<th>ShopeeFood (' + formatPctCell((nationalChannels.shopeeFood / natChDenom) * 100) + ')</th>' +
+      '<th>GoFood (' + formatPctCell((nationalChannels.goFood / natChDenom) * 100) + ')</th>' +
+      '<th>TikTok (' + formatPctCell((nationalChannels.tikTok / natChDenom) * 100) + ')</th>' +
+      '<th>Qpon (' + formatPctCell((nationalChannels.qpon / natChDenom) * 100) + ')</th>' +
+      '<th>Belum Dirinci / Legacy</th>' +
+    '</tr>' +
+    '<tr style="font-size:10.5pt; font-weight:bold; text-align:right; background:#F8FAFC;">' +
+      '<td style="color:#065F46;">' + formatRpCell(nationalChannels.offline) + '</td>' +
+      '<td style="color:#15803D;">' + formatRpCell(nationalChannels.grabFood) + '</td>' +
+      '<td style="color:#9A3412;">' + formatRpCell(nationalChannels.shopeeFood) + '</td>' +
+      '<td style="color:#991B1B;">' + formatRpCell(nationalChannels.goFood) + '</td>' +
+      '<td style="color:#0F172A;">' + formatRpCell(nationalChannels.tikTok) + '</td>' +
+      '<td style="color:#5B21B6;">' + formatRpCell(nationalChannels.qpon) + '</td>' +
+      '<td style="color:#64748B;">' + formatRpCell(nationalChannels.legacyUnclassified) + '</td>' +
+    '</tr>' +
+    '<tr><td colspan="7"></td></tr>' +
   '</table>';
 
   // Bagian C: Matriks Evaluasi per Area Manager (Top Leadership Summary)
   xml += '<table>' +
-    '<tr><td colspan="11" style="background:#0F172A; color:#FFFFFF; font-weight:bold; font-size:11pt; padding:8px 10px;">ANALISIS KINERJA REVENUE PER WILAYAH OPERASIONAL (AREA MANAGER)</td></tr>' +
+    '<tr><td colspan="17" style="background:#0F172A; color:#FFFFFF; font-weight:bold; font-size:11pt; padding:8px 10px;">ANALISIS KINERJA REVENUE PER WILAYAH OPERASIONAL (AREA MANAGER)</td></tr>' +
     '<tr class="th-summary">' +
       '<th style="width:40px;">No</th>' +
       '<th style="width:110px;">Wilayah</th>' +
@@ -22621,6 +23369,12 @@ function exportSalesAnalysisToExcel() {
       '<th style="width:100px;">Total Gerai</th>' +
       '<th style="width:140px;">Target Omzet</th>' +
       '<th style="width:140px;">Realisasi Omzet</th>' +
+      '<th style="width:125px;">Omset Offline</th>' +
+      '<th style="width:115px;">GrabFood</th>' +
+      '<th style="width:115px;">ShopeeFood</th>' +
+      '<th style="width:115px;">GoFood</th>' +
+      '<th style="width:115px;">TikTok</th>' +
+      '<th style="width:115px;">Qpon</th>' +
       '<th style="width:90px;">Pencapaian</th>' +
       '<th style="width:140px;">Gap / Defisit</th>' +
       '<th style="width:140px;">Status Capaian</th>' +
@@ -22630,6 +23384,7 @@ function exportSalesAnalysisToExcel() {
 
   let areaIdx = 1;
   areaGroups.forEach(ag => {
+    const aCh = ag.channels || createEmptyChannelBucket();
     xml += '<tr>' +
       '<td class="txt-center">' + areaIdx++ + '</td>' +
       '<td class="txt-bold mso-txt txt-center" style="background:#F8FAFC;">' + escapeXml(ag.areaId) + '</td>' +
@@ -22637,6 +23392,12 @@ function exportSalesAnalysisToExcel() {
       '<td class="txt-center">' + ag.branches.length + ' Cabang</td>' +
       '<td class="txt-right">' + formatRpCell(ag.totalTarget) + '</td>' +
       '<td class="txt-right txt-bold" style="color:#0F172A;">' + formatRpCell(ag.totalActual) + '</td>' +
+      '<td class="txt-right">' + formatRpCell(aCh.offline) + '</td>' +
+      '<td class="txt-right">' + formatRpCell(aCh.grabFood) + '</td>' +
+      '<td class="txt-right">' + formatRpCell(aCh.shopeeFood) + '</td>' +
+      '<td class="txt-right">' + formatRpCell(aCh.goFood) + '</td>' +
+      '<td class="txt-right">' + formatRpCell(aCh.tikTok) + '</td>' +
+      '<td class="txt-right">' + formatRpCell(aCh.qpon) + '</td>' +
       '<td class="txt-center txt-bold ' + ag.statusClass + '">' + formatPctCell(ag.persen) + '</td>' +
       '<td class="txt-right txt-bold" style="color:' + (ag.gap >= 0 ? '#15803D' : '#B91C1C') + ';">' + formatGapCell(ag.gap) + '</td>' +
       '<td class="' + ag.statusClass + '">' + escapeXml(ag.statusText) + '</td>' +
@@ -22651,6 +23412,12 @@ function exportSalesAnalysisToExcel() {
     '<td class="txt-center" style="color:#FFFFFF;">' + allBranches.length + ' Cabang</td>' +
     '<td class="txt-right" style="color:#FFFFFF;">' + formatRpCell(nationalTarget) + '</td>' +
     '<td class="txt-right" style="color:#A7F3D0;">' + formatRpCell(nationalActual) + '</td>' +
+    '<td class="txt-right" style="color:#6EE7B7;">' + formatRpCell(nationalChannels.offline) + '</td>' +
+    '<td class="txt-right" style="color:#86EFAC;">' + formatRpCell(nationalChannels.grabFood) + '</td>' +
+    '<td class="txt-right" style="color:#FDBA74;">' + formatRpCell(nationalChannels.shopeeFood) + '</td>' +
+    '<td class="txt-right" style="color:#FCA5A5;">' + formatRpCell(nationalChannels.goFood) + '</td>' +
+    '<td class="txt-right" style="color:#7DD3FC;">' + formatRpCell(nationalChannels.tikTok) + '</td>' +
+    '<td class="txt-right" style="color:#DDD6FE;">' + formatRpCell(nationalChannels.qpon) + '</td>' +
     '<td class="txt-center" style="color:' + (nationalPersen >= 100 ? '#A7F3D0' : '#FDE68A') + ';">' + formatPctCell(nationalPersen) + '</td>' +
     '<td class="txt-right" style="color:' + (nationalGap >= 0 ? '#A7F3D0' : '#FECACA') + ';">' + formatGapCell(nationalGap) + '</td>' +
     '<td class="txt-center" style="color:#FFFFFF;">' + (nationalPersen >= 100 ? '🟢 TERCAPAI' : (nationalPersen >= 80 ? '🟡 MENDEKATI' : '🔴 DEFISIT')) + '</td>' +
@@ -22658,7 +23425,7 @@ function exportSalesAnalysisToExcel() {
     '<td style="color:#E2E8F0; font-size:9pt;">Agregasi performa revenue seluruh jaringan gerai F&amp;B nasional.</td>' +
   '</tr>';
 
-  xml += '<tr><td colspan="11"></td></tr></table>';
+  xml += '<tr><td colspan="17"></td></tr></table>';
 
   // Bagian D: Top 10 Champion & Bottom 10 Focus
   xml += '<table>' +
@@ -22701,11 +23468,12 @@ function exportSalesAnalysisToExcel() {
 
   // Bagian E: Daftar Rincian Seluruh Gerai per Wilayah Operasional
   xml += '<table>' +
-    '<tr><td colspan="14" style="background:#0F172A; color:#FFFFFF; font-weight:bold; font-size:11pt; padding:8px 10px;">RINCIAN LENGKAP SALES REALISASI SELURUH GERAI (DIKELOMPOKKAN PER WILAYAH)</td></tr>';
+    '<tr><td colspan="20" style="background:#0F172A; color:#FFFFFF; font-weight:bold; font-size:11pt; padding:8px 10px;">RINCIAN LENGKAP SALES REALISASI SELURUH GERAI (DIKELOMPOKKAN PER WILAYAH)</td></tr>';
 
   areaGroups.forEach(areaGroup => {
+    const aCh = areaGroup.channels || createEmptyChannelBucket();
     xml += '<tr class="th-area">' +
-      '<td colspan="14">' +
+      '<td colspan="20">' +
         'WILAYAH: ' + escapeXml(areaGroup.areaId) + 
         ' &nbsp;|&nbsp; Area Manager: ' + escapeXml(areaGroup.manager) + 
         ' &nbsp;|&nbsp; Total: ' + areaGroup.branches.length + ' Gerai' +
@@ -22720,6 +23488,12 @@ function exportSalesAnalysisToExcel() {
       '<th style="width:120px;">Kota</th>' +
       '<th style="width:140px;">Target Omzet</th>' +
       '<th style="width:140px;">Realisasi Omzet</th>' +
+      '<th style="width:120px;">Omset Offline</th>' +
+      '<th style="width:110px;">GrabFood</th>' +
+      '<th style="width:110px;">ShopeeFood</th>' +
+      '<th style="width:110px;">GoFood</th>' +
+      '<th style="width:110px;">TikTok</th>' +
+      '<th style="width:110px;">Qpon</th>' +
       '<th style="width:85px;">Capaian</th>' +
       '<th style="width:140px;">Gap / Selisih</th>' +
       '<th style="width:135px;">Status Capaian</th>' +
@@ -22733,6 +23507,7 @@ function exportSalesAnalysisToExcel() {
     // Urutkan cabang dalam area berdasarkan realisasi tertinggi
     const sortedBranches = [...areaGroup.branches].sort((a, b) => b.actual - a.actual);
     sortedBranches.forEach(b => {
+      const bCh = b.channels || createEmptyChannelBucket();
       xml += '<tr>' +
         '<td class="txt-center">' + cIdx++ + '</td>' +
         '<td class="txt-center mso-txt" style="background:#F8FAFC;">' + escapeXml(b.cabangId) + '</td>' +
@@ -22741,6 +23516,12 @@ function exportSalesAnalysisToExcel() {
         '<td>' + escapeXml(b.kota) + '</td>' +
         '<td class="txt-right">' + formatRpCell(b.target) + '</td>' +
         '<td class="txt-right txt-bold" style="color:#0F172A;">' + formatRpCell(b.actual) + '</td>' +
+        '<td class="txt-right">' + formatRpCell(bCh.offline) + '</td>' +
+        '<td class="txt-right">' + formatRpCell(bCh.grabFood) + '</td>' +
+        '<td class="txt-right">' + formatRpCell(bCh.shopeeFood) + '</td>' +
+        '<td class="txt-right">' + formatRpCell(bCh.goFood) + '</td>' +
+        '<td class="txt-right">' + formatRpCell(bCh.tikTok) + '</td>' +
+        '<td class="txt-right">' + formatRpCell(bCh.qpon) + '</td>' +
         '<td class="txt-center txt-bold ' + b.statusClass + '">' + formatPctCell(b.persen) + '</td>' +
         '<td class="txt-right txt-bold" style="color:' + (b.gap >= 0 ? '#15803D' : '#B91C1C') + ';">' + formatGapCell(b.gap) + '</td>' +
         '<td class="' + b.statusClass + '">' + escapeXml(b.statusText) + '</td>' +
@@ -22756,6 +23537,12 @@ function exportSalesAnalysisToExcel() {
       '<td colspan="5" class="txt-center">SUBTOTAL ' + escapeXml(areaGroup.areaId) + ' (' + areaGroup.branches.length + ' Cabang)</td>' +
       '<td class="txt-right">' + formatRpCell(areaGroup.totalTarget) + '</td>' +
       '<td class="txt-right" style="color:#0F172A;">' + formatRpCell(areaGroup.totalActual) + '</td>' +
+      '<td class="txt-right">' + formatRpCell(aCh.offline) + '</td>' +
+      '<td class="txt-right">' + formatRpCell(aCh.grabFood) + '</td>' +
+      '<td class="txt-right">' + formatRpCell(aCh.shopeeFood) + '</td>' +
+      '<td class="txt-right">' + formatRpCell(aCh.goFood) + '</td>' +
+      '<td class="txt-right">' + formatRpCell(aCh.tikTok) + '</td>' +
+      '<td class="txt-right">' + formatRpCell(aCh.qpon) + '</td>' +
       '<td class="txt-center ' + areaGroup.statusClass + '">' + formatPctCell(areaGroup.persen) + '</td>' +
       '<td class="txt-right txt-bold" style="color:' + (areaGroup.gap >= 0 ? '#15803D' : '#B91C1C') + ';">' + formatGapCell(areaGroup.gap) + '</td>' +
       '<td class="' + areaGroup.statusClass + '">' + escapeXml(areaGroup.statusText) + '</td>' +
@@ -22763,7 +23550,7 @@ function exportSalesAnalysisToExcel() {
       '<td class="txt-right">' + formatRpCell(areaGroup.aov) + '</td>' +
       '<td colspan="2" style="font-size:9pt; color:#475569;">' + escapeXml(areaGroup.rekomendasi) + '</td>' +
     '</tr>' +
-    '<tr><td colspan="14" style="border:none; height:10px;"></td></tr>';
+    '<tr><td colspan="20" style="border:none; height:10px;"></td></tr>';
   });
 
   xml += '</table>' +

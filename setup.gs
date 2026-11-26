@@ -256,7 +256,7 @@ function initPanoramaDatabase() {
 
   // 3. Inisialisasi Tab DataSales (Bersih / Siap Input Riil)
   console.log('[3/7] Menyiapkan tab DataSales...');
-  const headerSales = ['SalesID', 'Tanggal', 'AreaID', 'CabangID', 'NamaCabang', 'TargetHarian', 'ActualSales', 'PersentaseCapaian', 'TotalTransaksi', 'CreatedBy', 'CreatedAt'];
+  const headerSales = ['SalesID', 'Tanggal', 'AreaID', 'CabangID', 'NamaCabang', 'TargetHarian', 'ActualSales', 'PersentaseCapaian', 'TotalTransaksi', 'CreatedBy', 'CreatedAt', 'SalesOffline', 'SalesGrabFood', 'SalesShopeeFood', 'SalesGoFood', 'SalesTikTok', 'SalesQpon'];
   safeCreateSheet(ss, SHEETS.SALES, headerSales, []);
 
   // 4. Inisialisasi Tab DataInsiden (Bersih / Siap Input Riil)

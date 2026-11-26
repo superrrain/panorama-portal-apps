@@ -297,3 +297,28 @@ Pengguna melaporkan kendala tampilan saat halaman digulir (*scroll*) pada iPhone
 ## 🚦 Status Verifikasi (v5.9.9):
 1. ✅ **Sinkronisasi Bundle**: Seluruh file bundle ([index.html](file:///c:/Users/Lenovo/.gemini/antigravity-ide/DASHBOARD%20HEAD%20OPS/index.html), [app.html](file:///c:/Users/Lenovo/.gemini/antigravity-ide/DASHBOARD%20HEAD%20OPS/app.html), [PANORAMA_VERCEL/index.html](file:///c:/Users/Lenovo/.gemini/antigravity-ide/DASHBOARD%20HEAD%20OPS/PANORAMA_VERCEL/index.html), [PANORAMA_VERCEL/app.html](file:///c:/Users/Lenovo/.gemini/antigravity-ide/DASHBOARD%20HEAD%20OPS/PANORAMA_VERCEL/app.html)) terkompilasi penuh melalui [build_bundles.js](file:///c:/Users/Lenovo/.gemini/antigravity-ide/DASHBOARD%20HEAD%20OPS/scratch/build_bundles.js).
 2. ✅ **Verifikasi Visual Scroll iPhone (`375x812`, Simulasi Dynamic Island `59px`)**: Diperiksa langsung pada mode Light dan Dark dalam posisi halaman ter-scroll ke bawah — area di atas maupun di belakang Dynamic Island tertutup solid oleh `.top-bar` dan nol kebocoran konten.
+
+
+---
+
+## v5.10.0 — Breakdown Sales 6-Channel (Offline, GrabFood, ShopeeFood, GoFood, TikTok, Qpon) & Multi-Brand POS AI Scanner
+**Tanggal:** 2026-11-26  
+**Status:** Implementasi Lengkap & Terverifikasi  
+
+### Ringkasan Perubahan
+1. **Skema `DataSales` Backward-Compatible (`code.gs`, `Sales.gs`, `setup.gs`, `prd.md`)**:
+   - Menambahkan 6 kolom channel baru di indeks `11..16` (`L..Q`): `SalesOffline`, `SalesGrabFood`, `SalesShopeeFood`, `SalesGoFood`, `SalesTikTok`, dan `SalesQpon` tanpa menggeser kolom `A..K`.
+   - Menambahkan `ensureSalesChannelHeaders_(sheet)` di `Sales.gs` agar sheet produksi lama otomatis menambah header kolom channel saat penyimpanan baru/koreksi pertama kali.
+   - Data historis lama tetap dihitung utuh di total omzet (`ActualSales`) dan ditandai secara aman sebagai `Belum Dirinci (Legacy)` di visualisasi komposisi channel.
+2. **Input Sales Modal & Multi-Brand + Multi-Foto POS Scanner (`index_modular.html`, `js.html`, `Sales.gs`)**:
+   - Menambahkan grid input 6 channel (`Offline`, `GrabFood`, `ShopeeFood`, `GoFood`, `TikTok`, `Qpon`) dengan **auto-sum** ke `Total Realisasi Omzet (Actual Sales)`, rasio Offline vs Online live, dan perbandingan langsung terhadap Target Harian.
+   - Meng-upgrade AI Scanner agar mendukung **1–3 foto sekaligus** (termasuk mode *scroll* seperti Daily Report Tomoro Coffee dengan deduplikasi baris overlap otomatis), melewati `callPanoramaApi` (bekerja baik di GAS maupun Vercel PWA), serta men-upgrade model backend `apiScanReceiptWithAI` dari `gemini-1.5-flash` ke `gemini-2.5-flash` (fallback `gemini-2.0-flash` + Client OCR `parseReceiptOcrText` multi-brand).
+   - Memasukkan aturan parser spesifik untuk **5 brand POS lapangan**:
+     - **Momoyo** (`POS`, `Tiktok`, `Shopee food`, `Qpon`, `Gojek`, `Persamaan`)
+     - **Wedrink / ESB POS** (`CASH` + `QRIS MANUAL`, `GRAB FOOD`, `QPON`, `TIKTOK GO`)
+     - **Tomoro** (multi-foto scroll + deduplikasi baris overlap, pemisahan dompet/EDC toko `Gopay/ShopeePay/OVO/DANA/BCA/BRI` sebagai Offline)
+     - **Mixue** (blok `Rincian penerimaan uang` pasca diskon toko, `Tunai + Gopay + Online` sebagai Offline, `GoFood manual input`)
+     - **Tianlala** (baca hanya kolom `TERCATAT`, abaikan `SELISIH` minus, ekstrak `Penjualan` tunai tanpa modal awal `Kas Masuk`, peta `* Integrasi`)
+3. **Summary Sales 3-Tier, Dashboard Hero, Presentasi PDF Slide 3 & Export Excel (`js.html`, `css.html`)**:
+   - Agregasi 6 channel + `legacyUnclassified` terpusat pada `getPeriodFilteredSalesData` untuk konsistensi **SPV → Area Manager → COO Nasional**.
+   - Penambahan **Stacked Channel Composition Bar + Channel Cards/Chips** di Dashboard Hero, Sales Performance (SPV, Area Manager, COO), modal riwayat harian, Slide 3 Presentasi PDF, dan **Export Excel Eksekutif** (Matriks Area 17 kolom + Rincian Gerai 20 kolom).
