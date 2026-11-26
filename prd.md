@@ -1911,7 +1911,21 @@ const COL_CONFIG = { KEY: 0, VALUE: 1, KETERANGAN: 2 };
     - Dashboard Efisiensi Operasional dan perhitungan skor Leaderboard Pilar 2 (HPP) otomatis mengagregasi seluruh transaksi belanja mingguan cabang pada bulan berjalan.
   * **Smart Upsert Backend GAS (`Efisiensi.gs`)**:
     - Pencocokan penyimpanan data efisiensi di Google Sheets mengunci berdasarkan `cabangId + targetMonth + calendarWeek`, menjamin setiap minggu tersimpan di baris terpisah tanpa saling menimpa.
-- **STANDAR MUTLAK DEPLOYMENT CLASP GOOGLE APPS SCRIPT (PRODUKSI TETAP):**
+- **Pembaruan Hero Sales Ranking & Metrik Basket Size SPV (v5.8.7):**
+  * **Personalisasi Ranking Khusus Akun SPV**:
+    - Judul komponen beralih dinamis dari *Ranking Cabang* menjadi **Ranking Omzet** (`#lblHeroRankTitleText`).
+    - Badge wilayah (`#badgeHeroRankScope`) otomatis menampilkan nama gerai binaan resmi SPV (misal: `MOMOYO BABAKAN CIPARAY`), menggantikan kode wilayah `AREA-XX`.
+    - Tab peringkat memuat:
+      * `3 Omzet Terbaik`: 3 tanggal transaksi dengan realisasi omzet tertinggi di bulan aktif.
+      * `3 Omzet Terendah`: 3 tanggal transaksi dengan realisasi omzet terendah di bulan aktif.
+    - Format kartu memuat tanggal Indonesia lengkap (*formatDayDateIndo*), target harian, jumlah struk kasir, nominal omzet, dan % capaian.
+    - Akun COO, Area Manager, dan Tamu tetap mempertahankan fitur Ranking Antar Cabang Nasional & Area tanpa regresi.
+  * **Metrik Rata-rata Penjualan (Basket Size / Rata-rata per Struk)**:
+    - Label sub-metrik di kartu kiri bawah diubah dari `Rata-rata / Gerai` menjadi `Rata-rata Penjualan` (`#lblSalesAvgMetric`).
+    - Nilai dihitung menggunakan formula: $\text{Rata-rata Penjualan} = \frac{\text{Total Actual Sales}}{\text{Total Struk}}$. Kondisi transaksi 0 ditangani secara aman menghasilkan `Rp 0`.
+  * **Sinkronisasi Bundle Terpadu**:
+    - Perubahan modular di `index_modular.html` dan `js.html` dikompilasi ke seluruh artefak produksi (`index.html`, `app.html`, `PANORAMA_VERCEL/*`).
+
   * **DILARANG KERAS MEMBUAT LINK / DEPLOYMENT ID BARU**: Dilarang menjalankan perintah bare `clasp deploy` tanpa flag `-i`, karena akan men-generate ID dan URL baru yang memutus koneksi Vercel dan seluruh klien.
   * **WAJIB REDEPLOY KE DEPLOYMENT ID RESMI**: Setiap deployment ke Apps Script WAJIB mere-deploy ke Deployment ID produksi aktif:
     - **Deployment ID Resmi**: `AKfycbxBWPIPTRvcQ6LbFRzKTWAxRk8UX23Kank1gQXdh6Z9JwB7HpKX5X2BpOaa-Nxdmsgk4g` (Label: `ver 23.0`)

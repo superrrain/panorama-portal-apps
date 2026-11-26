@@ -16297,14 +16297,14 @@
               <div class="hero-ranking-section" onclick="event.stopPropagation();">
                 <div class="hero-ranking-header">
                   <div class="hero-ranking-top-row">
-                    <span class="hero-ranking-title">
+                    <span class="hero-ranking-title" id="lblHeroRankTitle">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                         stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="20" x2="18" y2="10" />
                         <line x1="12" y1="20" x2="12" y2="4" />
                         <line x1="6" y1="20" x2="6" y2="14" />
                       </svg>
-                      Ranking Cabang
+                      <span id="lblHeroRankTitleText">Ranking Cabang</span>
                     </span>
                     <span class="hero-ranking-badge" id="badgeHeroRankScope">NASIONAL</span>
                   </div>
@@ -16345,7 +16345,7 @@
                   <div class="sales-hero-stat-val" id="metricSalesTrx">0 Struk</div>
                 </div>
                 <div class="sales-hero-stat-item">
-                  <div class="sales-hero-stat-label">Rata-rata / Gerai</div>
+                  <div class="sales-hero-stat-label" id="lblSalesAvgMetric">Rata-rata Penjualan</div>
                   <div class="sales-hero-stat-val" id="metricSalesAvgStore">Rp 0</div>
                 </div>
               </div>
@@ -25051,11 +25051,16 @@ function renderDashboardView() {
     elSalesBar.style.width = Math.min(Number(salesPersen), 100) + '%';
   }
 
-  // Sub-stats di Hero Sales Panel
+  // Sub-stats di Hero Sales Panel (Total Transaksi & Rata-rata Penjualan per Struk)
   const elTrx = document.getElementById('metricSalesTrx');
   if (elTrx) elTrx.textContent = formatRupiah(totalTrx) + ' Struk';
+  
+  const elAvgLabel = document.getElementById('lblSalesAvgMetric');
+  if (elAvgLabel) elAvgLabel.textContent = 'Rata-rata Penjualan';
+
   const elAvgStore = document.getElementById('metricSalesAvgStore');
-  if (elAvgStore) elAvgStore.textContent = 'Rp ' + formatRupiah(avgStoreSales);
+  const avgSalesPerTrx = (totalTrx > 0 && totalActual > 0) ? Math.round(totalActual / totalTrx) : 0;
+  if (elAvgStore) elAvgStore.textContent = 'Rp ' + formatRupiah(avgSalesPerTrx);
 
   // Render Rincian Ranking Top & Bottom Cabang di Hero Sales Panel (Skala Nasional & Area)
   renderHeroSalesRankings(salesMetrics, areaFilter);
@@ -25105,6 +25110,25 @@ function setHeroRankingTab(tab) {
   }
 }
 
+function formatDayDateIndo(yyyyMmDd) {
+  if (!yyyyMmDd) return '';
+  const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+  try {
+    const p = String(yyyyMmDd).trim().split('-');
+    if (p.length !== 3) return yyyyMmDd;
+    const y = parseInt(p[0], 10);
+    const m = parseInt(p[1], 10) - 1;
+    const d = parseInt(p[2], 10);
+    const dt = new Date(y, m, d);
+    const dayName = days[dt.getDay()] || '';
+    const monName = months[m] || '';
+    return (dayName ? dayName + ', ' : '') + d + ' ' + monName + ' ' + y;
+  } catch (e) {
+    return yyyyMmDd;
+  }
+}
+
 function renderHeroSalesRankings(salesMetrics, areaFilter) {
   window.PANORAMA_STATE._lastHeroSalesMetrics = { salesMetrics, areaFilter };
 
@@ -25113,9 +25137,14 @@ function renderHeroSalesRankings(salesMetrics, areaFilter) {
   const lblTop = document.getElementById('lblHeroRankTop');
   const lblBottom = document.getElementById('lblHeroRankBottom');
   const badgeScope = document.getElementById('badgeHeroRankScope');
+  const lblTitleText = document.getElementById('lblHeroRankTitleText');
   const listContainer = document.getElementById('heroRankingList');
 
   if (!listContainer) return;
+
+  const user = window.PANORAMA_STATE.user || {};
+  const roleInfo = (typeof getUserRoleInfo === 'function') ? getUserRoleInfo(user) : { isSPV: (user.role === 'SPV' || String(user.role).includes('SPV')) };
+  const isSPV = Boolean(roleInfo.isSPV || user.role === 'SPV' || String(user.role).includes('SPV'));
 
   const activeTab = window.PANORAMA_STATE.heroRankingTab || 'TOP';
   const isAreaMode = Boolean(areaFilter && areaFilter !== 'ALL');
@@ -25123,10 +25152,156 @@ function renderHeroSalesRankings(salesMetrics, areaFilter) {
   if (btnTop) btnTop.classList.toggle('active', activeTab === 'TOP');
   if (btnBottom) btnBottom.classList.toggle('active', activeTab === 'BOTTOM');
 
-  if (lblTop) lblTop.textContent = isAreaMode ? 'Top 3 Teratas' : 'Top 10 Tertinggi';
-  if (lblBottom) lblBottom.textContent = isAreaMode ? '3 Terbawah' : '10 Terbawah';
-  if (badgeScope) badgeScope.textContent = isAreaMode ? areaFilter : 'NASIONAL';
+  // Cari data cabang SPV jika dalam peran SPV
+  const allBranches = (window.PANORAMA_STATE.data && Array.isArray(window.PANORAMA_STATE.data.cabang)) ? window.PANORAMA_STATE.data.cabang : [];
+  let currentSpvBranch = null;
+  if (isSPV) {
+    if (user.cabangId) {
+      currentSpvBranch = allBranches.find(c => String(c.cabangId).toUpperCase() === String(user.cabangId).toUpperCase());
+    }
+    if (!currentSpvBranch && user.namaCabang) {
+      currentSpvBranch = allBranches.find(c => String(c.namaCabang).toLowerCase() === String(user.namaCabang).toLowerCase());
+    }
+    if (!currentSpvBranch && allBranches.length === 1) {
+      currentSpvBranch = allBranches[0];
+    }
+  }
 
+  const spvCabangId = currentSpvBranch ? currentSpvBranch.cabangId : (user.cabangId || '');
+  const spvCabangName = currentSpvBranch ? (currentSpvBranch.namaCabang || currentSpvBranch.cabangId) : (user.namaCabang || user.cabangId || 'GERAI SAYA');
+
+  // Update Judul & Badge Scope
+  if (lblTitleText) {
+    lblTitleText.textContent = isSPV ? 'Ranking Omzet' : 'Ranking Cabang';
+  }
+
+  if (badgeScope) {
+    badgeScope.textContent = isSPV ? spvCabangName.toUpperCase() : (isAreaMode ? areaFilter : 'NASIONAL');
+  }
+
+  // Update Label Tab
+  if (lblTop) lblTop.textContent = isSPV ? '3 Omzet Terbaik' : (isAreaMode ? 'Top 3 Teratas' : 'Top 10 Tertinggi');
+  if (lblBottom) lblBottom.textContent = isSPV ? '3 Omzet Terendah' : (isAreaMode ? '3 Terbawah' : '10 Terbawah');
+
+  // ==========================================================================
+  // JALUR 1: LOGIKA KHUSUS SPV (RANKING 3 OMZET HARIAN TERBAIK & TERENDAH)
+  // ==========================================================================
+  if (isSPV) {
+    const calMonth = window.PANORAMA_STATE.filters.calendarMonth || 'CURRENT';
+    const isHistoricalMonth = (calMonth && calMonth !== 'CURRENT');
+    const todayIso = (typeof getTodayIsoDate === 'function') ? getTodayIsoDate() : new Date().toISOString().slice(0, 10);
+    const activeMonthPrefix = isHistoricalMonth ? String(calMonth).substring(0, 7) : todayIso.substring(0, 7);
+
+    const allSales = (window.PANORAMA_STATE.data && Array.isArray(window.PANORAMA_STATE.data.sales)) ? window.PANORAMA_STATE.data.sales : [];
+    
+    // Kumpulkan data penjualan harian cabang SPV di bulan aktif
+    const dailyMap = {};
+    allSales.forEach(s => {
+      if (spvCabangId && String(s.cabangId).toUpperCase() !== String(spvCabangId).toUpperCase()) return;
+      const sDate = (typeof normalizeDateStr === 'function') ? normalizeDateStr(s.tanggal) : String(s.tanggal || '').slice(0, 10);
+      if (!sDate || !sDate.startsWith(activeMonthPrefix)) return;
+
+      const act = Number(s.actualSales || 0);
+      const tgt = Number(s.targetHarian || 0);
+      const trx = Number(s.totalTransaksi || 0);
+
+      if (!dailyMap[sDate]) {
+        dailyMap[sDate] = {
+          date: sDate,
+          actual: act,
+          target: tgt,
+          trx: trx
+        };
+      } else {
+        dailyMap[sDate].actual = act;
+        if (tgt > 0) dailyMap[sDate].target = tgt;
+        if (trx > 0) dailyMap[sDate].trx = trx;
+      }
+    });
+
+    const fallbackTarget = (currentSpvBranch && Number(currentSpvBranch.targetBulanan) > 0)
+      ? Math.round(Number(currentSpvBranch.targetBulanan) / 26)
+      : (salesMetrics && salesMetrics.totalTarget > 0 ? salesMetrics.totalTarget : 6833333);
+
+    let dailyList = Object.values(dailyMap);
+
+    if (dailyList.length === 0) {
+      listContainer.innerHTML = '<div class="hero-ranking-empty">Belum ada riwayat transaksi pada bulan ' + activeMonthPrefix + '.</div>';
+      return;
+    }
+
+    dailyList.forEach(item => {
+      if (!item.target || item.target <= 0) item.target = fallbackTarget;
+    });
+
+    if (activeTab === 'TOP') {
+      dailyList.sort((a, b) => {
+        if (b.actual !== a.actual) return b.actual - a.actual;
+        return String(b.date).localeCompare(String(a.date));
+      });
+    } else {
+      // 3 Omzet Terendah (prioritaskan tanggal yang memiliki omzet > 0, atau tanggal yang sudah lewat)
+      const hasActual = dailyList.filter(d => d.actual > 0);
+      let pool = hasActual.length >= 3 ? hasActual : dailyList.filter(d => d.date <= todayIso);
+      if (pool.length === 0) pool = dailyList;
+
+      pool.sort((a, b) => {
+        if (a.actual !== b.actual) return a.actual - b.actual;
+        return String(b.date).localeCompare(String(a.date));
+      });
+      dailyList = pool;
+    }
+
+    const displayDays = dailyList.slice(0, 3);
+    let html = '';
+    displayDays.forEach((item, idx) => {
+      const rankNum = idx + 1;
+      const actual = Number(item.actual || 0);
+      const target = Number(item.target || 0);
+      const pct = target > 0 ? Math.round((actual / target) * 100) : 0;
+
+      let numClass = 'default';
+      if (activeTab === 'TOP') {
+        if (rankNum === 1) numClass = 'gold';
+        else if (rankNum === 2) numClass = 'silver';
+        else if (rankNum === 3) numClass = 'bronze';
+      } else {
+        numClass = 'bottom';
+      }
+
+      let pctClass = 'low';
+      if (pct >= 100) pctClass = 'high';
+      else if (pct >= 85) pctClass = 'med';
+
+      const dateTitle = formatDayDateIndo(item.date);
+      const metaText = 'Target: Rp ' + (typeof formatCompactRupiah === 'function' ? formatCompactRupiah(target) : formatRupiah(target)) + (item.trx > 0 ? ' • ' + formatRupiah(item.trx) + ' Struk' : '');
+      const valDisplay = actual > 0 ? 'Rp ' + (typeof formatCompactRupiah === 'function' ? formatCompactRupiah(actual) : formatRupiah(actual)) : 'Rp 0';
+      const titleTooltip = (typeof escapeHtml === 'function') ? escapeHtml(dateTitle + ' | Realisasi: Rp ' + formatRupiah(actual) + ' / Target: Rp ' + formatRupiah(target) + ' (' + pct + '%)') : '';
+
+      html += `
+        <div class="hero-rank-item" title="${titleTooltip}">
+          <div class="hero-rank-left">
+            <div class="hero-rank-num ${numClass}">${rankNum}</div>
+            <div class="hero-rank-info">
+              <div class="hero-rank-name">${dateTitle}</div>
+              <div class="hero-rank-meta">${metaText}</div>
+            </div>
+          </div>
+          <div class="hero-rank-right">
+            <div class="hero-rank-val">${valDisplay}</div>
+            <div class="hero-rank-pct ${pctClass}">${pct}%</div>
+          </div>
+        </div>
+      `;
+    });
+
+    listContainer.innerHTML = html;
+    return;
+  }
+
+  // ==========================================================================
+  // JALUR 2: LOGIKA STANDAR (COO / AREA MANAGER / TAMU - RANKING ANTAR CABANG)
+  // ==========================================================================
   const cabangAgg = (salesMetrics && salesMetrics.cabangAgg) ? salesMetrics.cabangAgg : {};
   let branches = Object.values(cabangAgg);
 
