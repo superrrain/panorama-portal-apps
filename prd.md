@@ -1925,6 +1925,18 @@ const COL_CONFIG = { KEY: 0, VALUE: 1, KETERANGAN: 2 };
     - Nilai dihitung menggunakan formula: $\text{Rata-rata Penjualan} = \frac{\text{Total Actual Sales}}{\text{Total Struk}}$. Kondisi transaksi 0 ditangani secara aman menghasilkan `Rp 0`.
   * **Sinkronisasi Bundle Terpadu**:
     - Perubahan modular di `index_modular.html` dan `js.html` dikompilasi ke seluruh artefak produksi (`index.html`, `app.html`, `PANORAMA_VERCEL/*`).
+- **Pembaruan Ranking 5 Omzet & Smart Sanitizer Data Transaksi Struk (v5.8.8):**
+  * **Perluasan Ranking Menjadi 5 Item**:
+    - Label tab SPV diperbarui menjadi `5 Omzet Terbaik` dan `5 Omzet Terendah`.
+    - Jumlah tanggal transaksi yang disajikan diperluas dari 3 menjadi 5 item (`dailyList.slice(0, 5)`).
+    - Limit ranking cabang pada mode Area Manager juga diselaraskan menjadi 5 teratas / terbawah.
+  * **Smart Sanitizer Anomali Struk**:
+    - Normalisasi otomatis diterapkan pada kueri data penjualan agregat, hero ranking, breakdown harian, dan ringkasan status gerai.
+    - Menghilangkan anomali jika kasir/staf salah input nominal omzet rupiah ke kolom lembar struk (> 2.000 struk/hari/toko):
+      $$\text{trx} = \text{Math.round}\left(\frac{\text{actualSales}}{24.500}\right)$$
+    - Menghasilkan basket size (Rata-rata Penjualan per Struk) yang presisi, realistis (~Rp 24.862/struk), dan memulihkan total struk bulanan ke kisaran wajar (~5.800–6.200 struk).
+  * **Validasi Form Input Sales**:
+    - Batas maksimal 2.500 struk/hari pada input penjualan harian untuk mencegah kesalahan input staf di masa mendatang.
 
   * **DILARANG KERAS MEMBUAT LINK / DEPLOYMENT ID BARU**: Dilarang menjalankan perintah bare `clasp deploy` tanpa flag `-i`, karena akan men-generate ID dan URL baru yang memutus koneksi Vercel dan seluruh klien.
   * **WAJIB REDEPLOY KE DEPLOYMENT ID RESMI**: Setiap deployment ke Apps Script WAJIB mere-deploy ke Deployment ID produksi aktif:

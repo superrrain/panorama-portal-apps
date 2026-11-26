@@ -3061,7 +3061,12 @@ function getPeriodFilteredSalesData(d, period, calMonth, areaFilter, brandFilter
   filteredSales.forEach(s => {
     const act = Number(s.actualSales || 0);
     const sTgt = Number(s.targetHarian || 0);
-    const trx = Number(s.totalTransaksi || 0);
+    let trx = Number(s.totalTransaksi || 0);
+
+    // Smart Sanitizer: Cegah anomali jika ada kasir/staf yang salah input nominal rupiah ke kolom struk (> 2000 struk/hari/toko)
+    if (trx > 2000 && act > 0) {
+      trx = Math.round(act / 24500);
+    }
 
     totalActual += act;
     totalTrx += trx;
@@ -3705,11 +3710,11 @@ function renderHeroSalesRankings(salesMetrics, areaFilter) {
   }
 
   // Update Label Tab
-  if (lblTop) lblTop.textContent = isSPV ? '3 Omzet Terbaik' : (isAreaMode ? 'Top 3 Teratas' : 'Top 10 Tertinggi');
-  if (lblBottom) lblBottom.textContent = isSPV ? '3 Omzet Terendah' : (isAreaMode ? '3 Terbawah' : '10 Terbawah');
+  if (lblTop) lblTop.textContent = isSPV ? '5 Omzet Terbaik' : (isAreaMode ? 'Top 5 Teratas' : 'Top 10 Tertinggi');
+  if (lblBottom) lblBottom.textContent = isSPV ? '5 Omzet Terendah' : (isAreaMode ? '5 Terbawah' : '10 Terbawah');
 
   // ==========================================================================
-  // JALUR 1: LOGIKA KHUSUS SPV (RANKING 3 OMZET HARIAN TERBAIK & TERENDAH)
+  // JALUR 1: LOGIKA KHUSUS SPV (RANKING 5 OMZET HARIAN TERBAIK & TERENDAH)
   // ==========================================================================
   if (isSPV) {
     const calMonth = window.PANORAMA_STATE.filters.calendarMonth || 'CURRENT';
@@ -3728,7 +3733,12 @@ function renderHeroSalesRankings(salesMetrics, areaFilter) {
 
       const act = Number(s.actualSales || 0);
       const tgt = Number(s.targetHarian || 0);
-      const trx = Number(s.totalTransaksi || 0);
+      let trx = Number(s.totalTransaksi || 0);
+
+      // Smart Sanitizer: Cegah anomali jika ada kasir/staf yang salah input nominal rupiah ke kolom struk (> 2000 struk/hari/toko)
+      if (trx > 2000 && act > 0) {
+        trx = Math.round(act / 24500);
+      }
 
       if (!dailyMap[sDate]) {
         dailyMap[sDate] = {
@@ -3765,9 +3775,9 @@ function renderHeroSalesRankings(salesMetrics, areaFilter) {
         return String(b.date).localeCompare(String(a.date));
       });
     } else {
-      // 3 Omzet Terendah (prioritaskan tanggal yang memiliki omzet > 0, atau tanggal yang sudah lewat)
+      // 5 Omzet Terendah (prioritaskan tanggal yang memiliki omzet > 0, atau tanggal yang sudah lewat)
       const hasActual = dailyList.filter(d => d.actual > 0);
-      let pool = hasActual.length >= 3 ? hasActual : dailyList.filter(d => d.date <= todayIso);
+      let pool = hasActual.length >= 5 ? hasActual : dailyList.filter(d => d.date <= todayIso);
       if (pool.length === 0) pool = dailyList;
 
       pool.sort((a, b) => {
@@ -3777,7 +3787,7 @@ function renderHeroSalesRankings(salesMetrics, areaFilter) {
       dailyList = pool;
     }
 
-    const displayDays = dailyList.slice(0, 3);
+    const displayDays = dailyList.slice(0, 5);
     let html = '';
     displayDays.forEach((item, idx) => {
       const rankNum = idx + 1;
@@ -3862,7 +3872,7 @@ function renderHeroSalesRankings(salesMetrics, areaFilter) {
     });
   }
 
-  const limit = isAreaMode ? 3 : 10;
+  const limit = isAreaMode ? 5 : 10;
   const displayList = branches.slice(0, limit);
 
   let html = '';
@@ -4947,10 +4957,13 @@ function renderSalesView() {
       if (!cId) return;
       const sDate = normalizeDateStr(s.tanggal);
       if (!lastReportMap[cId] || sDate > lastReportMap[cId].date) {
+        const act = Number(s.actualSales || 0);
+        let trx = Number(s.totalTransaksi || 0);
+        if (trx > 2000 && act > 0) trx = Math.round(act / 24500);
         lastReportMap[cId] = {
           date: sDate,
-          actual: Number(s.actualSales || 0),
-          trx: Number(s.totalTransaksi || 0),
+          actual: act,
+          trx: trx,
           target: Number(s.targetHarian || 0)
         };
       }
@@ -8637,7 +8650,13 @@ function renderSalesDailyBreakdown(selectedCId) {
     const isEditingThisRow = (sDate === normalizeDateStr(activeDate));
     const targetH = Number(s.targetHarian || defaultDailyTarget || 5000000);
     const actualH = Number(s.actualSales || 0);
-    const trx = Number(s.totalTransaksi || 0);
+    let trx = Number(s.totalTransaksi || 0);
+
+    // Smart Sanitizer: Cegah anomali jika ada kasir/staf salah input nominal rupiah ke kolom struk (> 2000 struk/hari/toko)
+    if (trx > 2000 && actualH > 0) {
+      trx = Math.round(actualH / 24500);
+    }
+
     const pct = targetH > 0 ? (Math.round((actualH / targetH) * 1000) / 10) : 0;
     const isTargetAchieved = pct >= 100;
 
@@ -9698,6 +9717,12 @@ function submitSalesForm() {
 
   if (!cabangId || !actual) {
     showToast('Silakan pilih cabang dan isi nominal actual sales.', 'danger');
+    return;
+  }
+
+  // Proteksi Input: Batasi input struk agar kasir tidak salah input nominal rupiah ke kolom struk
+  if (trx > 2500) {
+    showToast('Jumlah transaksi (' + formatRupiah(trx) + ' struk) melebihi batas wajar harian (maksimal 2.500 struk). Mohon periksa apakah Anda tidak sengaja memasukkan angka omzet rupiah ke kolom struk.', 'danger');
     return;
   }
 
@@ -20934,10 +20959,13 @@ function exportSalesAnalysisToExcel() {
       if (!cId) return;
       const sDate = (typeof normalizeDateStr === 'function') ? normalizeDateStr(s.tanggal) : String(s.tanggal || '').split('T')[0];
       if (!lastReportMap[cId] || sDate > lastReportMap[cId].date) {
+        const act = Number(s.actualSales || 0);
+        let trx = Number(s.totalTransaksi || 0);
+        if (trx > 2000 && act > 0) trx = Math.round(act / 24500);
         lastReportMap[cId] = {
           date: sDate,
-          actual: Number(s.actualSales || 0),
-          trx: Number(s.totalTransaksi || 0),
+          actual: act,
+          trx: trx,
           target: Number(s.targetHarian || 0)
         };
       }
