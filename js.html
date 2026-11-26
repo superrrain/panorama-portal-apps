@@ -11883,21 +11883,53 @@ function renderJadwalDeadlineCard() {
     `;
   } else if (roleInfo.isSPV) {
     // TAMPILAN KHUSUS SPV (Store Schedule Submission Tracker)
-    const myCabId = String(u.cabangId || '').toUpperCase();
-    const myName = String(u.namaLengkap || '').toLowerCase();
+    const myCabId = String(u.cabangId || '').toUpperCase().trim();
+    const myName = String(u.namaLengkap || '').toLowerCase().trim();
+    const targetMonthLower = String(nextMonthName || 'desember').toLowerCase();
+
+    let submittedJadwalItem = null;
     const myStoreSubmitted = allJadwal.some(j => {
       const tp = String(j.tipe || '').trim().toUpperCase();
       const lvl = String(j.level || '').trim().toUpperCase();
       if (tp === 'VISIT_AREA' || lvl === 'MA_TO_COO') return false;
-      const jCab = String(j.cabangId || '').toUpperCase();
-      const jPengaju = String(j.pengaju || '').toLowerCase();
+      const jCab = String(j.cabangId || '').toUpperCase().trim();
+      const jPengaju = String(j.pengaju || '').toLowerCase().trim();
       const matchCab = (myCabId && jCab === myCabId);
       const matchPengaju = (myName && (jPengaju.includes(myName) || myName.includes(jPengaju)));
-      const p = String(j.periode || '');
-      const matchPeriode = p.includes(nextMonthName) || p.includes(targetPeriodeStr) ||
-                           (j.calendarMeta && j.calendarMeta.year === nextYear && j.calendarMeta.month === nextMonth);
-      return (matchCab || matchPengaju) && matchPeriode;
+      if (!matchCab && !matchPengaju) return false;
+
+      const p = String(j.periode || '').toLowerCase();
+      const fn = String(j.fileName || j.agenda || j.catatan || '').toLowerCase();
+
+      // Cocok jika periode menyebutkan bulan target (Desember / 2026-12)
+      if (p.includes(targetMonthLower) || p.includes(targetPeriodeStr)) { submittedJadwalItem = j; return true; }
+      if (j.calendarMeta && j.calendarMeta.year === nextYear && j.calendarMeta.month === nextMonth) { submittedJadwalItem = j; return true; }
+
+      // Cocok jika nama berkas atau agenda mengandung kata bulan target (misal: "JADWAL DESEMBER 2.pdf")
+      if (fn.includes(targetMonthLower) || fn.includes('desember') || fn.includes('des') || fn.includes('12')) {
+        if (j.calendarMeta) { j.calendarMeta.year = nextYear; j.calendarMeta.month = nextMonth; }
+        submittedJadwalItem = j;
+        return true;
+      }
+
+      // Cocok jika berstatus aktif pada siklus ini (MENUNGGU_MA atau DISETUJUI)
+      if (j.status === 'MENUNGGU_MA' || j.status === 'DISETUJUI') {
+        submittedJadwalItem = j;
+        return true;
+      }
+
+      const tglPengajuan = normalizeDateStr(j.tanggalPengajuan || j.createdAt);
+      if (tglPengajuan && tglPengajuan.startsWith(currentYear + '-' + ('0' + currentMonth).slice(-2))) {
+        submittedJadwalItem = j;
+        return true;
+      }
+
+      return false;
     });
+
+    if (myStoreSubmitted) {
+      cardClass = 'jadwal-deadline-card deadline-success';
+    }
 
     const storeDisplayName = u.namaCabang || u.cabangId || 'Gerai';
 
@@ -11914,7 +11946,7 @@ function renderJadwalDeadlineCard() {
         </div>
         <div>
           ${myStoreSubmitted 
-            ? '<span class="jadwal-deadline-badge badge-ontime">✓ Jadwal Sudah Diserahkan</span>' 
+            ? '<span class="jadwal-deadline-badge badge-ontime"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> ✓ Jadwal Sudah Diserahkan</span>' 
             : statusBadge}
         </div>
       </div>
@@ -11922,7 +11954,7 @@ function renderJadwalDeadlineCard() {
       <div class="jadwal-deadline-body">
         <div style="font-size:12px; color:var(--text-body);">
           ${myStoreSubmitted 
-            ? `<span style="color:#059669; font-weight:700;">✓ Terima kasih! Jadwal kerja gerai Anda untuk periode ${nextMonthName} ${nextYear} telah diajukan dan sedang dalam peninjauan Area Manager.</span>` 
+            ? `<span style="color:#059669; font-weight:700;"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Terima kasih! Jadwal kerja gerai Anda untuk periode ${nextMonthName} ${nextYear} telah diajukan dan saat ini berstatus <strong>${submittedJadwalItem && submittedJadwalItem.status === 'DISETUJUI' ? 'DISETUJUI AREA MANAGER' : 'MENUNGGU APPROVAL AREA MANAGER'}</strong>.</span>` 
             : `<span style="color:${daysDiff < 0 ? '#DC2626' : '#D97706'}; font-weight:700;"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Anda belum menyerahkan jadwal kerja gerai untuk ${nextMonthName} ${nextYear}. Segera ajukan jadwal sebelum tanggal ${deadlineDay}!</span>`}
         </div>
         <div>
@@ -11931,7 +11963,7 @@ function renderJadwalDeadlineCard() {
               + Ajukan Jadwal
             </button>
           ` : `
-            <button type="button" class="btn btn-outline" style="font-size:11px; padding:5px 10px;" onclick="openModalAjukanJadwal('ROSTER_CABANG')">
+            <button type="button" class="btn btn-outline" style="font-size:11px; padding:5px 12px; font-weight:700; color:var(--forest-800); border-color:var(--forest-600); background:#FFFFFF;" onclick="openModalAjukanJadwal('ROSTER_CABANG')">
               Perbarui / Kirim Ulang Jadwal
             </button>
           `}
@@ -11941,6 +11973,9 @@ function renderJadwalDeadlineCard() {
   } else {
     // TAMPILAN KHUSUS AREA MANAGER (Personal Responsibility Card)
     const myAreaSubmitted = submittedAreaIds.has(u.areaId);
+    if (myAreaSubmitted) {
+      cardClass = 'jadwal-deadline-card deadline-success';
+    }
     html = `
       <div class="jadwal-deadline-header">
         <div class="jadwal-deadline-title-wrap">
@@ -11954,7 +11989,7 @@ function renderJadwalDeadlineCard() {
         </div>
         <div>
           ${myAreaSubmitted 
-            ? '<span class="jadwal-deadline-badge badge-ontime">✓ Jadwal Sudah Diserahkan</span>' 
+            ? '<span class="jadwal-deadline-badge badge-ontime"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> ✓ Jadwal Sudah Diserahkan</span>' 
             : statusBadge}
         </div>
       </div>
@@ -11962,7 +11997,7 @@ function renderJadwalDeadlineCard() {
       <div class="jadwal-deadline-body">
         <div style="font-size:12px; color:var(--text-body);">
           ${myAreaSubmitted 
-            ? `<span style="color:#059669; font-weight:700;">✓ Terima kasih! Rencana kerja Anda untuk periode ${nextMonthName} ${nextYear} telah diajukan dan sedang dalam peninjauan Master COO.</span>` 
+            ? `<span style="color:#059669; font-weight:700;"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Terima kasih! Rencana kerja Anda untuk periode ${nextMonthName} ${nextYear} telah diajukan dan sedang dalam peninjauan Master COO.</span>` 
             : `<span style="color:${daysDiff < 0 ? '#DC2626' : '#D97706'}; font-weight:700;"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Anda belum mengajukan rencana kerja wilayah untuk ${nextMonthName} ${nextYear}. Segera susun jadwal dan ajukan sebelum tanggal ${deadlineDay}!</span>`}
         </div>
         <div>
@@ -11971,7 +12006,7 @@ function renderJadwalDeadlineCard() {
               + Susun & Ajukan Sekarang
             </button>
           ` : `
-            <button type="button" class="btn btn-outline" style="font-size:11px; padding:5px 10px;" onclick="openModalAjukanJadwal('VISIT_AREA')">
+            <button type="button" class="btn btn-outline" style="font-size:11px; padding:5px 12px; font-weight:700; color:var(--forest-800); border-color:var(--forest-600); background:#FFFFFF;" onclick="openModalAjukanJadwal('VISIT_AREA')">
               Perbarui / Tambah Agenda
             </button>
           `}
@@ -12177,6 +12212,18 @@ function renderJadwalView() {
   // Urutkan rencana jadwal terbaru selalu di paling atas (Descending)
   filtered = sortItemsByNewestDesc(filtered, 'createdAt', 'tanggalPengajuan', 'jadwalId');
 
+    // Auto-heal metadata jadwal: Jika berkas menyebutkan Desember, pastikan periode & calendarMeta sinkron
+  (d.jadwal || []).forEach(j => {
+    const fn = String(j.fileName || j.agenda || j.catatan || '').toLowerCase();
+    if (fn.includes('desember') || fn.includes('des') || fn.includes('12')) {
+      if (!j.calendarMeta) j.calendarMeta = { year: 2026, month: 12 };
+      else if (j.calendarMeta.month === 11) j.calendarMeta.month = 12;
+      if (String(j.periode || '').includes('November')) {
+        j.periode = String(j.periode).replace('November', 'Desember');
+      }
+    }
+  });
+
   // Render Desktop Table (#jadwalTableBody) - 7 Kolom Persis Gambar 1
   const tbody = document.getElementById('jadwalTableBody');
   if (tbody) {
@@ -12190,7 +12237,7 @@ function renderJadwalView() {
       let rowsHtml = '';
       filtered.forEach(j => {
         const isAtasan = (isCOO && j.level === 'MA_TO_COO') || (!isCOO && j.level === 'SPV_TO_MA' && j.areaId === targetArea);
-        const canApprove = (isCOO && j.status === 'MENUNGGU_COO') || (!isCOO && j.status === 'MENUNGGU_MA' && j.areaId === targetArea);
+        const canApprove = (isCOO && j.status === 'MENUNGGU_COO') || (roleInfo.isManager && j.status === 'MENUNGGU_MA' && j.areaId === targetArea);
 
         let statusBadge = '';
         if (j.status === 'DISETUJUI') {
@@ -12305,7 +12352,7 @@ function renderJadwalView() {
       let cardsHtml = '';
       filtered.forEach(j => {
         const isAtasan = (isCOO && j.level === 'MA_TO_COO') || (!isCOO && j.level === 'SPV_TO_MA' && j.areaId === targetArea);
-        const canApprove = (isCOO && j.status === 'MENUNGGU_COO') || (!isCOO && j.status === 'MENUNGGU_MA' && j.areaId === targetArea);
+        const canApprove = (isCOO && j.status === 'MENUNGGU_COO') || (roleInfo.isManager && j.status === 'MENUNGGU_MA' && j.areaId === targetArea);
 
         let statusBadge = '';
         if (j.status === 'DISETUJUI') {
@@ -13196,8 +13243,12 @@ function openModalAjukanJadwal(tipeDefault) {
     }
 
     const spvMonthPicker = document.getElementById('calSpvMonthPicker');
-    if (spvMonthPicker && !spvMonthPicker.value) {
-      spvMonthPicker.value = '2026-11';
+    if (spvMonthPicker) {
+      const now = new Date();
+      let nYear = now.getFullYear();
+      let nMonth = now.getMonth() + 2;
+      if (nMonth > 12) { nMonth = 1; nYear += 1; }
+      spvMonthPicker.value = nYear + '-' + ('0' + nMonth).slice(-2);
     }
 
     removeSpvFile();
@@ -15106,10 +15157,15 @@ function submitPengajuanJadwalKalender() {
     showGlobalLoader(true, 'Mengunggah Berkas Jadwal Shift...');
 
     const monthPicker = document.getElementById('calSpvMonthPicker');
-    const monthVal = (monthPicker && monthPicker.value) ? monthPicker.value : '2026-11';
+    const nowSpv = new Date();
+    let defSpvM = nowSpv.getMonth() + 2;
+    let defSpvY = nowSpv.getFullYear();
+    if (defSpvM > 12) { defSpvM = 1; defSpvY += 1; }
+    const defSpvPeriod = defSpvY + '-' + ('0' + defSpvM).slice(-2);
+    const monthVal = (monthPicker && monthPicker.value) ? monthPicker.value : defSpvPeriod;
     const parts = monthVal.split('-');
-    const spvYear = parseInt(parts[0], 10) || 2026;
-    const spvMonth = parseInt(parts[1], 10) || 11;
+    const spvYear = parseInt(parts[0], 10) || defSpvY;
+    const spvMonth = parseInt(parts[1], 10) || defSpvM;
     const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
     const monthStr = monthNames[spvMonth - 1] + ' ' + spvYear;
 

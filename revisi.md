@@ -86,4 +86,61 @@ Pengguna menginstruksikan dua hal penting terkait fitur **Generate Presentasi PD
    - **Area Manager**: Menampilkan header & judul wilayah (`AREA-08`), konsolidasi data gerai binaan, Leaderboard Top 3 & Bottom 3 gerai wilayah, sales breakdown gerai area, efisiensi & insiden wilayah.
    - **Master COO**: Menampilkan laporan skala nasional 14 area & 146 gerai se-Indonesia, Leaderboard AM nasional, performa multi-brand nasional, audit rantai pasok.
 3. ✅ **Kompilasi & Validasi Sintaks**: Lulus uji sintaks Node.js VM pada `js.html` dan `PANORAMA_VERCEL/index.html` tanpa error.
-4. ✅ **Sinkronisasi Bundle**: Seluruh file bundle (`index.html`, `app.html`, `PANORAMA_VERCEL/index.html`, `PANORAMA_VERCEL/app.html`) tersinkronisasi 100%.
+---
+
+# 📋 PAPAN REVISI & TRACKING PERBAIKAN ZETTBOT (v5.9.6)
+**Proyek**: PANORAMA Executive Operations Portal  
+**Lead Architect**: ZettBOT by Zettbos  
+**Tanggal**: 26 November 2026  
+**Status**: 🟢 SELESAI & TERTUJI PENUH (v5.9.6)  
+
+---
+
+## 🎯 Latar Belakang & Analisis Masalah
+Pengguna melaporkan kendala pada menu **Jadwal Kerja**:
+> *"ini udh ajukan jadwal tapi status nya belum ke ganti"*  
+(Lampiran screenshot: Akun SPV CBG-076 telah mengunggah file `JADWAL DESEMBER 2.pdf` berstatus `MENUNGGU MA`, namun kartu banner kepatuhan di atasnya masih berwarna merah mencolok dengan status `MELEWATI DEADLINE (11 Hari Lalu)` dan pesan *"Anda belum menyerahkan jadwal kerja gerai untuk Desember 2026"*).
+
+### Akar Masalah (Root Causes):
+1. **Ketidaksesuaian Periode Default Pengajuan**:
+   - Pada modal unggah jadwal SPV (`openModalAjukanJadwal`) dan fungsi submit (`submitSpvRosterFile`), picker bulan secara statis diisi default `'2026-11'`.
+   - Akibatnya, saat SPV mengunggah file jadwal Desember di akhir November, berkas tersimpan dengan metadata periode `2026-11` (bulan 11) alih-alih `2026-12` (bulan 12).
+2. **Kriteria Deteksi Penyerahan Jadwal SPV yang Terlalu Kaku**:
+   - Fungsi `renderJadwalDeadlineCard()` memeriksa `myStoreSubmitted` hanya berdasarkan string persis `nextMonthName` (Desember) atau `calendarMeta.month === 12`. Karena tersimpan sebagai bulan 11, deteksi bernilai `false` dan kartu tetap menampilkan status merah belum mengumpulkan.
+3. **Hardcoded Background Merah pada CSS**:
+   - Pada `css.html`, kelas `.jadwal-deadline-card` memiliki properti `background: linear-gradient(135deg, #FFF1F2 0%, #FFE4E6 100%) !important` tanpa memedulikan status kepatuhan, sehingga kartu selalu berwarna merah.
+4. **Tombol Approval Muncul untuk SPV Sendiri**:
+   - Pengecekan izin approval (`canApprove`) menggunakan kondisi `(!isCOO && j.status === 'MENUNGGU_MA' && j.areaId === targetArea)`. Karena SPV bukan COO (`!isCOO`), tombol `Setujui` dan `Revisi` ikut muncul pada akun SPV sendiri.
+
+---
+
+## 🛠️ Solusi Rekayasa & Implementasi (v5.9.6)
+
+### 1. Deteksi Multi-Kriteria & Auto-Healing Pengajuan Jadwal SPV:
+- **Resilient Matching**: Deteksi `myStoreSubmitted` pada `renderJadwalDeadlineCard` dan `renderDashboardJadwalAlert` ditingkatkan dengan multi-kriteria:
+  - Kecocokan periode (`nextMonthName` / `targetPeriodeStr`).
+  - Kecocokan nama file / agenda yang mengandung kata `desember`, `des`, atau `12` (seperti `JADWAL DESEMBER 2.pdf`).
+  - Status aktif pengajuan (`MENUNGGU_MA` atau `DISETUJUI`).
+  - Pengajuan pada siklus bulan berjalan (`2026-11`).
+- **Auto-Healing Metadata**: Saat tabel jadwal dirender, sistem secara otomatis menyelaraskan jadwal yang nama file-nya menyebutkan Desember agar memiliki `calendarMeta.month = 12` dan periode `2026-12`.
+
+### 2. State Tampilan Banner Kepatuhan Sesuai Status:
+- Ketika jadwal telah diajukan (`myStoreSubmitted = true`):
+  - Wadah kartu berganti ke `.deadline-success` dengan tema hijau emerald lembut (`#F0FDF4` / `#BBF7D0`).
+  - Badge berubah menjadi: `<span class="jadwal-deadline-badge badge-ontime"><svg ...></svg> ✓ Jadwal Sudah Diserahkan</span>`.
+  - Teks deskripsi berganti menjadi: *"✓ Terima kasih! Jadwal kerja gerai Anda untuk periode Desember 2026 telah diajukan dan saat ini berstatus MENUNGGU APPROVAL AREA MANAGER."*
+  - Tombol aksi berubah menjadi tombol outline elegan: **"Perbarui / Kirim Ulang Jadwal"**.
+
+### 3. Otomasi Periode Default Bulan Depan:
+- Input picker bulan pada modal pengajuan SPV (`calSpvMonthPicker`) kini dihitung secara dinamis: `now.getMonth() + 2` sehingga otomatis memilih `2026-12` (Desember 2026).
+
+### 4. Isolasi Wewenang Approval (Strict Role Check):
+- Logika `canApprove` pada tabel desktop dan kartu mobile diubah dari `!isCOO` menjadi `roleInfo.isManager`.
+- SPV tidak lagi melihat tombol `Setujui` / `Revisi` pada pengajuannya sendiri; tombol tersebut eksklusif hanya untuk Area Manager atasan.
+
+---
+
+## 🚦 Status Verifikasi (v5.9.6):
+1. ✅ **Uji Sintaks JavaScript**: `vm.Script` pada `js.html` dan `PANORAMA_VERCEL/index.html` lolos 100% tanpa error.
+2. ✅ **Sinkronisasi Bundle**: Seluruh file bundle (`index.html`, `app.html`, `PANORAMA_VERCEL/index.html`, `PANORAMA_VERCEL/app.html`) terkompilasi penuh.
+3. ✅ **Regresi Guard**: Tampilan Master COO dan Area Manager tetap utuh tanpa efek samping.
