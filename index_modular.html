@@ -1262,6 +1262,14 @@
           </div>
 
           <!-- Theme Toggle: Mode Terang / Mode Gelap -->
+          <!-- Antrean Kirim Ulang Sales (Muncul Otomatis Jika Ada Laporan Tertitip di HP) -->
+          <button type="button" id="salesSyncQueuePill" class="btn-sync-queue-pill" style="display: none;"
+            onclick="flushPendingSalesQueue(true)"
+            title="Laporan sales tersimpan aman di HP dan sedang menunggu antrean server. Ketuk untuk kirim ulang sekarang.">
+            <span class="sync-queue-dot"></span>
+            <span id="salesSyncQueueText">0 Menunggu Kirim</span>
+          </button>
+
           <button type="button" class="btn-icon-circle theme-toggle-btn" title="Ganti Mode Terang / Gelap"
             aria-label="Ganti mode terang atau gelap" onclick="togglePanoramaTheme()">
             <svg class="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -1351,8 +1359,7 @@
               <div class="pill-group pill-group-full">
                 <div class="date-filter-select-wrap" id="dateFilterSelectWrap">
                   <select class="pill-btn select-period-date active" id="dateFilterSelect"
-                    onchange="onPeriodDateSelectChange(this.value)"
-                    aria-label="Filter Per Tanggal Kalender">
+                    onchange="onPeriodDateSelectChange(this.value)" aria-label="Filter Per Tanggal Kalender">
                     <option value="">Pilih Tgl</option>
                   </select>
                   <svg class="date-selector-chevron" width="11" height="11" viewBox="0 0 24 24" fill="none"
@@ -4556,7 +4563,7 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline" onclick="closeModal('modalLaporInsiden')">Batal</button>
-        <button class="btn btn-danger" onclick="submitInsidenForm()">Kirim Laporan Kasus</button>
+        <button class="btn btn-danger" id="btnSubmitInsiden" onclick="submitInsidenForm()">Kirim Laporan Kasus</button>
       </div>
     </div>
   </div>

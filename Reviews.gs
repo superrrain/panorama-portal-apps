@@ -517,17 +517,22 @@ function renderCustomerReviewPage(params) {
  * Self-Healing: Otomatis tandai seluruh ulasan rating 4 & 5 di DataReviews menjadi SELESAI
  * Karena ulasan positif adalah pujian/apresiasi konsumen dan BUKAN komplain.
  */
-function autoResolvePositiveReviewsInSheet() {
+function autoResolvePositiveReviewsInSheet(optSheet, optData) {
   try {
-    var sheet = getSheet(TAB.REVIEWS);
+    var sheet = optSheet || getSheet(TAB.REVIEWS);
     if (!sheet) return;
-    var data = sheet.getDataRange().getValues();
+    var data = optData || sheet.getDataRange().getValues();
+    var updated = false;
     for (var i = 1; i < data.length; i++) {
       var rRating = Number(data[i][COL_REVIEWS.RATING] || 0);
       var rStatus = String(data[i][COL_REVIEWS.STATUS_RESPON] || '').trim().toUpperCase();
       if (rRating >= 4 && (rStatus === 'MENUNGGU_RESPON' || rStatus === 'MENUNGGU RESPON' || !rStatus)) {
         sheet.getRange(i + 1, COL_REVIEWS.STATUS_RESPON + 1).setValue('SELESAI');
+        updated = true;
       }
+    }
+    if (updated && typeof invalidateCacheDomains_ === 'function') {
+      invalidateCacheDomains_(['OTHER_OPS']);
     }
   } catch (eAutoRev) {
     Logger.log('Auto resolve positive reviews notice: ' + eAutoRev.message);

@@ -1992,6 +1992,31 @@ const COL_CONFIG = { KEY: 0, VALUE: 1, KETERANGAN: 2 };
     - **Area Manager (Skala Wilayah Binaan, AREA-08)**: Judul & presenter mengacu pada wilayah binaan, menyajikan konsolidasi gerai di area, Leaderboard Top 3 & Bottom 3 gerai wilayah, distribusi penjualan gerai area, dan pengawasan insiden lapangan.
     - **Master COO (Skala Nasional)**: Laporan komprehensif 14 wilayah & 146 gerai se-Indonesia, Leaderboard 14 AM nasional, realisasi omzet multi-brand nasional, audit rantai pasok HPP & waste agregat.
 
+  * **v5.9.6 — Perbaikan Status Deadline & Wewenang Approval Jadwal Kerja**:
+    - Otomasi periode bulan depan pada pengajuan SPV (`calSpvMonthPicker`), auto-healing deteksi pengumpulan beserta banner hijau `.deadline-success`, serta pembatasan tombol Approval jadwal eksklusif hanya untuk `roleInfo.isManager`.
+
+  * **v5.9.7 — UI/UX Pro Max: Dropzone & Galeri Multi-Foto Bukti Insiden**:
+    - Pembatasan ukuran SVG ikon upload (`.file-upload-zone`), dukungan multi-file dengan grid pratinjau interaktif (`#insidenFilesGrid`, `PANORAMA_INSIDEN_FILES`), upload sekuensial Drive, dan *gallery switcher* pada `openKendalaProof`.
+
+  * **v5.9.8 — Perbaikan Layout Halaman Form Ulasan Pelanggan (`?page=ulasan`)**:
+    - Pemindahan `renderMultiPhotoIncidentProof` ke dalam tag `<script>`, `<meta id="panoramaServerParams">` di `<head>`, dan CSS semantik `.review-standalone-*` responsif 1 kolom (Light & Dark Mode).
+
+  * **v5.9.9 — Safe-Area & Dynamic Island Fix PWA iOS**:
+    - Penambahan `viewport-fit=cover`, `env(safe-area-inset-top)` pada `.top-bar` & `.main-content`, pseudo-shield `.top-bar::before`, serta `overflow-x: clip` agar konten *scroll* tidak menembus status bar iPhone.
+
+  * **v5.10.0 — Breakdown Sales 6-Channel & Multi-Brand POS AI Scanner**:
+    - Ekspansi `DataSales` (`L..Q`) untuk `SalesOffline`, `SalesGrabFood`, `SalesShopeeFood`, `SalesGoFood`, `SalesTikTok`, dan `SalesQpon` secara *backward-compatible*, AI Scanner 1–3 foto (`apiScanReceiptWithAI` + parser Momoyo, Wedrink, Tomoro, Mixue, Tianlala), serta visualisasi & ekspor Excel 6 channel di seluruh tier.
+
+  * **v5.10.1 — Fitur Edit & Ajukan Ulang Jadwal Kerja Area Manager (`VISIT_AREA`)**:
+    - Endpoint upsert `apiUpdateJadwal` untuk revisi jadwal Manager berstatus menunggu/revisi (*in-place* tanpa duplikasi baris), helper otorisasi `canEditManagerJadwal`, dan modal kalender pra-isi `openEditManagerJadwal` lengkap dengan banner instruksi revisi COO (`#calRevisionFeedbackBanner`).
+
+  * **v5.10.2 — Akurasi `TOTAL AGENDA` Jadwal, Hapus Tombol Cetak SPV, & Dropdown Filter Tanggal**:
+    - Perhitungan akurat jumlah hari kerja (`computeJadwalDetailCounts_`, `computeJadwalWorkSummary`), guard `canPrintManagerJadwal` agar tombol Cetak tidak tampil di akun/jadwal SPV, dan penggantian pill `Hari Ini` dengan dropdown tanggal spesifik `#dateFilterSelect`.
+
+  * **v5.11.0 — Ketahanan Sistem Untuk 160 Pengguna & Jam Sibuk Closing/Pagi**:
+    - **Backend (`CacheService` + `LockService`)**: Caching sheet terpecah `<80 KB` per chunk (`putChunkedCache_`, `getChunkedCache_`, `normalizeSheetValuesForCache_`, `getCachedSheetValues_`) dengan invalidasi domain (`MASTER`, `SALES`, `OTHER_OPS`, `NOTIF`); antrean kunci tulis penuh `LockService.getScriptLock().tryLock(20000)` + `SpreadsheetApp.flush()` pada `apiSaveSales` dan `apiSaveEfisiensi` (`retryable: true` / `LOCK_TIMEOUT` dan notifikasi eksternal di luar lock); eliminasi penulisan ulang berlebih di `autoCompleteDailyTaskInSheet` & pemindaian ganda `autoResolvePositiveReviewsInSheet`.
+    - **Frontend (Antrean Sales Harian + Transport Split + Smart Polling)**: Pemisahan jalur Read vs Write pada `callPanoramaApi` & `callPanoramaHttpRest` (operasi tulis menggunakan timeout `25000ms` dan tidak pernah jatuh ke GET); antrean tahan gagal offline/antre khusus **Input Sales Harian** (`PANORAMA_OFFLINE_QUEUE_KEY`, `enqueuePendingSales`, `flushPendingSalesQueue`, indikator `#salesSyncQueuePill`); penguncian tombol + pesan jujur anti double-submit untuk **Efisiensi, Insiden, dan Jadwal Kerja** (`setSubmitButtonBusy`); serta perlambatan adaptif auto-sync (`120s+jitter` SPV, `90s+jitter` AM/COO, jeda saat modal input terbuka).
+
   * **DILARANG KERAS MEMBUAT LINK / DEPLOYMENT ID BARU**: Dilarang menjalankan perintah bare `clasp deploy` tanpa flag `-i`, karena akan men-generate ID dan URL baru yang memutus koneksi Vercel dan seluruh klien.
   * **WAJIB REDEPLOY KE DEPLOYMENT ID RESMI**: Setiap deployment ke Apps Script WAJIB mere-deploy ke Deployment ID produksi aktif:
     - **Deployment ID Resmi**: `AKfycbxBWPIPTRvcQ6LbFRzKTWAxRk8UX23Kank1gQXdh6Z9JwB7HpKX5X2BpOaa-Nxdmsgk4g` (Label: `ver 23.0`)

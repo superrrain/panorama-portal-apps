@@ -4,18 +4,18 @@
 function getCooUsernames_() {
   var list = ['coo_master', 'admin', 'coo'];
   try {
-    var ss = (typeof getSpreadsheetInstance === 'function') ? getSpreadsheetInstance() : SpreadsheetApp.getActiveSpreadsheet();
-    if (ss) {
-      var sheet = ss.getSheetByName('MasterUser');
-      if (sheet) {
-        var data = sheet.getDataRange().getValues();
-        for (var i = 1; i < data.length; i++) {
-          var u = String(data[i][1] || '').trim().toLowerCase();
-          var r = String(data[i][4] || '').trim().toUpperCase();
-          if ((r === 'COO' || r === 'MASTER') && u && list.indexOf(u) === -1) {
-            list.push(u);
-          }
-        }
+    var data = (typeof getCachedSheetValues_ === 'function')
+      ? getCachedSheetValues_('MasterUser', 'MASTER', 900)
+      : (function() {
+          var ss = (typeof getSpreadsheetInstance === 'function') ? getSpreadsheetInstance() : SpreadsheetApp.getActiveSpreadsheet();
+          var sh = ss ? ss.getSheetByName('MasterUser') : null;
+          return sh ? sh.getDataRange().getValues() : [];
+        })();
+    for (var i = 1; i < data.length; i++) {
+      var u = String(data[i][1] || '').trim().toLowerCase();
+      var r = String(data[i][4] || '').trim().toUpperCase();
+      if ((r === 'COO' || r === 'MASTER') && u && list.indexOf(u) === -1) {
+        list.push(u);
       }
     }
   } catch (e) {}
@@ -28,17 +28,19 @@ function getCooUsernames_() {
 function getActiveUsernames_() {
   var list = ['coo_master', 'admin', 'coo'];
   try {
-    var ss = (typeof getSpreadsheetInstance === 'function') ? getSpreadsheetInstance() : SpreadsheetApp.getActiveSpreadsheet();
-    var sheet = (typeof getSheet === 'function') ? getSheet('MasterUser') : (ss ? ss.getSheetByName('MasterUser') : null);
-    if (sheet) {
-      var data = sheet.getDataRange().getValues();
-      for (var i = 1; i < data.length; i++) {
-        var u = String(data[i][1] || '').trim().toLowerCase();
-        var status = String(data[i][7] || 'ACTIVE').trim().toUpperCase();
-        var isActive = (!status || status === 'ACTIVE' || status === 'AKTIF' || (status !== 'BLOCKED' && status !== 'INACTIVE' && status !== 'NONAKTIF' && status !== 'PENDING' && status !== 'MENUNGGU'));
-        if (u && isActive && list.indexOf(u) === -1) {
-          list.push(u);
-        }
+    var data = (typeof getCachedSheetValues_ === 'function')
+      ? getCachedSheetValues_('MasterUser', 'MASTER', 900)
+      : (function() {
+          var ss = (typeof getSpreadsheetInstance === 'function') ? getSpreadsheetInstance() : SpreadsheetApp.getActiveSpreadsheet();
+          var sh = (typeof getSheet === 'function') ? getSheet('MasterUser') : (ss ? ss.getSheetByName('MasterUser') : null);
+          return sh ? sh.getDataRange().getValues() : [];
+        })();
+    for (var i = 1; i < data.length; i++) {
+      var u = String(data[i][1] || '').trim().toLowerCase();
+      var status = String(data[i][7] || 'ACTIVE').trim().toUpperCase();
+      var isActive = (!status || status === 'ACTIVE' || status === 'AKTIF' || (status !== 'BLOCKED' && status !== 'INACTIVE' && status !== 'NONAKTIF' && status !== 'PENDING' && status !== 'MENUNGGU'));
+      if (u && isActive && list.indexOf(u) === -1) {
+        list.push(u);
       }
     }
   } catch (e) {}
@@ -204,6 +206,7 @@ function recordAndPushNotification(category, title, message, targetUsernames, ac
           nowStr
         ];
         sheet.appendRow(newRow);
+        if (typeof invalidateCacheDomains_ === 'function') invalidateCacheDomains_(['NOTIF']);
       }
     } catch (eDb) {
       Logger.log('Catat DataNotifikasi notice: ' + eDb.message);
@@ -488,11 +491,15 @@ function sendOneSignalPushNotification(targetUsernames, title, message, actionUr
 function apiGetNotifikasi(userSession) {
   try {
     userSession = userSession || {};
-    var sheet = getOrCreateNotifikasiSheet_();
-    if (!sheet) return { success: true, notifications: [], unreadCount: 0 };
-
-    var data = sheet.getDataRange().getValues();
-    if (data.length <= 1) return { success: true, notifications: [], unreadCount: 0 };
+    var data = [];
+    if (typeof getCachedSheetValues_ === 'function') {
+      data = getCachedSheetValues_('DataNotifikasi', 'NOTIF', 60);
+    } else {
+      var sheet = getOrCreateNotifikasiSheet_();
+      if (!sheet) return { success: true, notifications: [], unreadCount: 0 };
+      data = sheet.getDataRange().getValues();
+    }
+    if (!data || data.length <= 1) return { success: true, notifications: [], unreadCount: 0 };
 
     var isCOO = (userSession.role === 'COO' || userSession.username === 'coo_master' || userSession.areaId === 'ALL');
     var curUsername = String(userSession.username || '').toLowerCase().trim();
@@ -570,6 +577,7 @@ function apiMarkNotificationRead(notificationId, userSession) {
     for (var i = 1; i < data.length; i++) {
       if (String(data[i][COL_NOTIFIKASI.ID]).trim() === targetId) {
         sheet.getRange(i + 1, COL_NOTIFIKASI.STATUS + 1).setValue('READ');
+        if (typeof invalidateCacheDomains_ === 'function') invalidateCacheDomains_(['NOTIF']);
         return { success: true, message: 'Notifikasi berhasil ditandai telah dibaca.', notificationId: targetId };
       }
     }
@@ -618,6 +626,9 @@ function apiMarkAllNotificationsRead(userSession) {
       }
     }
 
+    if (updatedCount > 0 && typeof invalidateCacheDomains_ === 'function') {
+      invalidateCacheDomains_(['NOTIF']);
+    }
     return { success: true, message: 'Seluruh notifikasi berhasil ditandai telah dibaca.', updatedCount: updatedCount };
   } catch (err) {
     return { success: false, message: 'Gagal membersihkan notifikasi: ' + err.message };

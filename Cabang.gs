@@ -167,6 +167,7 @@ function apiDeleteCabang(cabangId) {
 
     if (rowIdx > 0) {
       sheet.deleteRow(rowIdx);
+      if (typeof invalidateCacheDomains_ === 'function') invalidateCacheDomains_(['MASTER', 'SALES']);
     }
     return {
       success: true,

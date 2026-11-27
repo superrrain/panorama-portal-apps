@@ -26,6 +26,16 @@ function reimburseKas(payload) { return apiReimburseKas(payload); }
  * API: Simpan Log Efisiensi (HPP, Waste & Petty Cash) - Smart Upsert Anti-Duplikasi
  */
 function apiSaveEfisiensi(payload) {
+  var pushAlertJob = null;
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(20000)) {
+    return {
+      success: false,
+      retryable: true,
+      code: 'LOCK_TIMEOUT',
+      message: 'Antrean server sedang padat. Silakan tekan Simpan ulang sesaat lagi.'
+    };
+  }
   try {
     if (!payload) return { success: false, message: 'Payload data efisiensi kosong.' };
     var targetCabangId = String(payload.cabangId || '').trim();
@@ -47,23 +57,22 @@ function apiSaveEfisiensi(payload) {
     var targetDate = normalizeDateStr(payload.tanggal) || Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyyy-MM-dd');
     var targetEffId = String(payload.efisiensiId || '').trim();
 
-    // Baca parameter operasional dari MasterConfig untuk fallback dinamis
+    // Baca parameter operasional dari cache MasterConfig jika tersedia
     var defaultTargetHpp = 35.0;
     var defaultTargetWaste = 2.0;
     try {
-      var sCfg = getSheet(TAB.CONFIG);
-      if (sCfg) {
-        var dCfg = sCfg.getDataRange().getValues();
-        for (var c = 1; c < dCfg.length; c++) {
-          var kCfg = String(dCfg[c][0] || '').trim().toLowerCase();
-          if (kCfg === 'maxhpp' || kCfg === 'max_hpp') {
-            var nVal = parseFloat(dCfg[c][1]);
-            if (!isNaN(nVal) && nVal > 0) defaultTargetHpp = nVal;
-          }
-          if (kCfg === 'maxwaste' || kCfg === 'max_waste') {
-            var nWaste = parseFloat(dCfg[c][1]);
-            if (!isNaN(nWaste) && nWaste > 0) defaultTargetWaste = nWaste;
-          }
+      var dCfg = (typeof getCachedSheetValues_ === 'function')
+        ? getCachedSheetValues_(TAB.CONFIG, 'MASTER', 900)
+        : (function() { var sc = getSheet(TAB.CONFIG); return sc ? sc.getDataRange().getValues() : []; })();
+      for (var c = 1; c < dCfg.length; c++) {
+        var kCfg = String(dCfg[c][0] || '').trim().toLowerCase();
+        if (kCfg === 'maxhpp' || kCfg === 'max_hpp') {
+          var nVal = parseFloat(dCfg[c][1]);
+          if (!isNaN(nVal) && nVal > 0) defaultTargetHpp = nVal;
+        }
+        if (kCfg === 'maxwaste' || kCfg === 'max_waste') {
+          var nWaste = parseFloat(dCfg[c][1]);
+          if (!isNaN(nWaste) && nWaste > 0) defaultTargetWaste = nWaste;
         }
       }
     } catch (eCfg) {}
@@ -132,6 +141,7 @@ function apiSaveEfisiensi(payload) {
       } catch (eHppRecalc) {}
     }
 
+    var effResponse = null;
     if (matchingRowIndices.length > 0) {
       // MODE REVISI / UPDATE: Perbarui data baris eksisting pertama
       var primaryRow = matchingRowIndices[0];
@@ -153,29 +163,27 @@ function apiSaveEfisiensi(payload) {
         sheet.deleteRow(matchingRowIndices[dIdx]);
       }
 
-      // Push Notifikasi Luar Aplikasi (Status Bar HP): Kategori EFISIENSI (Strictly Isolated Per-Wilayah)
-      try {
-        var effHpp = effHppVal;
-        var effWaste = Number(payload.wastePersen || 0);
-        var effCbg = payload.namaCabang || targetCabangId || 'Gerai';
-        var isAlert = (effHpp > targetHppVal || effWaste > targetWasteVal);
-        var effTitle = isAlert ? '⚠️ ALERT EFISIENSI: HPP/WASTE OVER' : '📊 UPDATE EFISIENSI GERAI';
-        var effMsg = effCbg + ' (' + (payload.areaId || 'Wilayah') + '): HPP ' + effHpp + '% (Max: ' + targetHppVal + '%), Waste ' + effWaste + '% (Max: ' + targetWasteVal + '%).';
-        var effTargets = (payload.areaId && String(payload.areaId).toUpperCase() !== 'ALL') ? ['COO', payload.areaId] : 'ALL';
-        triggerOperationalPushAlert('EFISIENSI', effTitle, effMsg, effTargets);
-      } catch (eEffPush) {
-        Logger.log('Push efisiensi notice: ' + eEffPush.message);
-      }
+      var effHpp = effHppVal;
+      var effWaste = Number(payload.wastePersen || 0);
+      var effCbg = payload.namaCabang || targetCabangId || 'Gerai';
+      var isAlert = (effHpp > targetHppVal || effWaste > targetWasteVal);
+      pushAlertJob = {
+        title: isAlert ? '⚠️ ALERT EFISIENSI: HPP/WASTE OVER' : '📊 UPDATE EFISIENSI GERAI',
+        body: effCbg + ' (' + (payload.areaId || 'Wilayah') + '): HPP ' + effHpp + '% (Max: ' + targetHppVal + '%), Waste ' + effWaste + '% (Max: ' + targetWasteVal + '%).',
+        targets: (payload.areaId && String(payload.areaId).toUpperCase() !== 'ALL') ? ['COO', payload.areaId] : 'ALL'
+      };
 
-      return { 
-        success: true, 
-        isRevised: true, 
-        message: 'Data efisiensi gerai ' + (payload.namaCabang || targetCabangId) + ' berhasil diperbarui (menggantikan data lama).', 
+      effResponse = {
+        success: true,
+        isRevised: true,
+        message: 'Data efisiensi gerai ' + (payload.namaCabang || targetCabangId) + ' berhasil diperbarui (menggantikan data lama).',
         efisiensiId: String(data[primaryRow - 1][COL_EFISIENSI.ID] || '')
       };
     } else {
-      // Tambah baris transaksi baru
-      var nextId = payload.efisiensiId || generateNextId(TAB.EFISIENSI, 'EFF', COL_EFISIENSI.ID, false);
+      // Tambah baris transaksi baru di dalam lock yang sama
+      var nextId = payload.efisiensiId || ((typeof generateNextIdUnlocked_ === 'function')
+        ? generateNextIdUnlocked_(sheet, 'EFF', COL_EFISIENSI.ID, false)
+        : generateNextId(TAB.EFISIENSI, 'EFF', COL_EFISIENSI.ID, false));
       var newRow = [
         nextId,
         targetDate,
@@ -193,29 +201,40 @@ function apiSaveEfisiensi(payload) {
       ];
       sheet.appendRow(newRow);
 
-      // Push Notifikasi Luar Aplikasi (Status Bar HP): Kategori EFISIENSI (Strictly Isolated Per-Wilayah)
-      try {
-        var effHppNew = effHppVal;
-        var effWasteNew = Number(payload.wastePersen || 0);
-        var effCbgNew = payload.namaCabang || targetCabangId || 'Gerai';
-        var isAlertNew = (effHppNew > targetHppVal || effWasteNew > targetWasteVal);
-        var effTitleNew = isAlertNew ? '⚠️ ALERT EFISIENSI: HPP/WASTE OVER' : '📊 LAPORAN EFISIENSI GERAI';
-        var effMsgNew = effCbgNew + ' (' + (payload.areaId || 'Wilayah') + '): HPP ' + effHppNew + '% (Max: ' + targetHppVal + '%), Waste ' + effWasteNew + '% (Max: ' + targetWasteVal + '%).';
-        var effTargetsNew = (payload.areaId && String(payload.areaId).toUpperCase() !== 'ALL') ? ['COO', payload.areaId] : 'ALL';
-        triggerOperationalPushAlert('EFISIENSI', effTitleNew, effMsgNew, effTargetsNew);
-      } catch (eEffPushNew) {
-        Logger.log('Push efisiensi notice: ' + eEffPushNew.message);
-      }
+      var effHppNew = effHppVal;
+      var effWasteNew = Number(payload.wastePersen || 0);
+      var effCbgNew = payload.namaCabang || targetCabangId || 'Gerai';
+      var isAlertNew = (effHppNew > targetHppVal || effWasteNew > targetWasteVal);
+      pushAlertJob = {
+        title: isAlertNew ? '⚠️ ALERT EFISIENSI: HPP/WASTE OVER' : '📊 LAPORAN EFISIENSI GERAI',
+        body: effCbgNew + ' (' + (payload.areaId || 'Wilayah') + '): HPP ' + effHppNew + '% (Max: ' + targetHppVal + '%), Waste ' + effWasteNew + '% (Max: ' + targetWasteVal + '%).',
+        targets: (payload.areaId && String(payload.areaId).toUpperCase() !== 'ALL') ? ['COO', payload.areaId] : 'ALL'
+      };
 
-      return { 
-        success: true, 
-        isRevised: false, 
-        message: 'Data efisiensi gerai ' + (payload.namaCabang || targetCabangId) + ' tgl ' + targetDate + ' berhasil dicatat.', 
-        efisiensiId: nextId 
+      effResponse = {
+        success: true,
+        isRevised: false,
+        message: 'Data efisiensi gerai ' + (payload.namaCabang || targetCabangId) + ' tgl ' + targetDate + ' berhasil dicatat.',
+        efisiensiId: nextId
       };
     }
+
+    try { SpreadsheetApp.flush(); } catch (eFlush) {}
+    if (typeof invalidateCacheDomains_ === 'function') {
+      invalidateCacheDomains_(['OTHER_OPS']);
+    }
+    return effResponse;
   } catch (err) {
-    return { success: false, message: 'Gagal simpan efisiensi: ' + err.message };
+    return { success: false, retryable: true, message: 'Gagal simpan efisiensi: ' + err.message };
+  } finally {
+    try { lock.releaseLock(); } catch (eRel) {}
+    if (pushAlertJob) {
+      try {
+        triggerOperationalPushAlert('EFISIENSI', pushAlertJob.title, pushAlertJob.body, pushAlertJob.targets);
+      } catch (eEffPushOut) {
+        Logger.log('Push efisiensi notice: ' + eEffPushOut.message);
+      }
+    }
   }
 }
 

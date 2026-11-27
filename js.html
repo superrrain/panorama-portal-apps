@@ -353,12 +353,268 @@ window.PANORAMA_STATE.masterUsers = safeGetJsonStorage('PANORAMA_MASTER_USERS', 
 const IS_GAS = (typeof google !== 'undefined' && google.script && google.script.run);
 const PANORAMA_GAS_URL = 'https:' + '/' + '/script.google.com/macros/s/AKfycbxBWPIPTRvcQ6LbFRzKTWAxRk8UX23Kank1gQXdh6Z9JwB7HpKX5X2BpOaa-Nxdmsgk4g/exec';
 
+// Daftar Endpoint Read-Only (Aman untuk HTTP GET fallback & watchdog cepat)
+const PANORAMA_READ_ONLY_ACTIONS = [
+  'getInitialData', 'apiGetInitialData', 'apiGetDashboardData',
+  'getNotifikasi', 'apiGetNotifikasi', 'getPublicBranchInfo',
+  'apiGetPublicBranchInfo', 'ping'
+];
+const PANORAMA_OFFLINE_QUEUE_KEY = 'PANORAMA_OFFLINE_SYNC_QUEUE';
+
 /**
- * Universal Backend API Caller:
- * - Jika di dalam Google Apps Script: Menggunakan google.script.run + Watchdog 4.5s anti-hang
- * - Jika di luar (Vercel PWA / Mobile / Fallback RPC): Menggunakan HTTP fetch() ke Web App Google Apps Script
+ * Shared Button Guard: Mengunci tombol Submit selama request ke server berjalan (anti klik ganda)
  */
-function callPanoramaApi(action, payload, onSuccess, onFailure) {
+function setSubmitButtonBusy(btnOrId, isBusy, busyLabel) {
+  const btn = (typeof btnOrId === 'string') ? document.getElementById(btnOrId) : btnOrId;
+  if (!btn) return;
+  if (isBusy) {
+    if (btn.dataset && !btn.dataset.origBtnHtml) {
+      btn.dataset.origBtnHtml = btn.innerHTML || btn.textContent || 'Simpan';
+    }
+    btn.disabled = true;
+    if (btn.classList) btn.classList.add('is-saving');
+    if (busyLabel) btn.innerHTML = busyLabel;
+  } else {
+    btn.disabled = false;
+    if (btn.classList) btn.classList.remove('is-saving');
+    if (btn.dataset && btn.dataset.origBtnHtml) {
+      btn.innerHTML = btn.dataset.origBtnHtml;
+      delete btn.dataset.origBtnHtml;
+    }
+  }
+}
+
+/**
+ * Helper: Kotak Titipan Pending Khusus Input Sales (Aman Memori & Anti-Hilang Saat Jam Closing)
+ */
+function getPendingSalesQueue() {
+  const arr = safeGetJsonStorage(PANORAMA_OFFLINE_QUEUE_KEY, []);
+  return Array.isArray(arr) ? arr : [];
+}
+
+function savePendingSalesQueue(list) {
+  const cleanList = Array.isArray(list) ? list : [];
+  safeSetStorage(PANORAMA_OFFLINE_QUEUE_KEY, cleanList);
+  updateSalesSyncQueueUI();
+}
+
+function buildSalesQueueKey(payload) {
+  const cId = String((payload && payload.cabangId) || '').trim();
+  const tgl = (typeof normalizeDateStr === 'function' ? normalizeDateStr(payload && payload.tanggal) : String((payload && payload.tanggal) || '').slice(0, 10));
+  return cId + '_' + tgl;
+}
+
+function enqueuePendingSales(payload, errReason) {
+  if (!payload || !payload.cabangId) return null;
+  const key = buildSalesQueueKey(payload);
+  const queue = getPendingSalesQueue().filter(item => item && item.key !== key);
+  const entry = {
+    key: key,
+    payload: JSON.parse(JSON.stringify(payload)),
+    queuedAt: new Date().toISOString(),
+    attempts: 1,
+    lastError: String(errReason || 'Menunggu koneksi / antrean server')
+  };
+  queue.push(entry);
+  savePendingSalesQueue(queue);
+  return entry;
+}
+
+function removePendingSalesByKey(key) {
+  if (!key) return;
+  const queue = getPendingSalesQueue().filter(item => item && item.key !== key);
+  savePendingSalesQueue(queue);
+}
+
+function updateSalesSyncQueueUI(isFlushing) {
+  const pill = document.getElementById('salesSyncQueuePill');
+  const textEl = document.getElementById('salesSyncQueueText');
+  if (!pill || !textEl) return;
+  const queue = getPendingSalesQueue();
+  if (queue.length === 0) {
+    pill.style.display = 'none';
+    if (pill.classList) pill.classList.remove('is-flushing');
+    return;
+  }
+  pill.style.display = 'inline-flex';
+  if (pill.classList) pill.classList.toggle('is-flushing', Boolean(isFlushing));
+  textEl.textContent = isFlushing
+    ? ('Mengirim ' + queue.length + ' Sales...')
+    : (queue.length + ' Sales Antre • Kirim Ulang');
+}
+
+function applySalesRecordToLocalData(dataObj, payload, isPending) {
+  if (!dataObj || !payload) return;
+  if (!Array.isArray(dataObj.sales)) dataObj.sales = [];
+  const cabangId = String(payload.cabangId || '').trim();
+  const tanggal = (typeof normalizeDateStr === 'function' ? normalizeDateStr(payload.tanggal) : String(payload.tanggal || '').slice(0, 10));
+  const target = Number(payload.targetHarian || 5000000);
+  const actual = Number(payload.actualSales || 0);
+  const persen = target > 0 ? Math.round((actual / target) * 1000) / 10 : 0;
+
+  const existingIdx = dataObj.sales.findIndex(s =>
+    String(s.cabangId) === cabangId && (typeof normalizeDateStr === 'function' ? normalizeDateStr(s.tanggal) : String(s.tanggal || '').slice(0, 10)) === tanggal
+  );
+
+  if (existingIdx >= 0) {
+    const ex = dataObj.sales[existingIdx];
+    ex.actualSales = actual;
+    ex.salesOffline = Number(payload.salesOffline || 0);
+    ex.salesGrabFood = Number(payload.salesGrabFood || 0);
+    ex.salesShopeeFood = Number(payload.salesShopeeFood || 0);
+    ex.salesGoFood = Number(payload.salesGoFood || 0);
+    ex.salesTikTok = Number(payload.salesTikTok || 0);
+    ex.salesQpon = Number(payload.salesQpon || 0);
+    ex.targetHarian = target;
+    ex.persentase = persen;
+    ex.totalTransaksi = Number(payload.totalTransaksi || 0);
+    ex.tanggal = tanggal;
+    ex.createdBy = (payload.createdBy || 'Staff') + (isPending ? ' (Antrean HP)' : ' (Koreksi)');
+    ex._isPendingSync = Boolean(isPending);
+
+    dataObj.sales = dataObj.sales.filter((s, idx) => {
+      if (idx === existingIdx) return true;
+      const sTgl = (typeof normalizeDateStr === 'function' ? normalizeDateStr(s.tanggal) : String(s.tanggal || '').slice(0, 10));
+      return !(String(s.cabangId) === cabangId && sTgl === tanggal);
+    });
+  } else {
+    const newId = 'SLS-' + new Date().getTime().toString().slice(-6);
+    dataObj.sales.unshift({
+      salesId: newId,
+      tanggal: tanggal,
+      areaId: payload.areaId || 'AREA-01',
+      cabangId: cabangId,
+      namaCabang: payload.namaCabang || cabangId,
+      targetHarian: target,
+      actualSales: actual,
+      salesOffline: Number(payload.salesOffline || 0),
+      salesGrabFood: Number(payload.salesGrabFood || 0),
+      salesShopeeFood: Number(payload.salesShopeeFood || 0),
+      salesGoFood: Number(payload.salesGoFood || 0),
+      salesTikTok: Number(payload.salesTikTok || 0),
+      salesQpon: Number(payload.salesQpon || 0),
+      persentase: persen,
+      totalTransaksi: Number(payload.totalTransaksi || 0),
+      createdBy: (payload.createdBy || 'Staff') + (isPending ? ' (Antrean HP)' : ''),
+      _isPendingSync: Boolean(isPending)
+    });
+  }
+
+  if (Array.isArray(dataObj.tugas)) {
+    dataObj.tugas.forEach(t => {
+      const isDaily = (t.routineCycle === 'DAILY' || t.tugasId === 'TSK-RTN-DAILY' || t.actionLink === 'sales' || (t.judul && t.judul.toLowerCase().includes('sales harian')));
+      if (isDaily) {
+        t.status = 'Completed';
+        t.isNeedRevision = false;
+        t.autoCompleted = true;
+        t.catatan = '✓ Selesai Otomatis: Data penjualan (sales) ' + (payload.namaCabang || cabangId) + ' tgl ' + tanggal + ' berhasil diinput ke sistem.';
+      }
+    });
+  }
+}
+
+function mergePendingSalesIntoData(dataObj) {
+  const queue = getPendingSalesQueue();
+  if (!dataObj || queue.length === 0) return;
+  queue.forEach(item => {
+    if (item && item.payload) {
+      applySalesRecordToLocalData(dataObj, item.payload, true);
+    }
+  });
+}
+
+function flushPendingSalesQueue(isManualTrigger) {
+  if (window._PANORAMA_FLUSHING_QUEUE) {
+    if (isManualTrigger) showToast('Sedang mengirim ulang antrean laporan sales...', 'info');
+    return;
+  }
+  const initialQueue = getPendingSalesQueue();
+  if (initialQueue.length === 0) {
+    updateSalesSyncQueueUI(false);
+    if (isManualTrigger) showToast('Semua laporan sales sudah tersinkronisasi dengan Google Sheet.', 'success');
+    return;
+  }
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    updateSalesSyncQueueUI(false);
+    if (isManualTrigger) showToast('Perangkat masih offline. Laporan aman di HP dan otomatis terkirim saat online.', 'warning');
+    return;
+  }
+
+  window._PANORAMA_FLUSHING_QUEUE = true;
+  updateSalesSyncQueueUI(true);
+  let sentCount = 0;
+
+  function processNext() {
+    const currentQueue = getPendingSalesQueue();
+    if (currentQueue.length === 0) {
+      window._PANORAMA_FLUSHING_QUEUE = false;
+      updateSalesSyncQueueUI(false);
+      if (sentCount > 0) {
+        if (typeof recalculateLeaderboardLive === 'function') {
+          try { recalculateLeaderboardLive(); } catch (eLb) {}
+        }
+        renderActiveView();
+        showToast('✓ ' + sentCount + ' laporan sales tertunda berhasil masuk ke Google Sheet!', 'success');
+      }
+      return;
+    }
+
+    const head = currentQueue[0];
+    callPanoramaApi('apiSaveSales', head.payload, function(res) {
+      if (res && res.success) {
+        sentCount++;
+        removePendingSalesByKey(head.key);
+        if (window.PANORAMA_STATE && window.PANORAMA_STATE.data) {
+          applySalesRecordToLocalData(window.PANORAMA_STATE.data, head.payload, false);
+        }
+        setTimeout(processNext, 450);
+      } else if (res && res.success === false && !res.retryable) {
+        // Error validasi permanen (bukan antrean penuh): hentikan auto-retry entry ini agar tidak memblokir antrean lain
+        removePendingSalesByKey(head.key);
+        showToast('Laporan sales ' + (head.payload.namaCabang || head.payload.cabangId) + ' ditolak server: ' + (res.message || 'Data tidak valid'), 'danger');
+        setTimeout(processNext, 300);
+      } else {
+        // Masih antre / sibuk: simpan attempts dan hentikan putaran saat ini
+        const q = getPendingSalesQueue();
+        const target = q.find(x => x && x.key === head.key);
+        if (target) {
+          target.attempts = Number(target.attempts || 1) + 1;
+          target.lastError = (res && res.message) || 'Antrean server masih padat';
+          savePendingSalesQueue(q);
+        }
+        window._PANORAMA_FLUSHING_QUEUE = false;
+        updateSalesSyncQueueUI(false);
+        if (isManualTrigger) {
+          showToast('Server masih padat, ' + q.length + ' laporan sales masih diamankan di antrean HP.', 'warning');
+        }
+      }
+    }, function(err) {
+      const q = getPendingSalesQueue();
+      const target = q.find(x => x && x.key === head.key);
+      if (target) {
+        target.attempts = Number(target.attempts || 1) + 1;
+        target.lastError = (err && err.message) || 'Koneksi terputus';
+        savePendingSalesQueue(q);
+      }
+      window._PANORAMA_FLUSHING_QUEUE = false;
+      updateSalesSyncQueueUI(false);
+      if (isManualTrigger) {
+        showToast('Koneksi masih sibuk/terputus (' + q.length + ' laporan sales menunggu kirim ulang).', 'warning');
+      }
+    });
+  }
+
+  processNext();
+}
+
+/**
+ * Universal Backend API Caller (Pemisahan Tegas Jalur Baca vs Tulis):
+ * - Operasi Baca: Watchdog 6s + HTTP GET fallback aman.
+ * - Operasi Tulis (Simpan/Update/Approve): Watchdog 25s, tanpa fallback GET duplikat.
+ */
+function callPanoramaApi(action, payload, onSuccess, onFailure, options) {
+  const isReadOnly = Boolean((options && options.isReadOnly) || PANORAMA_READ_ONLY_ACTIONS.includes(action));
+
   if (IS_GAS) {
     if (typeof google !== 'undefined' && google.script && google.script.run) {
       let targetFn = action;
@@ -375,13 +631,19 @@ function callPanoramaApi(action, payload, onSuccess, onFailure) {
 
       if (typeof google.script.run[targetFn] === 'function') {
         let rpcCompleted = false;
+        const watchdogMs = isReadOnly ? 6000 : 25000;
         const rpcWatchdog = setTimeout(function() {
           if (!rpcCompleted) {
             rpcCompleted = true;
-            console.warn('GAS RPC timeout pada ' + targetFn + ', otomatis beralih ke jalur HTTP REST Cloud...');
-            callPanoramaHttpRest(action, payload, onSuccess, onFailure);
+            if (isReadOnly) {
+              console.warn('GAS RPC lambat pada ' + targetFn + ', otomatis beralih ke jalur HTTP REST Cloud...');
+              callPanoramaHttpRest(action, payload, onSuccess, onFailure, options);
+            } else {
+              console.warn('GAS RPC tulis timeout pada ' + targetFn + ' (>25s), mencegah pengiriman ganda.');
+              if (onFailure) onFailure(new Error('Batas waktu tunggu server tercapai (antrean sedang padat).'));
+            }
           }
-        }, 4500);
+        }, watchdogMs);
 
         const handleRpcSuccess = function(res) {
           if (rpcCompleted) return;
@@ -394,8 +656,12 @@ function callPanoramaApi(action, payload, onSuccess, onFailure) {
           if (rpcCompleted) return;
           rpcCompleted = true;
           clearTimeout(rpcWatchdog);
-          console.warn('GAS RPC Error pada ' + targetFn + ', mencoba jalur HTTP REST Cloud:', err);
-          callPanoramaHttpRest(action, payload, onSuccess, onFailure);
+          if (isReadOnly) {
+            console.warn('GAS RPC Error pada ' + targetFn + ', mencoba jalur HTTP REST Cloud:', err);
+            callPanoramaHttpRest(action, payload, onSuccess, onFailure, options);
+          } else {
+            if (onFailure) onFailure(err instanceof Error ? err : new Error(String((err && err.message) || err || 'Gagal terhubung ke server GAS')));
+          }
         };
 
         try {
@@ -417,10 +683,11 @@ function callPanoramaApi(action, payload, onSuccess, onFailure) {
     }
   }
 
-  callPanoramaHttpRest(action, payload, onSuccess, onFailure);
+  callPanoramaHttpRest(action, payload, onSuccess, onFailure, options);
 }
 
-function callPanoramaHttpRest(action, payload, onSuccess, onFailure) {
+function callPanoramaHttpRest(action, payload, onSuccess, onFailure, options) {
+  const isReadOnly = Boolean((options && options.isReadOnly) || PANORAMA_READ_ONLY_ACTIONS.includes(action));
   const savedCfg = safeGetJsonStorage('PANORAMA_OPERATIONAL_CONFIG', {}) || {};
   let targetUrl = (window.PANORAMA_STATE.operationalConfig && window.PANORAMA_STATE.operationalConfig.gasBackendUrl) ||
                     savedCfg.gasBackendUrl ||
@@ -447,22 +714,31 @@ function callPanoramaHttpRest(action, payload, onSuccess, onFailure) {
   });
 
   var isHandled = false;
-  fetch(targetUrl, {
+  var fetchAbortCtrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+  var fetchTimerMs = isReadOnly ? 18000 : 25000;
+  var fetchTimer = setTimeout(function() {
+    if (fetchAbortCtrl) {
+      try { fetchAbortCtrl.abort(); } catch (eAb) {}
+    }
+  }, fetchTimerMs);
+
+  fetch(targetUrl, Object.assign({
     method: 'POST',
     mode: 'cors',
     redirect: 'follow',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
     body: JSON.stringify(reqBody)
-  })
+  }, fetchAbortCtrl ? { signal: fetchAbortCtrl.signal } : {}))
     .then(function(res) {
       return res.text();
     })
     .then(function(text) {
+      clearTimeout(fetchTimer);
       var data;
       try {
         data = JSON.parse(text);
       } catch (errJson) {
-        console.warn('POST response bukan JSON valid, mencoba fallback GET:', errJson);
+        console.warn('POST response bukan JSON valid:', errJson);
         throw errJson;
       }
       if (!isHandled) {
@@ -477,8 +753,20 @@ function callPanoramaHttpRest(action, payload, onSuccess, onFailure) {
       }
     })
     .catch(function(err) {
+      clearTimeout(fetchTimer);
       if (isHandled) return;
-      console.warn('POST API notice, mencoba fallback GET:', err);
+      if (!isReadOnly) {
+        // KRITIS: Operasi tulis DILARANG jatuh ke HTTP GET fallback agar tidak terjadi penulisan ganda!
+        isHandled = true;
+        if (onFailure) {
+          const msg = (err && err.name === 'AbortError')
+            ? 'Waktu tunggu server habis (>25 detik). Kemungkinan antrean closing sedang padat.'
+            : ((err && err.message) ? err.message : 'Gagal mengirim ke server');
+          onFailure(new Error(msg));
+        }
+        return;
+      }
+      console.warn('POST Read API notice, mencoba fallback GET:', err);
       try {
         const getParamObj = {
           action: action,
@@ -1046,11 +1334,22 @@ function startPanoramaApp() {
     if (trx) { trx.value = ''; trx.classList.remove('input-ai-highlight'); }
   } catch (eClean) {}
 
-  // Auto-sync polling setiap 15 detik untuk mendeteksi pengajuan jadwal/tugas & watchdog sesi
+  // Watchdog idle sesi lokal 15s (ringan, 0 call server) + Auto-sync longgar & staggered (90-120s + jitter)
+  if (typeof updateSalesSyncQueueUI === 'function') {
+    updateSalesSyncQueueUI(false);
+  }
+  if (typeof window !== 'undefined' && typeof window.addEventListener === 'function' && !window._PANORAMA_ONLINE_LISTENER_BOUND) {
+    window._PANORAMA_ONLINE_LISTENER_BOUND = true;
+    window.addEventListener('online', function() {
+      if (typeof flushPendingSalesQueue === 'function' && getPendingSalesQueue().length > 0) {
+        setTimeout(function() { flushPendingSalesQueue(false); }, 1000);
+      }
+    });
+  }
   if (!window._PANORAMA_AUTO_SYNC_POLLER) {
     window._PANORAMA_AUTO_SYNC_POLLER = setInterval(function() {
       if (!document.hidden && window.PANORAMA_STATE && window.PANORAMA_STATE.user) {
-        // Watchdog 15 Detik: Periksa apakah sesi telah melampaui batas inaktivitas
+        // 1. Cek inaktivitas sesi lokal (ringan tanpa koneksi Google Sheet)
         const now = Date.now();
         const lastActive = Number(safeGetStorage('PANORAMA_LAST_ACTIVE', 0));
         if (lastActive > 0 && (now - lastActive > SESSION_MAX_INACTIVITY_MS)) {
@@ -1058,6 +1357,34 @@ function startPanoramaApp() {
           logoutSession(true);
           return;
         }
+
+        // 2. Auto-retry kotak titipan sales tertunda (maks 1x tiap ~45-65 detik bila ada antrean)
+        const pendingSales = (typeof getPendingSalesQueue === 'function') ? getPendingSalesQueue() : [];
+        if (pendingSales.length > 0 && (!window._PANORAMA_NEXT_QUEUE_RETRY_AT || now >= window._PANORAMA_NEXT_QUEUE_RETRY_AT)) {
+          window._PANORAMA_NEXT_QUEUE_RETRY_AT = now + 45000 + Math.floor(Math.random() * 20000);
+          flushPendingSalesQueue(false);
+        }
+
+        // 3. Jadwalkan Auto-Sync Data dengan jeda longgar + waktu acak agar 160 HP tidak menumpuk bersamaan
+        const roleInfoPoll = (typeof getUserRoleInfo === 'function') ? getUserRoleInfo(window.PANORAMA_STATE.user) : {};
+        const baseIntervalMs = roleInfoPoll.isSPV ? 120000 : 90000;
+        const jitterMs = roleInfoPoll.isSPV ? 25000 : 15000;
+        if (!window._PANORAMA_NEXT_BG_SYNC_AT) {
+          window._PANORAMA_NEXT_BG_SYNC_AT = now + baseIntervalMs + Math.floor(Math.random() * jitterMs);
+          return;
+        }
+        if (now < window._PANORAMA_NEXT_BG_SYNC_AT) {
+          return;
+        }
+        // Tunda refresh latar jika kasir/manager sedang mengisi formulir input
+        const activeFormOpen = (typeof document.querySelector === 'function')
+          ? document.querySelector('#modalInputSales.active, #modalInputEfisiensi.active, #modalLaporInsiden.active, #modalAjukanJadwal.active')
+          : null;
+        if (activeFormOpen) {
+          window._PANORAMA_NEXT_BG_SYNC_AT = now + 20000;
+          return;
+        }
+        window._PANORAMA_NEXT_BG_SYNC_AT = now + baseIntervalMs + Math.floor(Math.random() * jitterMs);
         if (typeof fetchOperationalData === 'function') {
           fetchOperationalData(false);
         }
@@ -2248,6 +2575,17 @@ function fetchOperationalData(forceRefresh) {
     console.warn('fetchOperationalData dibatalkan: Pengguna belum terotentikasi.');
     return;
   }
+  const nowTs = Date.now();
+  if (!forceRefresh && window._PANORAMA_FETCH_IN_FLIGHT && (nowTs - (window._PANORAMA_FETCH_STARTED_AT || 0)) < 30000) {
+    return; // Cegah refresh latar menumpuk jika permintaan sebelumnya masih berjalan
+  }
+  window._PANORAMA_FETCH_IN_FLIGHT = true;
+  window._PANORAMA_FETCH_STARTED_AT = nowTs;
+  const roleInfoPoll = (typeof getUserRoleInfo === 'function') ? getUserRoleInfo(u) : {};
+  const nextBase = roleInfoPoll.isSPV ? 120000 : 90000;
+  const nextJitter = roleInfoPoll.isSPV ? 25000 : 15000;
+  window._PANORAMA_NEXT_BG_SYNC_AT = nowTs + nextBase + Math.floor(Math.random() * nextJitter);
+
   const cleanUser = {
     role: String(u.role || 'MASTER').trim().toUpperCase(),
     username: String(u.username || '').trim(),
@@ -2314,6 +2652,7 @@ function fetchOperationalData(forceRefresh) {
 }
 
 function applyFetchedData(fetchedData, showSuccessToast) {
+  window._PANORAMA_FETCH_IN_FLIGHT = false;
   setTimeout(populateGlobalAreaDropdowns, 50); setTimeout(refreshCategoryColorMap, 60);
   if (!fetchedData) return;
   if (fetchedData.operationalConfig) {
@@ -2359,9 +2698,15 @@ function applyFetchedData(fetchedData, showSuccessToast) {
     }
   }
   window.PANORAMA_STATE.data = ensureDataStructure(fetchedData);
+  if (typeof mergePendingSalesIntoData === 'function') {
+    mergePendingSalesIntoData(window.PANORAMA_STATE.data);
+  }
   try {
     safeSetStorage('PANORAMA_DATA_CACHE', window.PANORAMA_STATE.data);
   } catch (eCache) {}
+  if (typeof updateSalesSyncQueueUI === 'function') {
+    updateSalesSyncQueueUI(false);
+  }
   if (typeof recalculateLeaderboardLive === 'function') {
     try {
       recalculateLeaderboardLive();
@@ -2373,10 +2718,14 @@ function applyFetchedData(fetchedData, showSuccessToast) {
   if (showSuccessToast) {
     showToast('Data Google Spreadsheet berhasil disinkronisasi.', 'success');
   }
+  if (typeof getPendingSalesQueue === 'function' && getPendingSalesQueue().length > 0 && typeof flushPendingSalesQueue === 'function') {
+    setTimeout(function() { flushPendingSalesQueue(false); }, 1200);
+  }
 }
 
 function fallbackFetchCloudData(forceRefresh) {
   callPanoramaHttpRest('apiGetInitialData', { user: window.PANORAMA_STATE.user || {} }, function(res) {
+    window._PANORAMA_FETCH_IN_FLIGHT = false;
     showGlobalLoader(false);
     if (res && res.success && res.data) {
       applyFetchedData(res.data, forceRefresh);
@@ -2384,10 +2733,11 @@ function fallbackFetchCloudData(forceRefresh) {
       renderStandaloneFallback(forceRefresh);
     }
   }, function(err) {
+    window._PANORAMA_FETCH_IN_FLIGHT = false;
     showGlobalLoader(false);
     console.warn('Fallback HTTP API belum merespons:', err);
     renderStandaloneFallback(forceRefresh);
-  });
+  }, { isReadOnly: true });
 }
 
 /**
@@ -8670,13 +9020,20 @@ function submitEfisiensiForm() {
     updatedBy: user ? (user.namaLengkap || user.nama || 'Area Manager') : 'Area Manager'
   };
 
-  showGlobalLoader(true, 3000);
+  const btnEff = document.getElementById('btnSubmitEfisiensi');
+  if (btnEff && btnEff.disabled) return;
 
-  // Optimistic UI Update: Langsung catat di local in-memory state & re-render
-  applyEfisiensiToLocalState(payload);
+  setSubmitButtonBusy('btnSubmitEfisiensi', true, 'Menyimpan...');
+  showGlobalLoader(true, 25000);
 
   callPanoramaApi('apiSaveEfisiensi', payload, function(res) {
+    setSubmitButtonBusy('btnSubmitEfisiensi', false);
     showGlobalLoader(false);
+    if (res && res.success === false) {
+      showToast('Gagal menyimpan data efisiensi: ' + (res.message || 'Server sedang padat, silakan tekan Simpan lagi.'), 'warning');
+      return;
+    }
+    applyEfisiensiToLocalState(payload);
     if (res && res.efisiensiId && d && d.efisiensi) {
       const effItem = d.efisiensi.find(e => String(e.cabangId) === String(cabangId) && getCalendarWeekInfo(e.tanggal).weekNum === currentWeekInfo.weekNum);
       if (effItem) effItem.efisiensiId = res.efisiensiId;
@@ -8685,10 +9042,10 @@ function submitEfisiensiForm() {
     showToast('✓ Data efisiensi ' + currentWeekInfo.weekLabel + ' gerai ' + (cbg ? cbg.namaCabang : cabangId) + ' berhasil ' + modeLabel + '.', 'success');
     closeModal('modalInputEfisiensi');
   }, function(err) {
+    setSubmitButtonBusy('btnSubmitEfisiensi', false);
     showGlobalLoader(false);
-    console.warn('Sync Efisiensi notice:', err);
-    showToast('✓ Data efisiensi ' + currentWeekInfo.weekLabel + ' tersimpan di sesi browser.', 'warning');
-    closeModal('modalInputEfisiensi');
+    console.warn('Sync Efisiensi error:', err);
+    showToast('Gagal mengirim data efisiensi ke Google Sheet (' + (err && err.message ? err.message : 'koneksi terputus') + '). Data belum tersimpan — silakan klik Simpan lagi.', 'danger');
   });
 }
 
@@ -11131,6 +11488,9 @@ function submitSalesForm() {
     return;
   }
 
+  const btnSales = document.getElementById('btnSubmitSales');
+  if (btnSales && btnSales.disabled) return;
+
   const selectedCabang = window.PANORAMA_STATE.data.cabang.find(c => c.cabangId === cabangId);
   const payload = {
     tanggal: tanggal,
@@ -11149,103 +11509,58 @@ function submitSalesForm() {
     createdBy: window.PANORAMA_STATE.user.namaLengkap
   };
 
-  // Optimistic UI Update: TIMPA DATA LAMA (JANGAN PERNAH DOUBLE!)
-  const persen = Math.round((actual / (target || 5000000)) * 1000) / 10;
-  
-  // Cari apakah data dengan cabang & tanggal ini sudah ada (menggunakan normalizeDateStr!)
-  const existingIdx = window.PANORAMA_STATE.data.sales.findIndex(s => 
-    String(s.cabangId) === String(cabangId) && normalizeDateStr(s.tanggal) === tanggal
-  );
+  function finalizeSalesModalUi(isPendingMode) {
+    applySalesRecordToLocalData(window.PANORAMA_STATE.data, payload, isPendingMode);
+    if (typeof recalculateLeaderboardLive === 'function') {
+      try { recalculateLeaderboardLive(); } catch (eLive) {}
+    }
+    renderActiveView();
+    renderSalesDailyBreakdown(cabangId);
+    closeModal('modalInputSales');
 
-  if (existingIdx >= 0) {
-    // Mode Koreksi: Ganti angka lama dengan angka baru
-    const ex = window.PANORAMA_STATE.data.sales[existingIdx];
-    ex.actualSales = actual;
-    ex.salesOffline = salesOffline;
-    ex.salesGrabFood = salesGrabFood;
-    ex.salesShopeeFood = salesShopeeFood;
-    ex.salesGoFood = salesGoFood;
-    ex.salesTikTok = salesTikTok;
-    ex.salesQpon = salesQpon;
-    ex.targetHarian = target || 5000000;
-    ex.persentase = persen;
-    ex.totalTransaksi = trx;
-    ex.tanggal = tanggal;
-    ex.createdBy = payload.createdBy + ' (Koreksi)';
-
-    // Bersihkan entri duplikat lain jika sebelumnya sempat tersimpan ganda
-    window.PANORAMA_STATE.data.sales = window.PANORAMA_STATE.data.sales.filter((s, idx) => {
-      if (idx === existingIdx) return true;
-      const isDup = String(s.cabangId) === String(cabangId) && normalizeDateStr(s.tanggal) === tanggal;
-      return !isDup;
-    });
-  } else {
-    const newId = 'SLS-' + new Date().getTime().toString().slice(-6);
-    window.PANORAMA_STATE.data.sales.unshift({
-      salesId: newId,
-      tanggal: tanggal,
-      areaId: payload.areaId,
-      cabangId: cabangId,
-      namaCabang: payload.namaCabang,
-      targetHarian: target || 5000000,
-      actualSales: actual,
-      salesOffline: salesOffline,
-      salesGrabFood: salesGrabFood,
-      salesShopeeFood: salesShopeeFood,
-      salesGoFood: salesGoFood,
-      salesTikTok: salesTikTok,
-      salesQpon: salesQpon,
-      persentase: persen,
-      totalTransaksi: trx,
-      createdBy: payload.createdBy
-    });
+    // Bersihkan input angka actual, 6 channel, dan total transaksi setelah proses selesai
+    clearSalesChannelInputs(true);
+    const actualInputEl = document.getElementById('inputSalesActual');
+    const trxInputEl = document.getElementById('inputSalesTrx');
+    if (actualInputEl) {
+      actualInputEl.value = '';
+      actualInputEl.readOnly = false;
+      actualInputEl.classList.remove('input-ai-highlight', 'input-auto-calculated');
+    }
+    if (trxInputEl) {
+      trxInputEl.value = '';
+      trxInputEl.classList.remove('input-ai-highlight');
+    }
+    if (typeof resetSalesAiScanner === 'function') {
+      resetSalesAiScanner(true);
+    }
   }
 
-  // Auto-complete Tugas Daily di Local State (Bebas Approval Atasan - Langsung Selesai via Input Data)
-  if (window.PANORAMA_STATE.data && window.PANORAMA_STATE.data.tugas) {
-    window.PANORAMA_STATE.data.tugas.forEach(t => {
-      const isDaily = (t.routineCycle === 'DAILY' || t.tugasId === 'TSK-RTN-DAILY' || t.actionLink === 'sales' || (t.judul && t.judul.toLowerCase().includes('sales harian')));
-      if (isDaily) {
-        t.status = 'Completed';
-        t.isNeedRevision = false;
-        t.autoCompleted = true;
-        t.catatan = '✓ Selesai Otomatis: Data penjualan (sales) ' + payload.namaCabang + ' tgl ' + tanggal + ' berhasil diinput ke sistem.';
-      }
-    });
-  }
+  setSubmitButtonBusy('btnSubmitSales', true, 'Menyimpan...');
+  showGlobalLoader(true, 26000, 'Menyimpan laporan ke Google Sheet...');
 
-  if (typeof recalculateLeaderboardLive === 'function') {
-    try { recalculateLeaderboardLive(); } catch (eLive) {}
-  }
-  renderActiveView();
-  renderSalesDailyBreakdown(cabangId);
-  closeModal('modalInputSales');
-
-  // Bersihkan input angka actual, 6 channel, dan total transaksi setelah submit berhasil
-  clearSalesChannelInputs(true);
-  const actualInputEl = document.getElementById('inputSalesActual');
-  const trxInputEl = document.getElementById('inputSalesTrx');
-  if (actualInputEl) {
-    actualInputEl.value = '';
-    actualInputEl.readOnly = false;
-    actualInputEl.classList.remove('input-ai-highlight', 'input-auto-calculated');
-  }
-  if (trxInputEl) {
-    trxInputEl.value = '';
-    trxInputEl.classList.remove('input-ai-highlight');
-  }
-  if (typeof resetSalesAiScanner === 'function') {
-    resetSalesAiScanner(true);
-  }
-
-  showGlobalLoader(true, 4000);
   callPanoramaApi('apiSaveSales', payload, function(res) {
+    setSubmitButtonBusy('btnSubmitSales', false);
     showGlobalLoader(false);
-    showToast(res && res.message ? res.message : ('Data sales ' + payload.namaCabang + ' berhasil disinkronkan ke Google Sheet!'), res && res.success ? 'success' : 'info');
+    if (res && res.success) {
+      removePendingSalesByKey(buildSalesQueueKey(payload));
+      finalizeSalesModalUi(false);
+      showToast(res.message || ('Data sales ' + payload.namaCabang + ' berhasil tersimpan ke Google Sheet!'), 'success');
+    } else if (res && res.success === false && !res.retryable) {
+      showToast(res.message || 'Laporan ditolak server. Periksa kembali isian Anda.', 'danger');
+    } else {
+      const errNote = (res && res.message) ? res.message : 'Antrean server sedang padat';
+      enqueuePendingSales(payload, errNote);
+      finalizeSalesModalUi(true);
+      showToast('⏳ Antrean server padat. Laporan sales diamankan di HP dan akan dikirim ulang otomatis!', 'warning');
+    }
   }, function(err) {
+    setSubmitButtonBusy('btnSubmitSales', false);
     showGlobalLoader(false);
-    console.warn('Sync Sales notice:', err);
-    showToast('Data sales tersimpan di layar. Catatan server: ' + (err.message || 'menunggu koneksi'), 'warning');
+    const errNote = (err && err.message) ? err.message : 'Koneksi terputus';
+    enqueuePendingSales(payload, errNote);
+    finalizeSalesModalUi(true);
+    showToast('⏳ Koneksi melambat/terputus. Laporan sales aman dititipkan di HP dan otomatis dikirim ulang!', 'warning');
   });
 }
 
@@ -11462,6 +11777,10 @@ function submitInsidenForm() {
     return;
   }
 
+  const btnInc = document.getElementById('btnSubmitInsiden');
+  if (btnInc && btnInc.disabled) return;
+  setSubmitButtonBusy('btnSubmitInsiden', true, 'Mengirim...');
+
   const selectedCabang = (window.PANORAMA_STATE.data.cabang || []).find(c => c.cabangId === cabangId);
   const areaId = selectedCabang ? selectedCabang.areaId : 'AREA-01';
   const reporterName = (window.PANORAMA_STATE.user && window.PANORAMA_STATE.user.namaLengkap) || 'SPV Toko';
@@ -11469,7 +11788,7 @@ function submitInsidenForm() {
   const filesToUpload = window.PANORAMA_INSIDEN_FILES || [];
 
   function proceedSaveWithDriveUrl(driveUrl) {
-    showGlobalLoader(true, 'Menyimpan laporan insiden ke server...');
+    showGlobalLoader(true, 25000, 'Menyimpan laporan insiden ke server...');
 
     const payload = {
       areaId: areaId,
@@ -11483,31 +11802,19 @@ function submitInsidenForm() {
     };
 
     callPanoramaApi('apiSaveInsiden', payload, function(res) {
+      setSubmitButtonBusy('btnSubmitInsiden', false);
       showGlobalLoader(false);
+      if (res && res.success === false) {
+        showToast('Gagal mengirim laporan insiden: ' + (res.message || 'Silakan coba tekan Kirim ulang.'), 'danger');
+        return;
+      }
       closeModal('modalLaporInsiden');
-      showToast(res && res.message ? res.message : 'Insiden berhasil dilaporkan dan tersimpan!', (res && res.success) ? 'success' : 'info');
+      showToast(res && res.message ? res.message : 'Insiden berhasil dilaporkan dan tersimpan ke Google Sheet!', 'success');
       fetchOperationalData(true);
     }, function(err) {
+      setSubmitButtonBusy('btnSubmitInsiden', false);
       showGlobalLoader(false);
-      closeModal('modalLaporInsiden');
-      const newId = 'INC-' + new Date().toISOString().slice(0, 10).replace(/-/g, '') + '-' + new Date().getTime().toString().slice(-3);
-      window.PANORAMA_STATE.data.insiden.unshift({
-        insidenId: newId,
-        tanggalLapor: new Date().toISOString().replace('T', ' ').substring(0, 16),
-        areaId: payload.areaId,
-        cabangId: cabangId,
-        kategori: kategori,
-        urgensi: urgensi,
-        deskripsi: deskripsi,
-        driveUrl: driveUrl,
-        status: 'OPEN',
-        waktuSelesai: '',
-        slaJam: 0,
-        tindakan: '',
-        reporter: payload.reporter
-      });
-      renderActiveView();
-      showToast('Insiden tersimpan di layar: ' + (err ? err.message : ''), 'warning');
+      showToast('Gagal terhubung ke server Google Sheet (' + (err && err.message ? err.message : 'koneksi terputus') + '). Silakan klik Kirim ulang.', 'danger');
     });
   }
 
@@ -16512,7 +16819,10 @@ function submitPengajuanJadwalKalender() {
       return;
     }
 
-    showGlobalLoader(true, 'Mengunggah Berkas Jadwal Shift...');
+    const btnJadSpv = document.getElementById('btnSubmitJadwalModal');
+    if (btnJadSpv && btnJadSpv.disabled) return;
+    setSubmitButtonBusy('btnSubmitJadwalModal', true, 'Mengunggah...');
+    showGlobalLoader(true, 26000, 'Mengunggah Berkas Jadwal Shift...');
 
     const monthPicker = document.getElementById('calSpvMonthPicker');
     const nowSpv = new Date();
@@ -16566,23 +16876,24 @@ function submitPengajuanJadwalKalender() {
       cacheJadwalDetail(newJadwalId, newJadwal);
 
       callPanoramaApi('apiSubmitJadwal', newJadwal, function(res) {
+        setSubmitButtonBusy('btnSubmitJadwalModal', false);
+        showGlobalLoader(false);
+        if (res && res.success === false) {
+          showToast('Gagal mengirim berkas jadwal: ' + (res.message || 'Silakan coba tekan Ajukan ulang.'), 'danger');
+          return;
+        }
         if (!d.jadwal) d.jadwal = [];
         if (res && res.jadwalId) newJadwal.jadwalId = res.jadwalId;
         d.jadwal.unshift(newJadwal);
         cacheJadwalDetail(newJadwal.jadwalId, newJadwal);
-        showGlobalLoader(false);
         closeModal('modalAjukanJadwal');
         removeSpvFile();
         renderActiveView();
         showToast(res && res.message ? res.message : `Berkas jadwal shift ${newJadwalId} berhasil dikirim ke Area Manager!`, 'success');
       }, function(err) {
-        if (!d.jadwal) d.jadwal = [];
-        d.jadwal.unshift(newJadwal);
+        setSubmitButtonBusy('btnSubmitJadwalModal', false);
         showGlobalLoader(false);
-        closeModal('modalAjukanJadwal');
-        removeSpvFile();
-        renderActiveView();
-        showToast(`Berkas jadwal ${newJadwalId} tersimpan: ` + (err ? err.message : ''), 'info');
+        showToast('Gagal mengirim berkas jadwal ke server (' + (err && err.message ? err.message : 'koneksi terputus') + '). Silakan klik Ajukan ulang.', 'danger');
       });
     }
 
@@ -16617,7 +16928,10 @@ function submitPengajuanJadwalKalender() {
       return;
     }
 
-    showGlobalLoader(true, 'Menyimpan Rencana Kalender Kerja...');
+    const btnJadMgr = document.getElementById('btnSubmitJadwalModal');
+    if (btnJadMgr && btnJadMgr.disabled) return;
+    setSubmitButtonBusy('btnSubmitJadwalModal', true, 'Mengirim...');
+    showGlobalLoader(true, 26000, 'Menyimpan Rencana Kalender Kerja...');
 
     const cal = window.PANORAMA_CALENDAR;
     const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
@@ -16692,36 +17006,40 @@ function submitPengajuanJadwalKalender() {
     if (editingJadwalId) {
       cacheJadwalDetail(targetJadwalId, jadwalPayload);
       callPanoramaApi('apiUpdateJadwal', jadwalPayload, function(res) {
+        setSubmitButtonBusy('btnSubmitJadwalModal', false);
+        showGlobalLoader(false);
+        if (res && res.success === false) {
+          showToast('Gagal menyimpan revisi jadwal: ' + (res.message || 'Silakan klik Ajukan ulang.'), 'danger');
+          return;
+        }
         syncLocalUpdatedJadwal(res);
         resetEditFlags();
-        showGlobalLoader(false);
         closeModal('modalAjukanJadwal');
         renderActiveView();
         showToast(res && res.message ? res.message : `Revisi jadwal ${targetJadwalId} berhasil disimpan & diajukan ulang ke Master COO!`, 'success');
       }, function(err) {
-        syncLocalUpdatedJadwal(null);
-        resetEditFlags();
+        setSubmitButtonBusy('btnSubmitJadwalModal', false);
         showGlobalLoader(false);
-        closeModal('modalAjukanJadwal');
-        renderActiveView();
-        showToast(`Perubahan jadwal ${targetJadwalId} tersimpan di layar: ` + (err ? err.message : ''), 'warning');
+        showToast('Gagal mengirim revisi jadwal ke Google Sheet (' + (err && err.message ? err.message : 'koneksi terputus') + '). Isian kalender masih tersimpan di form, silakan tekan Ajukan ulang.', 'danger');
       });
     } else {
       cacheJadwalDetail(targetJadwalId, jadwalPayload);
       callPanoramaApi('apiSubmitJadwal', jadwalPayload, function(res) {
+        setSubmitButtonBusy('btnSubmitJadwalModal', false);
+        showGlobalLoader(false);
+        if (res && res.success === false) {
+          showToast('Gagal menyimpan jadwal: ' + (res.message || 'Silakan klik Ajukan ulang.'), 'danger');
+          return;
+        }
         syncLocalUpdatedJadwal(res);
         resetEditFlags();
-        showGlobalLoader(false);
         closeModal('modalAjukanJadwal');
         renderActiveView();
         showToast(res && res.message ? res.message : `Pengajuan jadwal kalender ${jadwalPayload.jadwalId} berhasil disimpan ke Google Sheet!`, 'success');
       }, function(err) {
-        syncLocalUpdatedJadwal(null);
-        resetEditFlags();
+        setSubmitButtonBusy('btnSubmitJadwalModal', false);
         showGlobalLoader(false);
-        closeModal('modalAjukanJadwal');
-        renderActiveView();
-        showToast(`Pengajuan jadwal ${targetJadwalId} tersimpan di layar: ` + (err ? err.message : ''), 'warning');
+        showToast('Gagal mengirim jadwal ke Google Sheet (' + (err && err.message ? err.message : 'koneksi terputus') + '). Isian kalender masih tersimpan di form, silakan tekan Ajukan ulang.', 'danger');
       });
     }
   }

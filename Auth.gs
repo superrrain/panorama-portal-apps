@@ -45,9 +45,14 @@ function apiLogin(username, password) {
     var sheet = null;
 
     try {
-      sheet = getSheet(TAB.USER);
-      if (sheet) {
-        data = sheet.getDataRange().getValues();
+      if (typeof getCachedSheetValues_ === 'function') {
+        data = getCachedSheetValues_(TAB.USER, 'MASTER', 900);
+        sheet = (data && data.length > 0) ? true : null;
+      } else {
+        sheet = getSheet(TAB.USER);
+        if (sheet) {
+          data = sheet.getDataRange().getValues();
+        }
       }
     } catch (eSheet) {
       console.warn('Peringatan pembacaan MasterUser:', eSheet.message);
@@ -247,6 +252,7 @@ function apiAssignUserPlacement(payload, user) {
     if (newCabangId) sheet.getRange(rowIndex, COL_USER.CABANG_ID + 1).setValue(newCabangId);
     if (newRole) sheet.getRange(rowIndex, COL_USER.ROLE + 1).setValue(newRole);
     sheet.getRange(rowIndex, COL_USER.STATUS + 1).setValue('ACTIVE');
+    if (typeof invalidateCacheDomains_ === 'function') invalidateCacheDomains_(['MASTER']);
 
     // Push Notifikasi Luar Aplikasi (Status Bar HP): Kategori USER (Aktivasi & Penempatan - Strictly Isolated)
     try {
@@ -305,6 +311,7 @@ function apiResetPassword(payload) {
 
     if (foundRow > 0) {
       sheet.getRange(foundRow, COL_USER.PASSWORD + 1).setValue(newPass);
+      if (typeof invalidateCacheDomains_ === 'function') invalidateCacheDomains_(['MASTER']);
       return {
         success: true,
         message: 'Kata sandi untuk akun "' + foundUsername + '" berhasil diperbarui! Silakan masuk kembali.'
@@ -367,6 +374,7 @@ function apiSaveUserProfile(payload) {
       if (payload.noWa !== undefined) {
         sheet.getRange(userRow, COL_USER.WA + 1).setValue(String(payload.noWa).trim());
       }
+      if (typeof invalidateCacheDomains_ === 'function') invalidateCacheDomains_(['MASTER']);
 
       return {
         success: true,

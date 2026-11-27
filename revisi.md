@@ -1,4 +1,65 @@
-# 📋 PAPAN REVISI & TRACKING PERBAIKAN ZETTBOT (v5.9.5)
+# 📋 DRAFT RENCANA REVISI (MENUNGGU PERSETUJUAN): v5.11.0 — Ketahanan Sistem Untuk 160 Pengguna & Jam Sibuk Closing/Pagi
+**Proyek**: PANORAMA Executive Operations Portal  
+**Lead Architect**: ZettBOT by Zettbos  
+**Tanggal**: 27 November 2026  
+**Status**: 🟡 DRAFT RENCANA (Menunggu Perintah *"OKE TERAPKAN"* dari Pengguna)  
+
+---
+
+## 🎯 Latar Belakang & Skenario Beban Lapangan
+Pengguna berencana menguji kesiapan aplikasi jika digunakan oleh **~160 pengguna** (146 gerai SPV + Area Manager + Head Ops/COO), khususnya pada **puncak jam sibuk input data** (malam saat closing & pagi hari saat rekap setelah closing).
+
+### Akar Masalah Pada Kode Berjalan Saat Ini (Sebelum Revisi):
+1. **Fokus Puncak Keramaian Ada di Input Sales Harian (~146 Gerai saat Closing Malam / Rekap Pagi):** Di [js.html](file:///c:/Users/Lenovo/.gemini/antigravity-ide/DASHBOARD%20HEAD%20OPS/js.html#L11220-L11250), saat tombol Simpan ditekan pada **Input Sales**, modal langsung ditutup dan layar diperbarui seolah sudah tersimpan. Bila server Google antre/timeout di jam closing, tidak ada kotak titipan kirim ulang otomatis di HP — jika aplikasi ditutup, laporan omzet berisiko tidak pernah masuk ke Google Sheet. *(Sementara Efisiensi diinput ~14 Area Manager 1x seminggu, Insiden bersifat kondisional, dan Jadwal hanya 1x sebulan serta membawa berkas foto/PDF besar sehingga tidak cocok disimpan dalam antrean penyimpanan browser).*
+2. **Kebiasaan HP Menanya Update Tiap 15 Detik (`_PANORAMA_AUTO_SYNC_POLLER`):** Setiap layar terbuka otomatis menyedot pembacaan data penuh tiap **15 detik** ([js.html](file:///c:/Users/Lenovo/.gemini/antigravity-ide/DASHBOARD%20HEAD%20OPS/js.html#L1049-L1066)), menyebabkan kemacetan antrean justru di jam kasir sedang butuh menginput Sales.
+3. **Pencatat Backend Belum Memakai Ingatan Sementara (`CacheService`):** `apiGetInitialData` di [code.gs](file:///c:/Users/Lenovo/.gemini/antigravity-ide/DASHBOARD%20HEAD%20OPS/code.gs#L905-L1704) membongkar ulang **13 lembar sheet** penuh pada setiap permintaan serta memindai ulang `DataReviews` lewat `autoResolvePositiveReviewsInSheet` ([Reviews.gs](file:///c:/Users/Lenovo/.gemini/antigravity-ide/DASHBOARD%20HEAD%20OPS/Reviews.gs#L520-L535)).
+4. **Watchdog 4,5 Detik Mengirim Dobel & Kunci Antrean Simpan Belum Menyeluruh:**
+   - Watchdog `4,5 detik` (`callPanoramaApi`, [js.html](file:///c:/Users/Lenovo/.gemini/antigravity-ide/DASHBOARD%20HEAD%20OPS/js.html#L378-L384)) + fallback POST-ke-GET ([js.html](file:///c:/Users/Lenovo/.gemini/antigravity-ide/DASHBOARD%20HEAD%20OPS/js.html#L450-L505)) dapat memicu permintaan tulis ganda ketika server melambat di jam sibuk.
+   - `LockService` di `apiSaveSales` ([Sales.gs](file:///c:/Users/Lenovo/.gemini/antigravity-ide/DASHBOARD%20HEAD%20OPS/Sales.gs#L528-L650)) baru mengunci pembuatan nomor ID (belum membungkus cek-duplikat + tulis baris), dan `autoCompleteDailyTaskInSheet` ([Tugas.gs](file:///c:/Users/Lenovo/.gemini/antigravity-ide/DASHBOARD%20HEAD%20OPS/Tugas.gs#L207-L224)) menulis paksa baris yang sama ke `DataTugas` di setiap 1 laporan toko masuk.
+
+---
+
+## 🛠️ Rencana Perbaikan (Tepat Sasaran Untuk 160 User Jam Closing/Pagi)
+
+### 1. Kotak Titipan Pending & Anti-Hilang Khusus Input Sales (`js.html`, `index_modular.html`, `css.html`)
+- Menambahkan **"Kotak Titipan Pending (`PANORAMA_OFFLINE_SYNC_QUEUE`)"** di memori HP khusus untuk data **Input Sales** (berukuran ringan sehingga sangat aman di `localStorage`) + lencana indikator status jujur di header (*"⏳ X Laporan Sales Menunggu Kirim Ulang"* beserta tombol **"Kirim Ulang Sekarang"**).
+- Mengunci tombol *Simpan* pada modal Sales saat sedang mengirim (mencegah kasir menekan dua kali).
+- Jika berhasil masuk ke Google Sheet → konfirmasi hijau resmi dan hapus dari antrean titipan. Jika gagal / antre penuh (`retryable`) → beri tahu SPV dengan jelas bahwa laporan **dititipkan aman di HP dan akan dikirim ulang otomatis** secara bertahap sampai benar-benar tersimpan ke Google Sheet.
+- Untuk modul berfrekuensi rendah (Efisiensi mingguan, Insiden kondisional, Jadwal bulanan): tetap diberi **kunci tombol anti double-klik** dan **pesan jujur** bila gagal terhubung ke server agar pengguna tahu untuk menekan ulang tanpa memenuhi memori browser dengan file/foto besar.
+
+### 2. Pemisahan Jalur Baca vs Jalur Tulis & Anti-Kirim Dobel (`js.html`)
+- Memisahkan penanganan di `callPanoramaApi` & `callPanoramaHttpRest`:
+  - **Semua Operasi Tulis (Simpan/Update/Approve):** Matikan fallback otomatis HTTP `GET` agar aksi simpan tidak pernah dikirim dua kali ke spreadsheet saat respon lambat; panjangkan batas tunggu eksekusi menjadi ~25 detik.
+  - **Operasi Baca (`fetchOperationalData`):** Pasang pengunci *in-flight* agar permintaan refresh baru tidak menumpuk jika refresh sebelumnya belum selesai.
+
+### 3. Pelonggaran Jadwal Auto-Refresh HP (`js.html`)
+- Melonggarkan interval `_PANORAMA_AUTO_SYNC_POLLER` dari **15 detik** menjadi:
+  - **120 detik (2 menit)** untuk SPV gerai & **90 detik** untuk Area Manager/COO, ditambah **waktu acak +0–25 detik (*jitter*)** agar seluruh HP tidak menghubungi server pada detik yang sama persis.
+  - Menunda auto-refresh selama modal input (`modalInputSales`, `modalInputEfisiensi`, `modalLaporInsiden`, `modalAjukanJadwal`) sedang dibuka.
+  - Pemeriksaan sesi tidak aktif tetap berjalan ringan secara lokal tiap 15 detik tanpa menyentuh server.
+
+### 4. "Ingatan Sementara" Backend & Kunci Antrean Tulis Aman (`code.gs`, `Sales.gs`, `Efisiensi.gs`, `Tugas.gs`, `Reviews.gs`)
+- **Memori Sementara (`CacheService` Blok Pecah `< 85 KB`):**
+  - Helper `putChunkedCache_` / `getChunkedCache_` dengan token versi per domain (`CABANG`, `USER`, `CONFIG`, `OPERATIONAL`) agar data bersama tetap aman di bawah batas `100 KB/kunci` Google dan langsung segar setiap kali ada penyimpanan baru.
+- **Kunci Antrean Menyeluruh (`LockService`) & Hemat Penulisan Sheet:**
+  - Membungkus cek-duplikat + penulisan baris di `apiSaveSales` ([Sales.gs](file:///c:/Users/Lenovo/.gemini/antigravity-ide/DASHBOARD%20HEAD%20OPS/Sales.gs)) (plus proteksi lock ringan di `apiSaveEfisiensi` [Efisiensi.gs](file:///c:/Users/Lenovo/.gemini/antigravity-ide/DASHBOARD%20HEAD%20OPS/Efisiensi.gs)) menggunakan `LockService.getScriptLock()` (`waitLock(20000)`), mengembalikan status `{ success: false, retryable: true }` bila masih antre penuh agar otomatis ditangani Kotak Titipan Sales di HP.
+  - Memperbaiki `autoCompleteDailyTaskInSheet` ([Tugas.gs](file:///c:/Users/Lenovo/.gemini/antigravity-ide/DASHBOARD%20HEAD%20OPS/Tugas.gs#L207-L224)): **lewati penulisan ulang ke `DataTugas`** jika hari tersebut sudah berstatus `Completed` (menghemat hingga 145x penulisan ke `DataTugas` pada jam closing).
+  - Menghilangkan pembacaan ganda `DataReviews` oleh `autoResolvePositiveReviewsInSheet` ([Reviews.gs](file:///c:/Users/Lenovo/.gemini/antigravity-ide/DASHBOARD%20HEAD%20OPS/Reviews.gs#L520-L535)) di dalam jalur baca `apiGetInitialData`.
+
+---
+
+## 🧪 Rencana Pengujian Simulasi Tiruan (Setelah Eksekusi & Sebelum Dipakai 160 Orang Nyata)
+1. **Verifikasi Unit & Simulasi Antrean HP (Node VM):** Memastikan logika antrean pending, anti-double-submit, pemecahan blok `CacheService < 85 KB`, dan lock tulis bekerja 100%.
+2. **Uji Beban Simulasi HTTP Terkendali (30 → 60 → 100 → 160 User Virtual):**
+   - Menjalankan skrip simulator uji beban (*load tester*) ke **kopian Spreadsheet / Deployment Staging terpisah** (agar laporan cabang & notifikasi OneSignal produksi tetap bersih) untuk skenario:
+     - **Gelombang Baca & Login:** 160 user membuka & menyinkronkan data bertahap vs serentak.
+     - **Gelombang Closing/Pagi:** 160 gerai mengirim laporan `apiSaveSales` & `apiSaveEfisiensi` hampir bersamaan, mengukur persentase sukses, waktu respon, nol duplikasi baris, serta verifikasi bahwa request yang gagal/antre otomatis tertolong oleh mekanisme kirim ulang.
+
+---
+
+# 📚 ARSIP CATATAN REVISI SEBELUMNYA
+
+## 📋 PAPAN REVISI & TRACKING PERBAIKAN ZETTBOT (v5.9.5)
 **Proyek**: PANORAMA Executive Operations Portal  
 **Lead Architect**: ZettBOT by Zettbos  
 **Tanggal**: 26 November 2026  

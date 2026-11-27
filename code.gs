@@ -484,6 +484,9 @@ function handleApiRequest(action, params) {
 
   var outputJson = '';
   try {
+    if (result && result.success) {
+      invalidateCacheByAction_(action);
+    }
     outputJson = JSON.stringify(result);
   } catch (jsonErr) {
     outputJson = JSON.stringify({ success: false, message: 'Gagal serialisasi JSON: ' + jsonErr.message });
@@ -491,6 +494,26 @@ function handleApiRequest(action, params) {
 
   return ContentService.createTextOutput(outputJson)
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+/**
+ * Invalidate CacheService domain epoch berdasarkan nama endpoint API mutasi.
+ */
+function invalidateCacheByAction_(action) {
+  if (typeof invalidateCacheDomains_ !== 'function') return;
+  var a = String(action || '').trim();
+  if (!a || a === 'getInitialData' || a === 'apiGetInitialData' || a === 'apiGetDashboardData' || a === 'apiLogin' || a === 'login' || a === 'apiGetNotifikasi' || a === 'getNotifikasi' || a === 'apiGetPublicBranchInfo' || a === 'getPublicBranchInfo' || a === 'apiScanReceiptWithAI' || a === 'scanReceiptWithAI') {
+    return;
+  }
+  if (/Config|Cabang|BranchTarget|User|Password|Placement|Rotation|CleanProduction|CleanAllTransaction/i.test(a)) {
+    invalidateCacheDomains_(['MASTER', 'SALES', 'OTHER_OPS', 'NOTIF']);
+  } else if (/Sales|Tugas/i.test(a)) {
+    invalidateCacheDomains_(['SALES']);
+  } else if (/Notif/i.test(a)) {
+    invalidateCacheDomains_(['NOTIF']);
+  } else {
+    invalidateCacheDomains_(['OTHER_OPS']);
+  }
 }
 
 /**
@@ -711,9 +734,151 @@ function getSheet(sheetName) {
   return sheet;
 }
 
-// Utilitas ensureInsidenColumnN() & addBuktiPenangananColumnToDataInsiden() dipindahkan ke Insiden.gs
+/**
+ * ================================================================================
+ * CHUNKED CACHESERVICE ENGINE (AMAN BATAS 100 KB/KUNCI & ANTI-PERGESERAN TANGGAL WIB)
+ * ================================================================================
+ */
+function getCacheEpoch_(domain) {
+  try {
+    var cache = CacheService.getScriptCache();
+    var ep = cache.get('PAN_EP_' + domain);
+    if (!ep) {
+      ep = String(new Date().getTime());
+      cache.put('PAN_EP_' + domain, ep, 21600);
+    }
+    return ep;
+  } catch (eEp) {
+    return '0';
+  }
+}
 
-// createDataPerubahanJadwalSheet didelegasikan ke Jadwal.gs
+function invalidateCacheDomains_(domains) {
+  try {
+    if (!domains || !domains.length) return;
+    var cache = CacheService.getScriptCache();
+    var nextEp = String(new Date().getTime()) + '_' + Math.floor(Math.random() * 1000);
+    var map = {};
+    for (var i = 0; i < domains.length; i++) {
+      map['PAN_EP_' + domains[i]] = nextEp;
+    }
+    cache.putAll(map, 21600);
+  } catch (eInv) {}
+}
+
+function putChunkedCache_(baseKey, dataObj, ttlSec) {
+  try {
+    var jsonStr = JSON.stringify(dataObj);
+    if (!jsonStr) return false;
+    var chunkSize = 80000;
+    var totalChunks = Math.ceil(jsonStr.length / chunkSize);
+    if (totalChunks > 25) return false;
+    var entries = {};
+    entries[baseKey + '_M'] = JSON.stringify({ n: totalChunks });
+    for (var i = 0; i < totalChunks; i++) {
+      entries[baseKey + '_' + i] = jsonStr.substring(i * chunkSize, (i + 1) * chunkSize);
+    }
+    CacheService.getScriptCache().putAll(entries, ttlSec || 90);
+    return true;
+  } catch (ePut) {
+    return false;
+  }
+}
+
+function getChunkedCache_(baseKey) {
+  try {
+    var cache = CacheService.getScriptCache();
+    var metaStr = cache.get(baseKey + '_M');
+    if (!metaStr) return null;
+    var meta = JSON.parse(metaStr);
+    var n = Number(meta && meta.n ? meta.n : 0);
+    if (!n || n <= 0 || n > 25) return null;
+    var keys = [];
+    for (var i = 0; i < n; i++) keys.push(baseKey + '_' + i);
+    var got = cache.getAll(keys);
+    var buf = '';
+    for (var j = 0; j < keys.length; j++) {
+      if (got[keys[j]] === undefined || got[keys[j]] === null) return null;
+      buf += got[keys[j]];
+    }
+    return JSON.parse(buf);
+  } catch (eGet) {
+    return null;
+  }
+}
+
+function normalizeSheetValuesForCache_(rows) {
+  if (!Array.isArray(rows)) return [];
+  var out = [];
+  for (var r = 0; r < rows.length; r++) {
+    var row = rows[r];
+    var cleanRow = new Array(row.length);
+    for (var c = 0; c < row.length; c++) {
+      var cell = row[c];
+      if (cell instanceof Date) {
+        try {
+          cleanRow[c] = Utilities.formatDate(cell, 'Asia/Jakarta', 'yyyy-MM-dd HH:mm:ss').replace(' 00:00:00', '');
+        } catch (eD) {
+          cleanRow[c] = String(cell);
+        }
+      } else {
+        cleanRow[c] = cell;
+      }
+    }
+    out.push(cleanRow);
+  }
+  return out;
+}
+
+function getCachedSheetValues_(sheetName, domain, ttlSec) {
+  var epoch = getCacheEpoch_(domain || 'OPS');
+  var cacheKey = 'SV_' + (domain || 'OPS') + '_' + epoch + '_' + sheetName;
+  var cached = getChunkedCache_(cacheKey);
+  if (Array.isArray(cached)) {
+    return cached;
+  }
+  var sheet = getSheet(sheetName);
+  var rawVals = sheet ? sheet.getDataRange().getValues() : [];
+  var normalized = normalizeSheetValuesForCache_(rawVals);
+  putChunkedCache_(cacheKey, normalized, ttlSec || 90);
+  return normalized;
+}
+
+/**
+ * Generator ID Unik Sekuensial Tanpa Mengambil Lock Ekstra (Dipanggil di Dalam Lock yang Sudah Aktif)
+ */
+function generateNextIdUnlocked_(sheet, prefix, colIndex, isDaily) {
+  var lastRow = sheet.getLastRow();
+  var now = new Date();
+  var tz = 'Asia/Jakarta';
+  var ymd = '';
+  try {
+    ymd = Utilities.formatDate(now, tz, isDaily ? 'yyyyMMdd' : 'yyyyMM');
+  } catch (eFmt) {
+    var yyyy = now.getFullYear();
+    var mm = ('0' + (now.getMonth() + 1)).slice(-2);
+    var dd = ('0' + now.getDate()).slice(-2);
+    ymd = isDaily ? (yyyy + mm + dd) : (yyyy + mm);
+  }
+  var fullPrefix = prefix + '-' + ymd + '-';
+
+  var maxSeq = 0;
+  if (lastRow > 1) {
+    var values = sheet.getRange(2, colIndex + 1, lastRow - 1, 1).getValues();
+    for (var i = 0; i < values.length; i++) {
+      var strId = String(values[i][0] || '');
+      if (strId.indexOf(fullPrefix) === 0) {
+        var seqPart = parseInt(strId.substring(fullPrefix.length), 10);
+        if (!isNaN(seqPart) && seqPart > maxSeq) {
+          maxSeq = seqPart;
+        }
+      }
+    }
+  }
+  var nextSeq = maxSeq + 1;
+  var padded = ('000' + nextSeq).slice(-3);
+  return fullPrefix + padded;
+}
 
 /**
  * Generator ID Unik Sekuensial Anti-Tabrakan dengan LockService
@@ -721,35 +886,10 @@ function getSheet(sheetName) {
  */
 function generateNextId(sheetName, prefix, colIndex, isDaily) {
   var lock = LockService.getScriptLock();
+  lock.waitLock(15000); // Tunggu antrean maksimal 15 detik
   try {
-    lock.waitLock(15000); // Tunggu antrean maksimal 15 detik
     var sheet = getSheet(sheetName);
-    var lastRow = sheet.getLastRow();
-    
-    var now = new Date();
-    var yyyy = now.getFullYear();
-    var mm = ('0' + (now.getMonth() + 1)).slice(-2);
-    var dd = ('0' + now.getDate()).slice(-2);
-    var datePrefix = isDaily ? (yyyy + mm + dd) : (yyyy + mm);
-    var fullPrefix = prefix + '-' + datePrefix + '-';
-
-    var maxSeq = 0;
-    if (lastRow > 1) {
-      var values = sheet.getRange(2, colIndex + 1, lastRow - 1, 1).getValues();
-      for (var i = 0; i < values.length; i++) {
-        var strId = String(values[i][0] || '');
-        if (strId.indexOf(fullPrefix) === 0) {
-          var seqPart = parseInt(strId.substring(fullPrefix.length), 10);
-          if (!isNaN(seqPart) && seqPart > maxSeq) {
-            maxSeq = seqPart;
-          }
-        }
-      }
-    }
-    
-    var nextSeq = maxSeq + 1;
-    var padded = ('000' + nextSeq).slice(-3);
-    return fullPrefix + padded;
+    return generateNextIdUnlocked_(sheet, prefix, colIndex, isDaily);
   } finally {
     lock.releaseLock();
   }
@@ -928,12 +1068,11 @@ function apiGetInitialData(userSession, fallbackUser) {
     var targetAreaId = isGuest ? 'ALL' : areaStr;
     var targetAreaUpper = isGuest ? 'ALL' : areaStr;
 
-    // 1. Data Cabang (Virgin Clean: Tanpa Auto-Seed)
+    // 1. Data Cabang (Menggunakan Chunked Cache Domain MASTER)
     var listCabang = [];
     var dCabang = [];
     try {
-      var sCabang = getSheet(TAB.CABANG);
-      dCabang = sCabang.getDataRange().getValues();
+      dCabang = getCachedSheetValues_(TAB.CABANG, 'MASTER', 900);
 
       // SAFE READ-ONLY: Cepat, tanpa operasi setValue di dalam loop pembacaan data awal
       var seenCabangIds = {};
@@ -992,13 +1131,12 @@ function apiGetInitialData(userSession, fallbackUser) {
       Logger.log('Cabang read notice: ' + eCabang.message);
     }
 
-    // 2. Data Sales
+    // 2. Data Sales (Cache Domain SALES)
     var listSales = [];
     var salesMap = {}; // Untuk deduplikasi otomatis jika ada tanggal & cabang ganda di spreadsheet
     var dSales = [];
     try {
-      var sSales = getSheet(TAB.SALES);
-      dSales = sSales.getDataRange().getValues();
+      dSales = getCachedSheetValues_(TAB.SALES, 'SALES', 90);
       for (var j = 1; j < dSales.length; j++) {
         var rs = dSales[j];
         var sId = String(rs[COL_SALES.ID] || '').trim();
@@ -1045,12 +1183,11 @@ function apiGetInitialData(userSession, fallbackUser) {
       Logger.log('Sales read notice: ' + eSales.message);
     }
 
-    // 3. Data Insiden & SLA
+    // 3. Data Insiden & SLA (Cache Domain OTHER_OPS)
     var listInsiden = [];
     var dInsiden = [];
     try {
-      var sInsiden = getSheet(TAB.INSIDEN);
-      dInsiden = sInsiden.getDataRange().getValues();
+      dInsiden = getCachedSheetValues_(TAB.INSIDEN, 'OTHER_OPS', 180);
       for (var k = 1; k < dInsiden.length; k++) {
         var ri = dInsiden[k];
         var iAreaId = String(ri[COL_INSIDEN.AREA_ID] || '').trim();
@@ -1081,12 +1218,11 @@ function apiGetInitialData(userSession, fallbackUser) {
       Logger.log('Insiden read notice: ' + eInsiden.message);
     }
 
-    // 4. Data Efisiensi
+    // 4. Data Efisiensi (Cache Domain OTHER_OPS)
     var listEfisiensi = [];
     var dEff = [];
     try {
-      var sEff = getSheet(TAB.EFISIENSI);
-      dEff = sEff.getDataRange().getValues();
+      dEff = getCachedSheetValues_(TAB.EFISIENSI, 'OTHER_OPS', 180);
 
       // Peta akumulasi omzet bulanan per cabang untuk normalisasi HPP Opsi A
       var branchMonthlySalesMap = {};
@@ -1139,11 +1275,11 @@ function apiGetInitialData(userSession, fallbackUser) {
       Logger.log('Efisiensi read notice: ' + eEff.message);
     }
 
-    // 5. Data Tugas (Kebal Null & Format Tanggal Aman Serialisasi)
+    // 5. Data Tugas (Cache Domain SALES agar sinkron dengan auto-complete harian)
     var listTugas = [];
+    var dTugas = [];
     try {
-      var sTugas = getSheet(TAB.TUGAS);
-      var dTugas = sTugas.getDataRange().getValues();
+      dTugas = getCachedSheetValues_(TAB.TUGAS, 'SALES', 90);
       for (var tIdx = 1; tIdx < dTugas.length; tIdx++) {
         var rt = dTugas[tIdx];
         var tId = String(rt[COL_TUGAS.ID] || '').trim();
@@ -1172,11 +1308,10 @@ function apiGetInitialData(userSession, fallbackUser) {
       Logger.log('Tugas read notice: ' + eTugas.message);
     }
 
-    // 6. Data Jadwal Kerja (Isolasi Hierarki 2-Tingkat Ketat & Resilient)
+    // 6. Data Jadwal Kerja (Cache Domain OTHER_OPS)
     var listJadwal = [];
     try {
-      var sJadwal = getSheet(TAB.JADWAL);
-      var dJadwal = sJadwal.getDataRange().getValues();
+      var dJadwal = getCachedSheetValues_(TAB.JADWAL, 'OTHER_OPS', 180);
       for (var jIdx = 1; jIdx < dJadwal.length; jIdx++) {
         var rj = dJadwal[jIdx];
         var jId = String(rj[COL_JADWAL.ID] || '').trim();
@@ -1250,11 +1385,10 @@ function apiGetInitialData(userSession, fallbackUser) {
       Logger.log('Jadwal read notice: ' + eJadwal.message);
     }
 
-    // 6b. Data Laporan Sakit & Dispensasi Darurat (Isolasi Tab Terpisah DataKendala)
+    // 6b. Data Laporan Sakit & Dispensasi Darurat (Cache Domain OTHER_OPS)
     var listKendala = [];
     try {
-      var sKendala = getSheet(TAB.KENDALA);
-      var dKendala = sKendala.getDataRange().getValues();
+      var dKendala = getCachedSheetValues_(TAB.KENDALA, 'OTHER_OPS', 180);
       for (var kIdx = 1; kIdx < dKendala.length; kIdx++) {
         var rk = dKendala[kIdx];
         var kId = String(rk[COL_KENDALA.ID] || '').trim();
@@ -1347,12 +1481,11 @@ function apiGetInitialData(userSession, fallbackUser) {
       Logger.log('Kendala read notice: ' + eKendala.message);
     }
 
-    // 6c. Data Permohonan Perubahan Jadwal (Tukar Shift & Ganti Hari) - Hirarki & Isolasi 2-Tingkat
+    // 6c. Data Permohonan Perubahan Jadwal (Cache Domain OTHER_OPS)
     var listPerubahanJadwal = [];
     try {
-      var sPerubahan = getSheet(TAB.PERUBAHAN_JADWAL);
-      if (sPerubahan) {
-        var dPerubahan = sPerubahan.getDataRange().getValues();
+      var dPerubahan = getCachedSheetValues_(TAB.PERUBAHAN_JADWAL, 'OTHER_OPS', 180);
+      if (dPerubahan && dPerubahan.length > 0) {
         for (var pjIdx = 1; pjIdx < dPerubahan.length; pjIdx++) {
           var rp = dPerubahan[pjIdx];
           var pId = String(rp[COL_PERUBAHAN_JADWAL.ID] || '').trim();
@@ -1427,9 +1560,8 @@ function apiGetInitialData(userSession, fallbackUser) {
       onesignalRestKey: ''
     };
     try {
-      var sConfig = getSheet(TAB.CONFIG);
-      if (sConfig) {
-        var dConfig = sConfig.getDataRange().getValues();
+      var dConfig = getCachedSheetValues_(TAB.CONFIG, 'MASTER', 900);
+      if (dConfig && dConfig.length > 0) {
         for (var n = 1; n < dConfig.length; n++) {
           var k = String(dConfig[n][0] || '').trim();
           var v = dConfig[n][1];
@@ -1498,8 +1630,7 @@ function apiGetInitialData(userSession, fallbackUser) {
     var curUnameLower = String(userSession.username || '').toLowerCase().trim();
 
     try {
-      var sUser = getSheet(TAB.USER);
-      var dUser = sUser.getDataRange().getValues();
+      var dUser = getCachedSheetValues_(TAB.USER, 'MASTER', 900);
       for (var u = 1; u < dUser.length; u++) {
         var ru = dUser[u];
         var uId = String(ru[COL_USER.ID] || '').trim();
@@ -1573,11 +1704,10 @@ function apiGetInitialData(userSession, fallbackUser) {
       Logger.log('Leaderboard calculation notice: ' + eLb.message);
     }
 
-    // 10. Data SOP & Library Perusahaan
+    // 10. Data SOP & Library Perusahaan (Cache Domain OTHER_OPS)
     var listLibrary = [];
     try {
-      var sLib = getSheet(TAB.LIBRARY);
-      var dLib = sLib.getDataRange().getValues();
+      var dLib = getCachedSheetValues_(TAB.LIBRARY, 'OTHER_OPS', 180);
       for (var p = 1; p < dLib.length; p++) {
         var rl = dLib[p];
         var libId = String(rl[COL_LIBRARY.ID] || '').trim();
@@ -1606,15 +1736,21 @@ function apiGetInitialData(userSession, fallbackUser) {
       Logger.log('Library read notice: ' + eLib.message);
     }
 
-    // 11. Data Google Maps AI Reviews (Real-time monitoring)
+    // 11. Data Google Maps AI Reviews (Cache Domain OTHER_OPS + Single Scan)
     var listReviews = [];
+    var dRev = [];
+    var hasUnresolvedPositiveRev = false;
     try {
-      var sRev = getSheet(TAB.REVIEWS);
-      var dRev = sRev.getDataRange().getValues();
+      dRev = getCachedSheetValues_(TAB.REVIEWS, 'OTHER_OPS', 180);
       for (var q = 1; q < dRev.length; q++) {
         var rv = dRev[q];
         var revId = String(rv[COL_REVIEWS.ID] || '').trim();
         if (!revId) continue;
+        var rvRateCheck = Number(rv[COL_REVIEWS.RATING] || 0);
+        var rvStatCheck = String(rv[COL_REVIEWS.STATUS_RESPON] || '').trim().toUpperCase();
+        if (rvRateCheck >= 4 && (!rvStatCheck || rvStatCheck === 'MENUNGGU_RESPON' || rvStatCheck === 'MENUNGGU RESPON')) {
+          hasUnresolvedPositiveRev = true;
+        }
         var rAreaId = String(rv[COL_REVIEWS.AREA_ID] || '').trim();
         var rAreaUpper = rAreaId.toUpperCase();
         var rCabId = String(rv[COL_REVIEWS.CABANG_ID] || '').trim();
@@ -1648,7 +1784,9 @@ function apiGetInitialData(userSession, fallbackUser) {
       Logger.log('Reviews read notice: ' + eRev.message);
     }
 
-    if (typeof autoResolvePositiveReviewsInSheet === 'function') autoResolvePositiveReviewsInSheet();
+    if (hasUnresolvedPositiveRev && typeof autoResolvePositiveReviewsInSheet === 'function') {
+      autoResolvePositiveReviewsInSheet(null, dRev);
+    }
 
     // Urutkan data operasional agar baris terbaru selalu berada di paling atas
     try {

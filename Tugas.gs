@@ -191,6 +191,7 @@ function apiDeleteTugas(tugasId) {
     if (rowIdx > 0) {
       sheet.deleteRow(rowIdx);
     }
+    if (typeof invalidateCacheDomains_ === 'function') invalidateCacheDomains_(['SALES']);
     return { success: true, message: 'Tugas ' + tugasId + ' berhasil dihapus dari sistem.' };
   } catch (err) {
     return { success: true, message: 'Tugas ' + tugasId + ' berhasil dihapus dari tampilan sistem.' };
@@ -202,20 +203,25 @@ function apiDeleteTugas(tugasId) {
 // ================================================================================
 
 /**
- * Auto-update status Tugas Daily di Google Sheets (Bebas Approval Atasan - Langsung Selesai via Input Sales)
+ * Auto-update status Tugas Daily di Google Sheets (Hanya Menulis Jika Belum Completed Hari Ini)
  */
 function autoCompleteDailyTaskInSheet(targetDate) {
   try {
     var sheetTugas = getSheet(TAB.TUGAS);
     var dataTugas = sheetTugas.getDataRange().getValues();
-    var tglText = targetDate || new Date().toISOString().split('T')[0];
+    var tglText = targetDate || Utilities.formatDate(new Date(), 'Asia/Jakarta', 'yyyy-MM-dd');
+    var expectedNote = '✓ Selesai Otomatis: Data sales harian terinput pada ' + tglText;
     for (var k = 1; k < dataTugas.length; k++) {
       var tId = String(dataTugas[k][COL_TUGAS.ID] || '');
       var tJudul = String(dataTugas[k][COL_TUGAS.JUDUL] || '');
       var tSiklus = String(dataTugas[k][COL_TUGAS.SIKLUS] || '');
       if (tId === 'TSK-RTN-DAILY' || tSiklus === 'DAILY' || tJudul.toLowerCase().indexOf('sales harian') !== -1) {
-        sheetTugas.getRange(k + 1, COL_TUGAS.STATUS + 1).setValue('Completed');
-        sheetTugas.getRange(k + 1, COL_TUGAS.CATATAN + 1).setValue('✓ Selesai Otomatis: Data sales harian terinput pada ' + tglText);
+        var curStatus = String(dataTugas[k][COL_TUGAS.STATUS] || '').trim();
+        var curNote = String(dataTugas[k][COL_TUGAS.CATATAN] || '').trim();
+        if (curStatus === 'Completed' && curNote.indexOf(tglText) !== -1) {
+          continue; // Hemat write saat jam closing: sudah selesai untuk tanggal ini
+        }
+        sheetTugas.getRange(k + 1, COL_TUGAS.STATUS + 1, 1, 2).setValues([['Completed', expectedNote]]);
       }
     }
   } catch (eTugas) {

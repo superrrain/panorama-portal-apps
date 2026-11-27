@@ -526,6 +526,16 @@ function ensureSalesChannelHeaders_(sheet) {
  * API: Input / Simpan & Revisi Laporan Penjualan Cabang (Smart Upsert)
  */
 function apiSaveSales(payload) {
+  var pushAlertJob = null;
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(20000)) {
+    return {
+      success: false,
+      retryable: true,
+      code: 'LOCK_TIMEOUT',
+      message: 'Antrean penyimpanan sedang padat (closing serentak). Laporan akan dikirim ulang otomatis dari HP.'
+    };
+  }
   try {
     var nowIso = new Date().toISOString();
     var sheet = getSheet(TAB.SALES);
@@ -557,6 +567,7 @@ function apiSaveSales(payload) {
       }
     }
 
+    var saveResponse = null;
     if (matchingRowIndices.length > 0) {
       // MODE REVISI / UPDATE: Perbarui data baris eksisting pertama
       var primaryRow = matchingRowIndices[0];
@@ -571,36 +582,32 @@ function apiSaveSales(payload) {
         salesOffline, salesGrabFood, salesShopeeFood, salesGoFood, salesTikTok, salesQpon
       ]]);
 
-      // JIKA DITEMUKAN BARIS DUPLIKAT SEBELUMNYA, BERSIHKAN / HAPUS BARIS EKSTRA!
-      // Hapus dari urutan index terbesar ke terkecil agar index baris tidak bergeser
+      // Hapus baris ekstra jika sebelumnya sempat terduplikasi
       for (var dIdx = matchingRowIndices.length - 1; dIdx >= 1; dIdx--) {
         sheet.deleteRow(matchingRowIndices[dIdx]);
       }
 
-      // Auto-update status Tugas Daily di Google Sheets (Bebas Approval Atasan)
       autoCompleteDailyTaskInSheet(targetDate);
 
-      // Push Notifikasi Luar Aplikasi (Status Bar HP): Kategori SALES (Strictly Isolated Per-Wilayah Jika < 60%)
       if (target > 0 && persen < 60) {
-        try {
-          var slsTitle = '🚨 PERINGATAN REVENUE: SALES < 60%';
-          var slsBody = (payload.namaCabang || payload.cabangId || 'Gerai') + ' (' + (payload.areaId || 'Wilayah') + '): Capaian hanya ' + persen + '% (Rp ' + Number(actual).toLocaleString('id-ID') + ' dari Target Rp ' + Number(target).toLocaleString('id-ID') + ').';
-          var slsTargets = (payload.areaId && String(payload.areaId).toUpperCase() !== 'ALL') ? ['COO', payload.areaId] : 'ALL';
-          triggerOperationalPushAlert('SALES', slsTitle, slsBody, slsTargets);
-        } catch (eSlsPush) {
-          Logger.log('Push sales notice: ' + eSlsPush.message);
-        }
+        pushAlertJob = {
+          title: '🚨 PERINGATAN REVENUE: SALES < 60%',
+          body: (payload.namaCabang || payload.cabangId || 'Gerai') + ' (' + (payload.areaId || 'Wilayah') + '): Capaian hanya ' + persen + '% (Rp ' + Number(actual).toLocaleString('id-ID') + ' dari Target Rp ' + Number(target).toLocaleString('id-ID') + ').',
+          targets: (payload.areaId && String(payload.areaId).toUpperCase() !== 'ALL') ? ['COO', payload.areaId] : 'ALL'
+        };
       }
 
-      return { 
-        success: true, 
-        isRevised: true, 
-        message: 'Data sales ' + (payload.namaCabang || payload.cabangId) + ' tgl ' + targetDate + ' berhasil diperbarui (menggantikan angka lama).', 
+      saveResponse = {
+        success: true,
+        isRevised: true,
+        message: 'Data sales ' + (payload.namaCabang || payload.cabangId) + ' tgl ' + targetDate + ' berhasil diperbarui (menggantikan angka lama).',
         salesId: String(data[primaryRow - 1][COL_SALES.ID] || '')
       };
     } else {
-      // MODE BARU: Tambahkan baris baru dengan penomoran unik
-      var nextId = generateNextId(TAB.SALES, 'SLS', COL_SALES.ID, true);
+      // MODE BARU: Buat ID dan appendRow secara atomik di dalam lock yang sama
+      var nextId = (typeof generateNextIdUnlocked_ === 'function')
+        ? generateNextIdUnlocked_(sheet, 'SLS', COL_SALES.ID, true)
+        : generateNextId(TAB.SALES, 'SLS', COL_SALES.ID, true);
       var newRow = [
         nextId,
         targetDate,
@@ -622,31 +629,40 @@ function apiSaveSales(payload) {
       ];
 
       sheet.appendRow(newRow);
-
-      // Auto-update status Tugas Daily di Google Sheets (Bebas Approval Atasan)
       autoCompleteDailyTaskInSheet(targetDate);
 
-      // Push Notifikasi Luar Aplikasi (Status Bar HP): Kategori SALES (Strictly Isolated Per-Wilayah Jika < 60%)
       if (target > 0 && persen < 60) {
-        try {
-          var slsTitleNew = '🚨 PERINGATAN REVENUE: SALES < 60%';
-          var slsBodyNew = (payload.namaCabang || payload.cabangId || 'Gerai') + ' (' + (payload.areaId || 'Wilayah') + '): Capaian hanya ' + persen + '% (Rp ' + Number(actual).toLocaleString('id-ID') + ' dari Target Rp ' + Number(target).toLocaleString('id-ID') + ').';
-          var slsTargetsNew = (payload.areaId && String(payload.areaId).toUpperCase() !== 'ALL') ? ['COO', payload.areaId] : 'ALL';
-          triggerOperationalPushAlert('SALES', slsTitleNew, slsBodyNew, slsTargetsNew);
-        } catch (eSlsPushNew) {
-          Logger.log('Push sales notice: ' + eSlsPushNew.message);
-        }
+        pushAlertJob = {
+          title: '🚨 PERINGATAN REVENUE: SALES < 60%',
+          body: (payload.namaCabang || payload.cabangId || 'Gerai') + ' (' + (payload.areaId || 'Wilayah') + '): Capaian hanya ' + persen + '% (Rp ' + Number(actual).toLocaleString('id-ID') + ' dari Target Rp ' + Number(target).toLocaleString('id-ID') + ').',
+          targets: (payload.areaId && String(payload.areaId).toUpperCase() !== 'ALL') ? ['COO', payload.areaId] : 'ALL'
+        };
       }
 
-      return { 
-        success: true, 
-        isRevised: false, 
-        message: 'Laporan sales cabang ' + payload.namaCabang + ' berhasil dicatat.', 
-        salesId: nextId 
+      saveResponse = {
+        success: true,
+        isRevised: false,
+        message: 'Laporan sales cabang ' + payload.namaCabang + ' berhasil dicatat.',
+        salesId: nextId
       };
     }
+
+    try { SpreadsheetApp.flush(); } catch (eFlush) {}
+    if (typeof invalidateCacheDomains_ === 'function') {
+      invalidateCacheDomains_(['SALES']);
+    }
+    return saveResponse;
   } catch (err) {
-    return { success: false, message: 'Gagal simpan sales: ' + err.message };
+    return { success: false, retryable: true, message: 'Gagal simpan sales: ' + err.message };
+  } finally {
+    try { lock.releaseLock(); } catch (eRel) {}
+    if (pushAlertJob) {
+      try {
+        triggerOperationalPushAlert('SALES', pushAlertJob.title, pushAlertJob.body, pushAlertJob.targets);
+      } catch (eSlsPushOut) {
+        Logger.log('Push sales notice: ' + eSlsPushOut.message);
+      }
+    }
   }
 }
 
@@ -813,6 +829,10 @@ function apiSaveBranchTarget(payload) {
       if (isAll ? (sAreaId === payload.areaId) : (sCabangId === payload.cabangId)) {
         sheetSales.getRange(j + 1, COL_SALES.TARGET + 1).setValue(targetHarian);
       }
+    }
+
+    if (typeof invalidateCacheDomains_ === 'function') {
+      invalidateCacheDomains_(['MASTER', 'SALES']);
     }
 
     return {

@@ -82,6 +82,7 @@ function apiSaveInsiden(payload) {
     ];
 
     sheet.appendRow(newRow);
+    if (typeof invalidateCacheDomains_ === 'function') invalidateCacheDomains_(['OTHER_OPS']);
 
     // Push Notifikasi Luar Aplikasi (Status Bar HP): Kategori INSIDEN (Strictly Isolated Per-Wilayah)
     try {
@@ -253,6 +254,7 @@ function apiDeleteInsiden(insidenId) {
     }
     if (rowIdx > 0) {
       sheet.deleteRow(rowIdx);
+      if (typeof invalidateCacheDomains_ === 'function') invalidateCacheDomains_(['OTHER_OPS']);
     }
     return { success: true, message: 'Laporan insiden ' + insidenId + ' berhasil dihapus dari sistem.' };
   } catch (err) {
