@@ -16,7 +16,7 @@
 var COL_REVIEWS = { ID: 0, TANGGAL: 1, CABANG_ID: 2, NAMA_CABANG: 3, AREA_ID: 4, RATING: 5, REVIEWER: 6, KOMENTAR: 7, AI_TAG: 8, AI_URGENSI: 9, AI_ACTION: 10, STATUS_RESPON: 11, MAPS_URL: 12 };
 
 // Global Aliases untuk Dukungan Pemanggilan google.script.run
-function saveReviewAction(payload) { return apiSaveReviewAction(payload); }
+function saveReviewAction(payload, user) { return apiSaveReviewAction(payload, user); }
 function batchSaveReviews(payload) { return apiBatchSaveReviews(payload); }
 function submitCustomerReview(payload) { return apiSubmitCustomerReview(payload); }
 function clearCustomerReviews() { return apiClearCustomerReviews(); }
@@ -28,29 +28,44 @@ function clearCustomerReviews() { return apiClearCustomerReviews(); }
 /**
  * API: Update Status Penanganan Review Google Maps
  */
-function apiSaveReviewAction(payload) {
+function apiSaveReviewAction(payload, user) {
   try {
     if (!payload || !payload.reviewId) {
       return { success: false, message: 'ID Review tidak valid.' };
     }
+    var roleInfo = (typeof getUserRoleInfo === 'function') ? getUserRoleInfo(user || {}) : { isMaster: false };
     var sheet = getSheet(TAB.REVIEWS);
     var data = sheet.getDataRange().getValues();
     var rowIdx = -1;
+    var targetRow = null;
 
     for (var i = 1; i < data.length; i++) {
       if (String(data[i][COL_REVIEWS.ID]) === String(payload.reviewId)) {
         rowIdx = i + 1;
+        targetRow = data[i];
         break;
       }
     }
 
-    if (rowIdx > 0) {
+    if (rowIdx > 0 && targetRow) {
+      var ratingVal = Number(targetRow[COL_REVIEWS.RATING] || 5);
+      var reqStatusUpper = String(payload.statusRespon || '').toUpperCase().trim();
+      var isMarkingDone = (reqStatusUpper.indexOf('TERJAWAB') !== -1 || reqStatusUpper.indexOf('RESOLVED') !== -1);
+      // Tutup celah pintas: Ulasan kritik (<= 3 bintang) tidak boleh ditutup manual di Review oleh non-Master
+      if (ratingVal <= 3 && isMarkingDone && !roleInfo.isMaster) {
+        return {
+          success: false,
+          code: 'INCIDENT_PHOTO_REQUIRED',
+          message: 'Komplain pelanggan (rating 1-3★) wajib diselesaikan melalui tiket Insiden dengan melampirkan foto bukti penanganan.'
+        };
+      }
       if (payload.statusRespon) {
         sheet.getRange(rowIdx, COL_REVIEWS.STATUS_RESPON + 1).setValue(payload.statusRespon);
       }
       if (payload.aiAction) {
         sheet.getRange(rowIdx, COL_REVIEWS.AI_ACTION + 1).setValue(payload.aiAction);
       }
+      if (typeof invalidateCacheDomains_ === 'function') invalidateCacheDomains_(['OTHER_OPS']);
     }
     return {
       success: true,
@@ -58,8 +73,8 @@ function apiSaveReviewAction(payload) {
     };
   } catch (err) {
     return {
-      success: true,
-      message: 'Status review diperbarui pada sesi aktif.'
+      success: false,
+      message: 'Gagal memperbarui status review: ' + err.message
     };
   }
 }
@@ -104,15 +119,42 @@ function apiBatchSaveReviews(payload) {
     if (newRows.length > 0) {
       sheet.getRange(sheet.getLastRow() + 1, 1, newRows.length, newRows[0].length).setValues(newRows);
       
-      // Push Notifikasi Luar Aplikasi (Status Bar HP): Kategori REVIEW (Rating di bawah 3 - Ke Akun ALL / COO & Manager Terkait)
+      // Auto-Eskalasi & Push Notifikasi untuk ulasan negatif/kritik (rating <= 3)
       for (var k = 0; k < newRows.length; k++) {
+        var rowId = String(newRows[k][COL_REVIEWS.ID] || '');
         var rowRating = parseInt(newRows[k][COL_REVIEWS.RATING], 10) || 5;
+        var rCabangId = String(newRows[k][COL_REVIEWS.CABANG_ID] || '');
+        var rCabang = String(newRows[k][COL_REVIEWS.NAMA_CABANG] || 'Gerai');
+        var rArea = String(newRows[k][COL_REVIEWS.AREA_ID] || 'Wilayah');
+        var rReviewer = String(newRows[k][COL_REVIEWS.REVIEWER] || 'Konsumen');
+        var rKomentar = String(newRows[k][COL_REVIEWS.KOMENTAR] || '');
+        var rTag = String(newRows[k][COL_REVIEWS.AI_TAG] || 'Komplain Pelanggan');
+        var rUrg = String(newRows[k][COL_REVIEWS.AI_URGENSI] || (rowRating <= 2 ? 'CRITICAL' : 'HIGH'));
+        var rAct = String(newRows[k][COL_REVIEWS.AI_ACTION] || '');
+        var rMaps = String(newRows[k][COL_REVIEWS.MAPS_URL] || '');
+
+        if (rowRating <= 3) {
+          try {
+            apiEscalateReviewToIncident({
+              reviewId: rowId,
+              cabangId: rCabangId,
+              namaCabang: rCabang,
+              areaId: rArea,
+              rating: rowRating,
+              reviewer: rReviewer,
+              komentar: rKomentar,
+              aiTag: rTag,
+              aiUrgensi: rUrg,
+              aiAction: rAct,
+              mapsUrl: rMaps
+            });
+          } catch (eBatchEsc) {
+            Logger.log('Batch auto escalate review notice: ' + eBatchEsc.message);
+          }
+        }
+
         if (rowRating < 3) {
           try {
-            var rCabang = String(newRows[k][COL_REVIEWS.NAMA_CABANG] || 'Gerai');
-            var rArea = String(newRows[k][COL_REVIEWS.AREA_ID] || 'Wilayah');
-            var rReviewer = String(newRows[k][COL_REVIEWS.REVIEWER] || 'Konsumen');
-            var rKomentar = String(newRows[k][COL_REVIEWS.KOMENTAR] || '');
             var bRevTitle = '⭐ ALERT ULASAN GMAPS: RATING ' + rowRating + '★';
             var bRevBody = rCabang + ' (' + rArea + '): ' + rReviewer + ' memberi rating ' + rowRating + '★ - "' + (rKomentar ? (rKomentar.length > 80 ? rKomentar.substring(0, 80) + '...' : rKomentar) : 'Tanpa ulasan tertulis') + '".';
             var bRevTargets = (rArea && rArea.toUpperCase() !== 'ALL') ? ['COO', rArea] : 'COO';
@@ -121,6 +163,9 @@ function apiBatchSaveReviews(payload) {
             Logger.log('Push batch review notice: ' + eBRev.message);
           }
         }
+      }
+      if (typeof invalidateCacheDomains_ === 'function') {
+        invalidateCacheDomains_(['OTHER_OPS']);
       }
     }
     return {
@@ -253,6 +298,8 @@ function apiSubmitCustomerReview(payload) {
     var tanggalStr = Utilities.formatDate(now, 'GMT+7', 'yyyy-MM-dd HH:mm');
     var revId = 'REV-' + Utilities.formatDate(now, 'GMT+7', 'yyyyMMdd') + '-' + ('0000' + Math.floor(Math.random() * 9000 + 1000)).slice(-4);
 
+    var reviewerFull = reviewer + (noWa ? ' (' + noWa + ')' : '');
+
     // 3. Tulis ke tab DataReviews
     var sRev = getSheet(TAB.REVIEWS);
     var newRow = [
@@ -262,7 +309,7 @@ function apiSubmitCustomerReview(payload) {
       namaCabang,
       areaId,
       rating,
-      reviewer + (noWa ? ' (' + noWa + ')' : ''),
+      reviewerFull,
       komentar,
       aiTag,
       aiUrgensi,
@@ -271,6 +318,31 @@ function apiSubmitCustomerReview(payload) {
       mapsUrl
     ];
     sRev.appendRow(newRow);
+
+    // 4. Eskalasi OTOMATIS kritik (rating <= 3 bintang) langsung menjadi Tiket Insiden Resmi!
+    var autoEscalatedInsId = '';
+    if (rating <= 3 && typeof apiEscalateReviewToIncident === 'function') {
+      try {
+        var escRes = apiEscalateReviewToIncident({
+          reviewId: revId,
+          cabangId: cabangId,
+          namaCabang: namaCabang,
+          areaId: areaId,
+          rating: rating,
+          reviewer: reviewerFull,
+          komentar: komentar,
+          aiAction: aiAction,
+          mapsUrl: mapsUrl,
+          urgensi: aiUrgensi,
+          skipLock: true
+        });
+        if (escRes && escRes.insidenId) {
+          autoEscalatedInsId = escRes.insidenId;
+        }
+      } catch (eAutoEsc) {
+        Logger.log('Auto-escalate review error: ' + eAutoEsc.message);
+      }
+    }
 
     // Push Notifikasi Luar Aplikasi (Status Bar HP): Kategori REVIEW (Rating di bawah 3 - Ke Akun ALL / COO & Manager Terkait)
     if (rating < 3) {
@@ -284,12 +356,14 @@ function apiSubmitCustomerReview(payload) {
       }
     }
 
+    if (typeof invalidateCacheDomains_ === 'function') invalidateCacheDomains_(['OTHER_OPS']);
     try { lock.releaseLock(); } catch (eRel) {}
 
     return {
       success: true,
       message: 'Terima kasih atas ulasan dan masukan berharga Anda!',
       reviewId: revId,
+      autoEscalatedInsidenId: autoEscalatedInsId,
       rating: rating,
       brand: brand,
       namaCabang: namaCabang,

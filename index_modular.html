@@ -4590,13 +4590,17 @@
         <button class="modal-close-btn" onclick="closeModal('modalDetailInsiden')">✕</button>
       </div>
       <div class="modal-body">
-        <div style="background-color: var(--navy-100); padding: 12px; border-radius: 8px;">
-          <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-            <span style="font-weight: 800;" id="detailIncId">INC-000</span>
+        <div class="inc-summary-card" id="detailIncSummaryCard">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 6px;">
+            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+              <span style="font-weight: 800; color: var(--text-main);" id="detailIncId">INC-000</span>
+              <span id="detailIncSourceBadge"></span>
+            </div>
             <span id="detailIncUrgensi"></span>
           </div>
-          <div style="font-size: 13px; font-weight: 700; color: var(--navy-900);" id="detailIncKategori">Kategori</div>
-          <div style="font-size: 12px; color: var(--navy-700); margin-top: 6px;" id="detailIncDeskripsi">Deskripsi</div>
+          <div style="font-size: 13px; font-weight: 700; color: var(--text-main);" id="detailIncKategori">Kategori</div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;" id="detailIncMeta"></div>
+          <div style="font-size: 12px; color: var(--text-main); margin-top: 6px;" id="detailIncDeskripsi">Deskripsi</div>
           <div id="detailIncMapsLinkWrap" style="display: none; margin-top: 8px;">
             <a id="detailIncMapsLink" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-outline"
               style="font-size: 10.5px; padding: 3px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;">
@@ -4607,14 +4611,35 @@
                 </svg></span> Cek Titik Google Maps ↗
             </a>
           </div>
+          <div id="detailIncInitialProofWrap" class="inc-initial-proof-box" style="display: none;">
+            <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">
+              <svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+                <circle cx="12" cy="13" r="3" />
+              </svg> Foto Kejadian Awal (Before — Saat Lapor)
+            </span>
+            <button type="button" class="btn btn-outline" id="detailIncInitialProofBtn"
+              style="font-size: 10.5px; padding: 3px 9px; border-radius: 5px;">Lihat Foto Awal ↗</button>
+          </div>
         </div>
 
-        <div class="form-group" style="margin-top:10px;">
-          <label class="form-label">Perbarui Status Insiden</label>
+        <!-- Alur Penanganan Bertahap ala Modul Tugas -->
+        <div style="margin-top: 12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+            <span style="font-size:12px; font-weight:800; color:var(--text-main);">Status & Alur Penanganan</span>
+            <span id="incDetailStageBadge" class="inc-stage-badge inc-stage-badge--open">OPEN</span>
+          </div>
+          <div class="task-stage-stepper" id="incStageStepper"></div>
+          <div id="incStageActionBox" style="margin-top:10px;"></div>
+        </div>
+
+        <div class="form-group" id="detailIncStatusSelectWrap" style="margin-top:10px;">
+          <label class="form-label">Perbarui Status Insiden (Kontrol Master)</label>
           <select class="form-select" id="detailIncStatusSelect">
             <option value="OPEN">OPEN (Sedang Menunggu Tindakan)</option>
-            <option value="INVESTIGASI">INVESTIGASI (Sedang Ditelusuri)</option>
-            <option value="ESKALASI_COO">ESKALASI COO (Butuh Persetujuan Biaya/Pusat)</option>
+            <option value="INVESTIGASI">INVESTIGASI (Sedang Dikerjakan / Ditelusuri)</option>
+            <option value="ESKALASI_COO" id="detailIncOptEskalasi">MENUNGGU ACC ATASAN</option>
             <option value="RESOLVED">RESOLVED (Kasus Selesai & Ditutup)</option>
           </select>
         </div>
@@ -4622,41 +4647,68 @@
         <!-- Kartu Otorisasi & Stempel Disposisi Atasan (Multi-Tier Approval) -->
         <div id="detailIncApprovalCard" style="margin-top:10px;"></div>
 
-        <div class="form-group">
+        <div class="form-group" style="margin-top:10px;">
           <label class="form-label">Tindakan Perbaikan / Solusi</label>
           <textarea class="form-textarea" id="detailIncTindakan" rows="2"
             placeholder="Catat langkah penanganan yang telah dilakukan..."></textarea>
         </div>
 
-        <!-- Lampiran Berkas Bukti Penanganan Lapangan (Compact & Simple) -->
-        <div style="margin-top: 10px;">
-          <!-- Tampilan Khusus Manager & SPV (Upload / Ganti Berkas) -->
-          <div id="detailIncUploadProofWrap"
-            style="display:none; background:#F8FAFC; border:1px dashed #CBD5E1; border-radius:6px; padding:8px 10px;">
-            <div
-              style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:4px;">
-              <span style="font-size:11px; font-weight:700; color:var(--text-main);"><svg class="p-ico" width="13"
+        <!-- Lampiran Berkas Foto Bukti SUDAH DIKERJAKAN (After — Wajib Sebelum Selesai) -->
+        <div id="detailIncHandlingProofSection" style="margin-top: 10px; border-radius: 8px; padding: 2px;">
+          <!-- Pratinjau Berkas Bukti Penanganan yang Sudah Tersimpan -->
+          <div id="detailIncMasterProofWrap" style="display:none; margin-bottom: 8px;">
+            <div id="detailIncMasterHasProof"
+              style="display:none; background:#F0FDF4; border:1px solid #BBF7D0; border-radius:6px; padding:6px 10px; justify-content:space-between; align-items:center; gap:8px;">
+              <span style="font-size:11px; font-weight:700; color:#166534;"><svg class="p-ico" width="13"
                   height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"
                   stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                </svg> Berkas / Foto Bukti</span>
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                </svg> Foto Bukti Penanganan (After) Tersedia</span>
+              <a id="detailIncMasterDriveBtn" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary"
+                style="font-size:10.5px; padding:3px 10px; background:#144A32; border-radius:5px; text-decoration:none;">
+                Buka Bukti ↗
+              </a>
+            </div>
+            <div id="detailIncMasterNoProof"
+              style="font-size:11px; color:var(--text-muted); font-style:italic; padding:2px 0;">
+              Belum ada foto bukti penanganan (After) yang diunggah oleh tim lapangan.
+            </div>
+            <div id="detailIncMasterImgPreview" style="margin-top:6px; display:none;"></div>
+          </div>
+
+          <!-- Form Upload / Ganti Foto Bukti Sudah Dikerjakan -->
+          <div id="detailIncUploadProofWrap"
+            style="display:none; background:var(--bg-surface-subtle, #F8FAFC); border:1px dashed #CBD5E1; border-radius:8px; padding:10px 12px;">
+            <div
+              style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:4px;">
+              <span id="detailIncProofTitleLabel" style="font-size:11.5px; font-weight:800; color:var(--text-main);"><svg class="p-ico" width="13"
+                  height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+                  <circle cx="12" cy="13" r="3" />
+                </svg> Upload Foto Sudah Dikerjakan (Wajib)</span>
               <span id="detailIncCurrentProofLinkWrap" style="display:none; font-size:11px;">
                 <a id="detailIncCurrentProofLink" href="#" target="_blank" rel="noopener noreferrer"
-                  style="color:#0284C7; font-weight:700; text-decoration:underline;">Lihat Berkas Tersimpan ↗</a>
+                  style="color:#0284C7; font-weight:700; text-decoration:underline;">Lihat Foto Bukti ↗</a>
               </span>
+            </div>
+            <div style="font-size:10.5px; color:var(--text-muted); margin-bottom:6px;">
+              Foto ini wajib dilampirkan sebagai bukti hasil penanganan di lapangan sebelum insiden dinyatakan selesai atau diajukan ACC.
             </div>
             <div style="display:flex; align-items:center; gap:8px;">
               <input type="file" id="detailIncFileInput" accept="image/*,.pdf,.doc,.docx" style="display:none;"
                 onchange="handleIncDetailFileChange(this)">
               <button type="button" class="btn btn-outline"
-                style="font-size:10.5px; padding:3px 10px; border-radius:5px;"
+                style="font-size:11px; padding:4px 10px; border-radius:6px;"
                 onclick="document.getElementById('detailIncFileInput').click()">
                 <svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                   stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
                   <path
                     d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" />
-                </svg> Pilih / Ganti Berkas
+                </svg> Pilih / Upload Foto
               </button>
               <span
                 style="font-size:10.5px; color:var(--text-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"
@@ -4664,35 +4716,11 @@
             </div>
             <div id="detailIncFilePreview" style="display:none; margin-top:6px;"></div>
           </div>
-
-          <!-- Tampilan Khusus Master Admin / COO (Tinjau Berkas) -->
-          <div id="detailIncMasterProofWrap" style="display:none;">
-            <div id="detailIncMasterHasProof"
-              style="display:none; background:#F0FDF4; border:1px solid #BBF7D0; border-radius:6px; padding:6px 10px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
-              <span style="font-size:11px; font-weight:700; color:#166534;"><svg class="p-ico" width="13" height="13"
-                  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"
-                  stroke-linejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                  <polyline points="14 2 14 8 20 8" />
-                  <line x1="16" y1="13" x2="8" y2="13" />
-                  <line x1="16" y1="17" x2="8" y2="17" />
-                </svg> Berkas Bukti Lapangan Tersedia</span>
-              <a id="detailIncMasterDriveBtn" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary"
-                style="font-size:10.5px; padding:3px 10px; background:#144A32; border-radius:5px; text-decoration:none;">
-                Buka Berkas ↗
-              </a>
-            </div>
-            <div id="detailIncMasterNoProof"
-              style="font-size:11px; color:var(--text-muted); font-style:italic; padding:2px 0;">
-              ℹ️ Belum ada berkas lampiran yang diunggah oleh Area Manager / SPV.
-            </div>
-            <div id="detailIncMasterImgPreview" style="margin-top:6px; display:none;"></div>
-          </div>
         </div>
       </div>
       <div class="modal-footer"
         style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-        <div style="display:flex; align-items:center; gap:8px;">
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
           <button type="button" class="btn btn-outline" onclick="closeModal('modalDetailInsiden')">Tutup</button>
           <button type="button" class="btn btn-outline" id="btnHapusInsiden"
             style="color:#DC2626; border-color:#FCA5A5; background:#FEF2F2;" onclick="confirmDeleteInsiden()"><svg
@@ -4702,8 +4730,14 @@
               <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
               <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
             </svg> Hapus Insiden</button>
+          <span id="detailIncProtectedBadge" class="inc-protected-pill" style="display:none;">
+            <svg class="p-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg> Ulasan Pelanggan (Tidak Dapat Dihapus)
+          </span>
         </div>
-        <button type="button" class="btn btn-primary" onclick="submitUpdateInsiden()">Simpan Pembaruan</button>
+        <button type="button" class="btn btn-primary" id="btnUpdateIncSubmit" onclick="submitUpdateInsiden()">Simpan Pembaruan</button>
       </div>
     </div>
   </div>

@@ -18804,6 +18804,225 @@
     border-color: rgba(248, 113, 113, 0.35);
     color: #FECACA;
   }
+
+  /* ============================================================================
+     v5.13.0 TWO-TRACK INSIDEN STEPPER, PHOTO PROOF ENFORCEMENT & DARK MODAL FIX
+     ============================================================================ */
+  :is(html[data-theme="dark"], html.theme-dark) .modal-title,
+  :is(html[data-theme="dark"], html.theme-dark) .modal-header h2,
+  :is(html[data-theme="dark"], html.theme-dark) .modal-header h3 {
+    color: #ECFDF5 !important;
+  }
+
+  .inc-summary-card {
+    background-color: var(--navy-100, #F1F5F9);
+    border: 1px solid var(--border-subtle, #E2E8F0);
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .inc-source-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10.5px;
+    font-weight: 800;
+    padding: 3px 9px;
+    border-radius: 999px;
+    letter-spacing: 0.01em;
+  }
+
+  .inc-source-review {
+    background: #FFF1F2;
+    color: #BE123C;
+    border: 1px solid #FECDD3;
+  }
+
+  .inc-source-field {
+    background: #ECFDF5;
+    color: #047857;
+    border: 1px solid #A7F3D0;
+  }
+
+  .inc-stage-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+
+  .inc-stage-badge--open {
+    background: #F1F5F9;
+    color: #334155;
+    border: 1px solid #CBD5E1;
+  }
+
+  .inc-stage-badge--investigasi {
+    background: #FEF3C7;
+    color: #B45309;
+    border: 1px solid #FDE68A;
+  }
+
+  .inc-stage-badge--acc {
+    background: #EDE9FE;
+    color: #6D28D9;
+    border: 1px solid #DDD6FE;
+  }
+
+  .inc-stage-badge--resolved {
+    background: #DCFCE7;
+    color: #166534;
+    border: 1px solid #BBF7D0;
+  }
+
+  .inc-stage-action-card--warn {
+    background: #FFFBEB;
+    border-color: #FCD34D;
+  }
+
+  .inc-stage-action-card--review {
+    background: #F5F3FF;
+    border-color: #C4B5FD;
+  }
+
+  .inc-stage-action-card--done {
+    background: #ECFDF5;
+    border-color: #6EE7B7;
+  }
+
+  .inc-initial-proof-box {
+    margin-top: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .inc-proof-highlight-required {
+    border: 2px dashed #EF4444 !important;
+    background: #FEF2F2 !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.14) !important;
+    transition: all 0.2s ease;
+  }
+
+  .inc-protected-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    background: #FFF1F2;
+    color: #BE123C;
+    border: 1px solid #FECDD3;
+  }
+
+  .rev-auto-inc-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    background: #FEF3C7;
+    color: #92400E;
+    border: 1px solid #FCD34D;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .rev-auto-inc-chip:hover {
+    background: #FDE68A;
+  }
+
+  :is(html[data-theme="dark"], html.theme-dark) .inc-summary-card {
+    background-color: #18231E !important;
+    border-color: #2A3932 !important;
+  }
+
+  :is(html[data-theme="dark"], html.theme-dark) .inc-source-review {
+    background: rgba(244, 63, 94, 0.18);
+    color: #FDA4AF;
+    border-color: rgba(251, 113, 133, 0.35);
+  }
+
+  :is(html[data-theme="dark"], html.theme-dark) .inc-source-field {
+    background: rgba(16, 185, 129, 0.16);
+    color: #6EE7B7;
+    border-color: rgba(52, 211, 153, 0.35);
+  }
+
+  :is(html[data-theme="dark"], html.theme-dark) .inc-stage-badge--open {
+    background: rgba(148, 163, 184, 0.16);
+    color: #CBD5E1;
+    border-color: rgba(148, 163, 184, 0.32);
+  }
+
+  :is(html[data-theme="dark"], html.theme-dark) .inc-stage-badge--investigasi {
+    background: rgba(245, 158, 11, 0.18);
+    color: #FDE68A;
+    border-color: rgba(251, 191, 36, 0.35);
+  }
+
+  :is(html[data-theme="dark"], html.theme-dark) .inc-stage-badge--acc {
+    background: rgba(139, 92, 246, 0.20);
+    color: #DDD6FE;
+    border-color: rgba(167, 139, 250, 0.38);
+  }
+
+  :is(html[data-theme="dark"], html.theme-dark) .inc-stage-badge--resolved {
+    background: rgba(16, 185, 129, 0.18);
+    color: #6EE7B7;
+    border-color: rgba(52, 211, 153, 0.35);
+  }
+
+  :is(html[data-theme="dark"], html.theme-dark) .inc-stage-action-card--warn {
+    background: rgba(245, 158, 11, 0.12);
+    border-color: rgba(251, 191, 36, 0.35);
+  }
+
+  :is(html[data-theme="dark"], html.theme-dark) .inc-stage-action-card--review {
+    background: rgba(139, 92, 246, 0.14);
+    border-color: rgba(167, 139, 250, 0.38);
+  }
+
+  :is(html[data-theme="dark"], html.theme-dark) .inc-stage-action-card--done {
+    background: rgba(16, 185, 129, 0.14);
+    border-color: rgba(52, 211, 153, 0.35);
+  }
+
+  :is(html[data-theme="dark"], html.theme-dark) .inc-initial-proof-box {
+    background: #131C18;
+    border-color: #2A3932;
+  }
+
+  :is(html[data-theme="dark"], html.theme-dark) .inc-proof-highlight-required {
+    border-color: #F87171 !important;
+    background: rgba(239, 68, 68, 0.16) !important;
+    box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.2) !important;
+  }
+
+  :is(html[data-theme="dark"], html.theme-dark) .inc-protected-pill {
+    background: rgba(244, 63, 94, 0.16);
+    color: #FDA4AF;
+    border-color: rgba(251, 113, 133, 0.35);
+  }
+
+  :is(html[data-theme="dark"], html.theme-dark) .rev-auto-inc-chip {
+    background: rgba(245, 158, 11, 0.18);
+    color: #FDE68A;
+    border-color: rgba(251, 191, 36, 0.38);
+  }
 </style>
 
 
@@ -23208,13 +23427,17 @@
         <button class="modal-close-btn" onclick="closeModal('modalDetailInsiden')">✕</button>
       </div>
       <div class="modal-body">
-        <div style="background-color: var(--navy-100); padding: 12px; border-radius: 8px;">
-          <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-            <span style="font-weight: 800;" id="detailIncId">INC-000</span>
+        <div class="inc-summary-card" id="detailIncSummaryCard">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 6px;">
+            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+              <span style="font-weight: 800; color: var(--text-main);" id="detailIncId">INC-000</span>
+              <span id="detailIncSourceBadge"></span>
+            </div>
             <span id="detailIncUrgensi"></span>
           </div>
-          <div style="font-size: 13px; font-weight: 700; color: var(--navy-900);" id="detailIncKategori">Kategori</div>
-          <div style="font-size: 12px; color: var(--navy-700); margin-top: 6px;" id="detailIncDeskripsi">Deskripsi</div>
+          <div style="font-size: 13px; font-weight: 700; color: var(--text-main);" id="detailIncKategori">Kategori</div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;" id="detailIncMeta"></div>
+          <div style="font-size: 12px; color: var(--text-main); margin-top: 6px;" id="detailIncDeskripsi">Deskripsi</div>
           <div id="detailIncMapsLinkWrap" style="display: none; margin-top: 8px;">
             <a id="detailIncMapsLink" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-outline"
               style="font-size: 10.5px; padding: 3px 8px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;">
@@ -23225,14 +23448,35 @@
                 </svg></span> Cek Titik Google Maps ↗
             </a>
           </div>
+          <div id="detailIncInitialProofWrap" class="inc-initial-proof-box" style="display: none;">
+            <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">
+              <svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+                <circle cx="12" cy="13" r="3" />
+              </svg> Foto Kejadian Awal (Before — Saat Lapor)
+            </span>
+            <button type="button" class="btn btn-outline" id="detailIncInitialProofBtn"
+              style="font-size: 10.5px; padding: 3px 9px; border-radius: 5px;">Lihat Foto Awal ↗</button>
+          </div>
         </div>
 
-        <div class="form-group" style="margin-top:10px;">
-          <label class="form-label">Perbarui Status Insiden</label>
+        <!-- Alur Penanganan Bertahap ala Modul Tugas -->
+        <div style="margin-top: 12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+            <span style="font-size:12px; font-weight:800; color:var(--text-main);">Status & Alur Penanganan</span>
+            <span id="incDetailStageBadge" class="inc-stage-badge inc-stage-badge--open">OPEN</span>
+          </div>
+          <div class="task-stage-stepper" id="incStageStepper"></div>
+          <div id="incStageActionBox" style="margin-top:10px;"></div>
+        </div>
+
+        <div class="form-group" id="detailIncStatusSelectWrap" style="margin-top:10px;">
+          <label class="form-label">Perbarui Status Insiden (Kontrol Master)</label>
           <select class="form-select" id="detailIncStatusSelect">
             <option value="OPEN">OPEN (Sedang Menunggu Tindakan)</option>
-            <option value="INVESTIGASI">INVESTIGASI (Sedang Ditelusuri)</option>
-            <option value="ESKALASI_COO">ESKALASI COO (Butuh Persetujuan Biaya/Pusat)</option>
+            <option value="INVESTIGASI">INVESTIGASI (Sedang Dikerjakan / Ditelusuri)</option>
+            <option value="ESKALASI_COO" id="detailIncOptEskalasi">MENUNGGU ACC ATASAN</option>
             <option value="RESOLVED">RESOLVED (Kasus Selesai & Ditutup)</option>
           </select>
         </div>
@@ -23240,41 +23484,68 @@
         <!-- Kartu Otorisasi & Stempel Disposisi Atasan (Multi-Tier Approval) -->
         <div id="detailIncApprovalCard" style="margin-top:10px;"></div>
 
-        <div class="form-group">
+        <div class="form-group" style="margin-top:10px;">
           <label class="form-label">Tindakan Perbaikan / Solusi</label>
           <textarea class="form-textarea" id="detailIncTindakan" rows="2"
             placeholder="Catat langkah penanganan yang telah dilakukan..."></textarea>
         </div>
 
-        <!-- Lampiran Berkas Bukti Penanganan Lapangan (Compact & Simple) -->
-        <div style="margin-top: 10px;">
-          <!-- Tampilan Khusus Manager & SPV (Upload / Ganti Berkas) -->
-          <div id="detailIncUploadProofWrap"
-            style="display:none; background:#F8FAFC; border:1px dashed #CBD5E1; border-radius:6px; padding:8px 10px;">
-            <div
-              style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:4px;">
-              <span style="font-size:11px; font-weight:700; color:var(--text-main);"><svg class="p-ico" width="13"
+        <!-- Lampiran Berkas Foto Bukti SUDAH DIKERJAKAN (After — Wajib Sebelum Selesai) -->
+        <div id="detailIncHandlingProofSection" style="margin-top: 10px; border-radius: 8px; padding: 2px;">
+          <!-- Pratinjau Berkas Bukti Penanganan yang Sudah Tersimpan -->
+          <div id="detailIncMasterProofWrap" style="display:none; margin-bottom: 8px;">
+            <div id="detailIncMasterHasProof"
+              style="display:none; background:#F0FDF4; border:1px solid #BBF7D0; border-radius:6px; padding:6px 10px; justify-content:space-between; align-items:center; gap:8px;">
+              <span style="font-size:11px; font-weight:700; color:#166534;"><svg class="p-ico" width="13"
                   height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"
                   stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-                </svg> Berkas / Foto Bukti</span>
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                </svg> Foto Bukti Penanganan (After) Tersedia</span>
+              <a id="detailIncMasterDriveBtn" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary"
+                style="font-size:10.5px; padding:3px 10px; background:#144A32; border-radius:5px; text-decoration:none;">
+                Buka Bukti ↗
+              </a>
+            </div>
+            <div id="detailIncMasterNoProof"
+              style="font-size:11px; color:var(--text-muted); font-style:italic; padding:2px 0;">
+              Belum ada foto bukti penanganan (After) yang diunggah oleh tim lapangan.
+            </div>
+            <div id="detailIncMasterImgPreview" style="margin-top:6px; display:none;"></div>
+          </div>
+
+          <!-- Form Upload / Ganti Foto Bukti Sudah Dikerjakan -->
+          <div id="detailIncUploadProofWrap"
+            style="display:none; background:var(--bg-surface-subtle, #F8FAFC); border:1px dashed #CBD5E1; border-radius:8px; padding:10px 12px;">
+            <div
+              style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:4px;">
+              <span id="detailIncProofTitleLabel" style="font-size:11.5px; font-weight:800; color:var(--text-main);"><svg class="p-ico" width="13"
+                  height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+                  <circle cx="12" cy="13" r="3" />
+                </svg> Upload Foto Sudah Dikerjakan (Wajib)</span>
               <span id="detailIncCurrentProofLinkWrap" style="display:none; font-size:11px;">
                 <a id="detailIncCurrentProofLink" href="#" target="_blank" rel="noopener noreferrer"
-                  style="color:#0284C7; font-weight:700; text-decoration:underline;">Lihat Berkas Tersimpan ↗</a>
+                  style="color:#0284C7; font-weight:700; text-decoration:underline;">Lihat Foto Bukti ↗</a>
               </span>
+            </div>
+            <div style="font-size:10.5px; color:var(--text-muted); margin-bottom:6px;">
+              Foto ini wajib dilampirkan sebagai bukti hasil penanganan di lapangan sebelum insiden dinyatakan selesai atau diajukan ACC.
             </div>
             <div style="display:flex; align-items:center; gap:8px;">
               <input type="file" id="detailIncFileInput" accept="image/*,.pdf,.doc,.docx" style="display:none;"
                 onchange="handleIncDetailFileChange(this)">
               <button type="button" class="btn btn-outline"
-                style="font-size:10.5px; padding:3px 10px; border-radius:5px;"
+                style="font-size:11px; padding:4px 10px; border-radius:6px;"
                 onclick="document.getElementById('detailIncFileInput').click()">
                 <svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                   stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
                   <path
                     d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" />
-                </svg> Pilih / Ganti Berkas
+                </svg> Pilih / Upload Foto
               </button>
               <span
                 style="font-size:10.5px; color:var(--text-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"
@@ -23282,35 +23553,11 @@
             </div>
             <div id="detailIncFilePreview" style="display:none; margin-top:6px;"></div>
           </div>
-
-          <!-- Tampilan Khusus Master Admin / COO (Tinjau Berkas) -->
-          <div id="detailIncMasterProofWrap" style="display:none;">
-            <div id="detailIncMasterHasProof"
-              style="display:none; background:#F0FDF4; border:1px solid #BBF7D0; border-radius:6px; padding:6px 10px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
-              <span style="font-size:11px; font-weight:700; color:#166534;"><svg class="p-ico" width="13" height="13"
-                  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"
-                  stroke-linejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                  <polyline points="14 2 14 8 20 8" />
-                  <line x1="16" y1="13" x2="8" y2="13" />
-                  <line x1="16" y1="17" x2="8" y2="17" />
-                </svg> Berkas Bukti Lapangan Tersedia</span>
-              <a id="detailIncMasterDriveBtn" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary"
-                style="font-size:10.5px; padding:3px 10px; background:#144A32; border-radius:5px; text-decoration:none;">
-                Buka Berkas ↗
-              </a>
-            </div>
-            <div id="detailIncMasterNoProof"
-              style="font-size:11px; color:var(--text-muted); font-style:italic; padding:2px 0;">
-              ℹ️ Belum ada berkas lampiran yang diunggah oleh Area Manager / SPV.
-            </div>
-            <div id="detailIncMasterImgPreview" style="margin-top:6px; display:none;"></div>
-          </div>
         </div>
       </div>
       <div class="modal-footer"
         style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-        <div style="display:flex; align-items:center; gap:8px;">
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
           <button type="button" class="btn btn-outline" onclick="closeModal('modalDetailInsiden')">Tutup</button>
           <button type="button" class="btn btn-outline" id="btnHapusInsiden"
             style="color:#DC2626; border-color:#FCA5A5; background:#FEF2F2;" onclick="confirmDeleteInsiden()"><svg
@@ -23320,8 +23567,14 @@
               <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
               <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
             </svg> Hapus Insiden</button>
+          <span id="detailIncProtectedBadge" class="inc-protected-pill" style="display:none;">
+            <svg class="p-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg> Ulasan Pelanggan (Tidak Dapat Dihapus)
+          </span>
         </div>
-        <button type="button" class="btn btn-primary" onclick="submitUpdateInsiden()">Simpan Pembaruan</button>
+        <button type="button" class="btn btn-primary" id="btnUpdateIncSubmit" onclick="submitUpdateInsiden()">Simpan Pembaruan</button>
       </div>
     </div>
   </div>
@@ -33113,11 +33366,19 @@ function renderInsidenView() {
   filteredList.forEach(item => {
     const incId = item.insidenId || item.insidenID || '';
 
-    // Status Badge
+    // Status Badge (Bedakan target ACC: MEDIUM/HIGH -> AM, CRITICAL -> COO)
+    const urgUpper = String(item.urgensi || 'MEDIUM').toUpperCase();
+    const eskalasiLabel = (urgUpper === 'CRITICAL') ? 'MENUNGGU ACC COO' : 'MENUNGGU ACC AM';
     let stBadge = '<span class="badge badge-neutral">' + item.status + '</span>';
     if (item.status === 'RESOLVED') stBadge = '<span class="badge badge-success">✓ SELESAI</span>';
-    else if (item.status === 'ESKALASI_COO') stBadge = '<span class="badge badge-danger"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> ESKALASI COO</span>';
+    else if (item.status === 'ESKALASI_COO') stBadge = '<span class="badge badge-danger"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> ' + eskalasiLabel + '</span>';
     else if (item.status === 'INVESTIGASI') stBadge = '<span class="badge badge-warning"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> INVESTIGASI</span>';
+
+    // Track Badge (Ulasan Pelanggan vs Laporan Lapangan)
+    const isRevTrack = isCustomerReviewIncident(item);
+    const trackChip = isRevTrack
+      ? '<div style="margin-top:3px;"><span class="badge" style="background:#FFF1F2; color:#BE123C; border:1px solid #FECDD3; font-size:9.5px; font-weight:700;">Ulasan Pelanggan</span></div>'
+      : '';
 
     // Approval Stamp Badge (Multi-Tier Otorisasi Atasan)
     let otorisasiObj = null;
@@ -33127,14 +33388,14 @@ function renderInsidenView() {
       }
     } catch(e) { otorisasiObj = null; }
 
-    let approvalBadge = '';
+    let approvalBadge = trackChip;
     if (otorisasiObj) {
       if (otorisasiObj.coo && otorisasiObj.coo.status === 'APPROVED') {
-        approvalBadge = '<span class="badge" style="background:#047857; color:#FFFFFF; font-size:10px; font-weight:700;" title="Disetujui Head Operasional (' + escapeHtml(otorisasiObj.coo.by || 'COO') + ')"><svg class="p-ico" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> ACC COO</span>';
+        approvalBadge += '<span class="badge" style="background:#047857; color:#FFFFFF; font-size:10px; font-weight:700; margin-top:2px;" title="Disetujui Head Operasional (' + escapeHtml(otorisasiObj.coo.by || 'COO') + ')"><svg class="p-ico" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> ACC COO</span>';
       } else if (otorisasiObj.manager && otorisasiObj.manager.status === 'APPROVED') {
-        approvalBadge = '<span class="badge" style="background:#0D9488; color:#FFFFFF; font-size:10px; font-weight:700;" title="Disetujui Area Manager (' + escapeHtml(otorisasiObj.manager.by || 'AM') + ')"><svg class="p-ico" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> ACC AM</span>';
+        approvalBadge += '<span class="badge" style="background:#0D9488; color:#FFFFFF; font-size:10px; font-weight:700; margin-top:2px;" title="Disetujui Area Manager (' + escapeHtml(otorisasiObj.manager.by || 'AM') + ')"><svg class="p-ico" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> ACC AM</span>';
       } else if ((otorisasiObj.coo && otorisasiObj.coo.status === 'REJECTED') || (otorisasiObj.manager && otorisasiObj.manager.status === 'REJECTED')) {
-        approvalBadge = '<span class="badge badge-danger" style="font-size:10px;" title="Catatan revisi atasan"><svg class="p-ico" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> REVISI</span>';
+        approvalBadge += '<span class="badge badge-danger" style="font-size:10px; margin-top:2px;" title="Catatan revisi atasan"><svg class="p-ico" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> REVISI</span>';
       }
     }
 
@@ -33154,18 +33415,18 @@ function renderInsidenView() {
       slaBadge = '<span class="badge badge-warning">Dalam Pengerjaan</span>';
     }
 
-    // Resolusi Bukti Penanganan (Hanya berkas foto/dokumen fisik yang valid)
+    // Resolusi Bukti Penanganan vs Foto Awal (Pisahkan dengan tegas)
     const rawDrive = String(item.driveUrl || '').trim();
     const rawPenanganan = String(item.buktiPenangananUrl || '').trim();
-    const isMaps = rawDrive.includes('maps.google') || rawDrive.includes('goo.gl') || rawDrive.includes('google.com/maps') || rawDrive.includes('maps.app.goo.gl');
-    const hasActualProof = Boolean(rawPenanganan || (rawDrive && !isMaps));
+    const isMaps = isGoogleMapsIncidentUrl(rawDrive);
 
     let driveLink = '';
-    if (hasActualProof) {
-      // Ada foto bukti penanganan yang valid -> Tombol membuka modal pratinjau foto
-      driveLink = '<button type="button" class="btn btn-outline" style="padding: 3px 8px; font-size: 11px; display:inline-flex; align-items:center; gap:3px; border-color:#10B981; color:#047857; font-weight:700;" onclick="openKendalaProof(\'' + incId + '\')" title="Lihat Pratinjau Foto Bukti Penanganan"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg> Bukti Foto</button>';
+    if (rawPenanganan) {
+      driveLink = '<button type="button" class="btn btn-outline" style="padding: 3px 8px; font-size: 11px; display:inline-flex; align-items:center; gap:3px; border-color:#10B981; color:#047857; font-weight:700;" onclick="openKendalaProof(\'' + incId + '\', \'handling\')" title="Lihat Foto Bukti Sudah Dikerjakan"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg> Bukti Selesai</button>';
+    } else if (rawDrive && !isMaps) {
+      driveLink = '<button type="button" class="btn btn-outline" style="padding: 3px 8px; font-size: 11px; display:inline-flex; align-items:center; gap:3px;" onclick="openKendalaProof(\'' + incId + '\', \'initial\')" title="Foto kondisi awal (belum ada foto penanganan)"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg> Foto Awal</button>';
     } else {
-      driveLink = '<span style="color:var(--text-muted); font-size:10.5px;">Tidak ada</span>';
+      driveLink = '<span style="color:var(--text-muted); font-size:10.5px;">Belum ada</span>';
     }
 
     const descFormatted = formatIncidentDescriptionHtml(item.deskripsi);
@@ -37633,21 +37894,141 @@ function removeIncDetailFile() {
   }
 }
 
+// Helper Deteksi Jalur Insiden & Bukti Penanganan (v5.13.0 Two-Track Model)
+function isGoogleMapsIncidentUrl(url) {
+  var u = String(url || '').trim().toLowerCase();
+  return u.indexOf('maps.google') !== -1 || u.indexOf('goo.gl') !== -1 || u.indexOf('google.com/maps') !== -1 || u.indexOf('maps.app.goo.gl') !== -1;
+}
+
+function isCustomerReviewIncident(item) {
+  if (!item) return false;
+  var idUp = String(item.insidenId || item.insidenID || '').trim().toUpperCase();
+  var repUp = String(item.reporter || '').trim().toUpperCase();
+  var descUp = String(item.deskripsi || '').trim().toUpperCase();
+  return idUp.indexOf('INS-') === 0 ||
+    repUp.indexOf('GOOGLE MAPS') !== -1 ||
+    repUp.indexOf('SENTINEL') !== -1 ||
+    repUp.indexOf('QR') !== -1 ||
+    descUp.indexOf('[GOOGLE MAPS') !== -1 ||
+    descUp.indexOf('[REV:') !== -1;
+}
+
+function getIncidentHandlingProofUrl(item) {
+  return String((item && item.buktiPenangananUrl) || '').trim();
+}
+
+function getIncidentInitialProofUrl(item) {
+  var rawDrive = String((item && item.driveUrl) || '').trim();
+  if (!rawDrive || isGoogleMapsIncidentUrl(rawDrive)) return '';
+  return rawDrive;
+}
+
+function hasIncHandlingProofReady(item) {
+  if (getIncidentHandlingProofUrl(item)) return true;
+  return Boolean(window.PANORAMA_STATE && window.PANORAMA_STATE.incDetailFileData && window.PANORAMA_STATE.incDetailFileData.dataUri);
+}
+
+function canUserDeleteIncident(item, user) {
+  if (!item) return false;
+  var u = user || window.PANORAMA_STATE.user || {};
+  var roleInfo = getUserRoleInfo(u);
+  if (roleInfo.isGuest) return false;
+  if (roleInfo.isMaster) return true;
+  if (isCustomerReviewIncident(item)) return false;
+  if (roleInfo.isManager) {
+    return !u.areaId || u.areaId === 'ALL' || String(item.areaId || '') === String(u.areaId);
+  }
+  if (roleInfo.isSpv) {
+    return !u.cabangId || String(item.cabangId || '') === String(u.cabangId);
+  }
+  return false;
+}
+
+function getIncidentApprovalRequirement(item) {
+  if (isCustomerReviewIncident(item)) {
+    return { requiredLevel: 'NONE', label: 'Bukti Foto Penanganan Saja (Tanpa ACC Atasan)' };
+  }
+  var urg = String((item && item.urgensi) || 'MEDIUM').toUpperCase();
+  if (urg === 'CRITICAL') {
+    return { requiredLevel: 'COO', label: 'Wajib ACC Area Manager & Head Ops (COO)' };
+  }
+  return { requiredLevel: 'MANAGER', label: 'Cukup ACC Area Manager (Otomatis Selesai)' };
+}
+
+function highlightIncidentPhotoRequirement() {
+  var proofSec = document.getElementById('detailIncHandlingProofSection');
+  if (!proofSec) return;
+  proofSec.classList.add('inc-proof-highlight-required');
+  try {
+    proofSec.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } catch (eScroll) {}
+}
+
+function updateReviewsStatusForResolvedIncident(item) {
+  if (!item) return;
+  var d = window.PANORAMA_STATE.data || {};
+  var revList = d.reviews || [];
+  var changed = false;
+  var incId = String(item.insidenId || item.insidenID || '').trim();
+  var incDesk = String(item.deskripsi || '');
+  revList.forEach(function(r) {
+    var rStatus = String(r.statusRespon || '');
+    var rReviewer = String(r.reviewer || '');
+    var byRevTag = r.id && incDesk.indexOf(r.id) !== -1;
+    var byStatus = incId && rStatus.indexOf(incId) !== -1;
+    var byReviewer = isCustomerReviewIncident(item) && r.cabangId === item.cabangId && rReviewer && incDesk.indexOf(rReviewer) !== -1;
+    if (byRevTag || byStatus || byReviewer) {
+      r.statusRespon = 'RESOLVED / TERJAWAB (' + incId + ')';
+      changed = true;
+    }
+  });
+  if (changed) {
+    safeSetStorage('PANORAMA_CLIENT_REVIEWS', revList);
+    if (typeof renderMapsAiView === 'function') {
+      renderMapsAiView();
+    }
+  }
+}
+
 // Buka Detail / Aksi Insiden
 function openDetailInsidenModal(item) {
   window.PANORAMA_SELECTED_INCIDENT = item;
+  var isReviewTrack = isCustomerReviewIncident(item);
+  var urgUpper = String(item.urgensi || 'MEDIUM').toUpperCase();
+
   document.getElementById('detailIncId').textContent = item.insidenId;
   document.getElementById('detailIncKategori').textContent = item.kategori;
-  document.getElementById('detailIncUrgensi').innerHTML = '<span class="badge ' + (item.urgensi === 'CRITICAL' ? 'badge-danger' : 'badge-warning') + '">' + item.urgensi + '</span>';
+  document.getElementById('detailIncUrgensi').innerHTML = '<span class="badge ' + (urgUpper === 'CRITICAL' ? 'badge-danger' : 'badge-warning') + '">' + urgUpper + '</span>';
   document.getElementById('detailIncDeskripsi').innerHTML = formatIncidentDescriptionHtml(item.deskripsi);
-  document.getElementById('detailIncStatusSelect').value = item.status;
   document.getElementById('detailIncTindakan').value = item.tindakan || '';
 
-  // 1. Cek apakah ada Link Google Maps sumber ulasan (bukan berkas bukti penanganan)
-  const rawUrl = String(item.driveUrl || '').trim();
-  const isMapsUrl = rawUrl.includes('maps.google') || rawUrl.includes('goo.gl') || rawUrl.includes('google.com/maps');
-  const mapsWrap = document.getElementById('detailIncMapsLinkWrap');
-  const mapsLink = document.getElementById('detailIncMapsLink');
+  var sourceBadgeEl = document.getElementById('detailIncSourceBadge');
+  if (sourceBadgeEl) {
+    sourceBadgeEl.innerHTML = isReviewTrack
+      ? '<span class="inc-source-badge inc-source-review">Ulasan Pelanggan (Dilindungi)</span>'
+      : '<span class="inc-source-badge inc-source-field">Laporan Lapangan</span>';
+  }
+
+  var metaEl = document.getElementById('detailIncMeta');
+  if (metaEl) {
+    var branchMatch = ((window.PANORAMA_STATE.data && window.PANORAMA_STATE.data.cabang) || []).find(function(c) { return c.cabangId === item.cabangId; });
+    var branchText = branchMatch ? branchMatch.namaCabang : (item.namaCabang || item.cabangId || '-');
+    metaEl.textContent = (item.areaId || '-') + ' • ' + branchText + ' • Pelapor: ' + (item.reporter || '-') + ' • ' + (item.tanggalLapor || '-');
+  }
+
+  var optEskalasi = document.getElementById('detailIncOptEskalasi');
+  if (optEskalasi) {
+    optEskalasi.textContent = (urgUpper === 'CRITICAL')
+      ? 'MENUNGGU ACC COO (Tingkat Critical Wajib ACC COO)'
+      : 'MENUNGGU ACC AM (Persetujuan Area Manager)';
+  }
+  document.getElementById('detailIncStatusSelect').value = item.status;
+
+  // 1. Cek Link Google Maps sumber ulasan (referensi saja, bukan bukti foto penanganan)
+  var rawUrl = String(item.driveUrl || '').trim();
+  var isMapsUrl = isGoogleMapsIncidentUrl(rawUrl);
+  var mapsWrap = document.getElementById('detailIncMapsLinkWrap');
+  var mapsLink = document.getElementById('detailIncMapsLink');
   if (isMapsUrl && mapsWrap && mapsLink) {
     mapsLink.href = rawUrl;
     mapsWrap.style.display = 'block';
@@ -37655,70 +38036,100 @@ function openDetailInsidenModal(item) {
     mapsWrap.style.display = 'none';
   }
 
-  // 2. Berkas bukti penanganan (dari kolom BuktiPenangananUrl atau driveUrl jika bukan link Maps)
-  let proofUrl = String(item.buktiPenangananUrl || '').trim();
-  if (!proofUrl && rawUrl && !isMapsUrl) {
-    proofUrl = rawUrl;
+  // 1B. Foto Kejadian Awal / Before (Col H jika non-Maps) — dipisah dari foto penanganan After
+  var initialProofUrl = getIncidentInitialProofUrl(item);
+  var initialWrap = document.getElementById('detailIncInitialProofWrap');
+  var initialBtn = document.getElementById('detailIncInitialProofBtn');
+  if (initialWrap && initialBtn) {
+    if (initialProofUrl) {
+      initialWrap.style.display = 'flex';
+      initialBtn.onclick = function() {
+        openKendalaProof(item.insidenId, 'initial');
+      };
+    } else {
+      initialWrap.style.display = 'none';
+    }
   }
-  const hasActualProof = Boolean(proofUrl);
 
-  // Reset state upload file baru
+  // 2. Foto Bukti Penanganan (After — Strictly Col N BuktiPenangananUrl)
+  var handlingProofUrl = getIncidentHandlingProofUrl(item);
+  var hasActualProof = Boolean(handlingProofUrl);
+
+  // Reset highlight & state upload file baru
+  var proofSectionEl = document.getElementById('detailIncHandlingProofSection');
+  if (proofSectionEl) proofSectionEl.classList.remove('inc-proof-highlight-required');
   removeIncDetailFile();
 
-  const roleInfo = getUserRoleInfo(window.PANORAMA_STATE.user);
-  const isMaster = roleInfo.isMaster;
-
-  const uploadWrap = document.getElementById('detailIncUploadProofWrap');
-  const masterWrap = document.getElementById('detailIncMasterProofWrap');
-  const curProofLinkWrap = document.getElementById('detailIncCurrentProofLinkWrap');
-  const curProofLink = document.getElementById('detailIncCurrentProofLink');
-  const masterHasProof = document.getElementById('detailIncMasterHasProof');
-  const masterNoProof = document.getElementById('detailIncMasterNoProof');
-  const masterDriveBtn = document.getElementById('detailIncMasterDriveBtn');
-  const masterImgPreview = document.getElementById('detailIncMasterImgPreview');
-
-  if (isMaster) {
-    // Mode Master COO: Hanya meninjau berkas yang ada
-    if (uploadWrap) uploadWrap.style.display = 'none';
-    if (masterWrap) {
-      masterWrap.style.display = 'block';
-      if (hasActualProof) {
-        if (masterHasProof) masterHasProof.style.display = 'flex';
-        if (masterNoProof) masterNoProof.style.display = 'none';
-        if (masterDriveBtn) {
-          masterDriveBtn.href = proofUrl;
-          masterDriveBtn.onclick = function(e) {
-            e.preventDefault();
-            openKendalaProof(item.insidenId);
-          };
+  var fileInputEl = document.getElementById('detailIncFileInput');
+  if (fileInputEl && !fileInputEl.dataset.v513Hooked) {
+    fileInputEl.dataset.v513Hooked = '1';
+    fileInputEl.addEventListener('change', function() {
+      var pSec = document.getElementById('detailIncHandlingProofSection');
+      if (pSec) pSec.classList.remove('inc-proof-highlight-required');
+      setTimeout(function() {
+        if (window.PANORAMA_SELECTED_INCIDENT) {
+          renderIncidentStageControls(window.PANORAMA_SELECTED_INCIDENT);
         }
-        if (masterImgPreview) {
-          const media = resolveDriveMedia(proofUrl);
-          if (!media.isPdf && media.directUrl) {
-            masterImgPreview.innerHTML = '<img src="' + media.directUrl + '" style="max-width:100%; max-height:160px; border-radius:6px; border:1px solid #CBD5E1; margin-top:6px; cursor:pointer;" alt="Bukti Foto" onclick="openKendalaProof(\'' + item.insidenId + '\')" title="Klik untuk pratinjau penuh">';
-            masterImgPreview.style.display = 'block';
-          } else {
-            masterImgPreview.style.display = 'none';
-          }
-        }
-      } else {
-        if (masterHasProof) masterHasProof.style.display = 'none';
-        if (masterNoProof) masterNoProof.style.display = 'block';
-        if (masterImgPreview) masterImgPreview.style.display = 'none';
+      }, 120);
+    });
+  }
+
+  var u = window.PANORAMA_STATE.user || {};
+  var roleInfo = getUserRoleInfo(u);
+  var isMaster = roleInfo.isMaster;
+  var isGuest = roleInfo.isGuest;
+
+  var uploadWrap = document.getElementById('detailIncUploadProofWrap');
+  var masterWrap = document.getElementById('detailIncMasterProofWrap');
+  var curProofLinkWrap = document.getElementById('detailIncCurrentProofLinkWrap');
+  var curProofLink = document.getElementById('detailIncCurrentProofLink');
+  var masterHasProof = document.getElementById('detailIncMasterHasProof');
+  var masterNoProof = document.getElementById('detailIncMasterNoProof');
+  var masterDriveBtn = document.getElementById('detailIncMasterDriveBtn');
+  var masterImgPreview = document.getElementById('detailIncMasterImgPreview');
+
+  // Tampilkan pratinjau foto handling (jika ada) ke semua peran supaya AM, COO & SPV dapat meninjau
+  if (masterWrap) {
+    masterWrap.style.display = 'block';
+    if (hasActualProof) {
+      if (masterHasProof) masterHasProof.style.display = 'flex';
+      if (masterNoProof) masterNoProof.style.display = 'none';
+      if (masterDriveBtn) {
+        masterDriveBtn.href = handlingProofUrl;
+        masterDriveBtn.onclick = function(e) {
+          e.preventDefault();
+          openKendalaProof(item.insidenId, 'handling');
+        };
       }
+      if (masterImgPreview) {
+        var media = resolveDriveMedia(handlingProofUrl);
+        if (!media.isPdf && media.directUrl) {
+          masterImgPreview.innerHTML = '<img src="' + media.directUrl + '" style="max-width:100%; max-height:160px; border-radius:6px; border:1px solid #CBD5E1; margin-top:6px; cursor:pointer;" alt="Foto Bukti Penanganan" onclick="openKendalaProof(\'' + item.insidenId + '\', \'handling\')" title="Klik untuk pratinjau penuh">';
+          masterImgPreview.style.display = 'block';
+        } else {
+          masterImgPreview.style.display = 'none';
+        }
+      }
+    } else {
+      if (masterHasProof) masterHasProof.style.display = 'none';
+      if (masterNoProof) masterNoProof.style.display = (isMaster || isGuest) ? 'block' : 'none';
+      if (masterImgPreview) masterImgPreview.style.display = 'none';
     }
-  } else {
-    // Mode Manager & SPV: Form upload/ganti berkas yang simpel & rapi
-    if (masterWrap) masterWrap.style.display = 'none';
-    if (uploadWrap) {
+  }
+
+  // Form upload dibuka untuk semua akun non-Guest (SPV, AM, dan COO bila menangani langsung)
+  if (uploadWrap) {
+    if (isGuest) {
+      uploadWrap.style.display = 'none';
+    } else {
       uploadWrap.style.display = 'block';
       if (hasActualProof) {
         if (curProofLinkWrap) curProofLinkWrap.style.display = 'inline';
         if (curProofLink) {
-          curProofLink.href = proofUrl;
+          curProofLink.href = handlingProofUrl;
           curProofLink.onclick = function(e) {
             e.preventDefault();
-            openKendalaProof(item.insidenId);
+            openKendalaProof(item.insidenId, 'handling');
           };
         }
       } else {
@@ -37727,10 +38138,201 @@ function openDetailInsidenModal(item) {
     }
   }
 
-  // Render Stempel Disposisi & Otorisasi Atasan
+  // Dropdown manual status hanya ditampilkan ke Master COO agar tim mengikuti tombol tahapan & aturan foto
+  var statusWrap = document.getElementById('detailIncStatusSelectWrap');
+  if (statusWrap) statusWrap.style.display = isMaster ? 'block' : 'none';
+
+  var tindakanInput = document.getElementById('detailIncTindakan');
+  if (tindakanInput) tindakanInput.readOnly = isGuest;
+
+  var btnSave = document.getElementById('btnUpdateIncSubmit');
+  if (btnSave) btnSave.style.display = isGuest ? 'none' : 'inline-flex';
+
+  // Aturan Hapus Two-Track: Review customer HANYA Master COO; Field boleh SPV/AM scope & COO
+  var btnDelete = document.getElementById('btnHapusInsiden');
+  var protectedBadge = document.getElementById('detailIncProtectedBadge');
+  var allowDelete = canUserDeleteIncident(item, u);
+  if (btnDelete) btnDelete.style.display = allowDelete ? 'inline-flex' : 'none';
+  if (protectedBadge) {
+    protectedBadge.style.display = (!allowDelete && isReviewTrack && !isGuest) ? 'inline-flex' : 'none';
+  }
+
+  // Render Stepper ala Tugas & Kartu Disposisi Atasan
+  renderIncidentStageControls(item);
   renderDetailIncApprovalCard(item);
 
   openModal('modalDetailInsiden');
+}
+
+function renderIncidentStageControls(item) {
+  var stepperEl = document.getElementById('incStageStepper');
+  var badgeEl = document.getElementById('incDetailStageBadge');
+  var actionBoxEl = document.getElementById('incStageActionBox');
+  if (!stepperEl || !actionBoxEl || !item) return;
+
+  var isReview = isCustomerReviewIncident(item);
+  var urg = String(item.urgensi || 'MEDIUM').toUpperCase();
+  var st = String(item.status || 'OPEN').toUpperCase();
+  var u = window.PANORAMA_STATE.user || {};
+  var roleInfo = getUserRoleInfo(u);
+  var hasProof = hasIncHandlingProofReady(item);
+
+  var accStepLabel = (urg === 'CRITICAL') ? 'ACC COO' : 'ACC AM';
+  var steps = isReview
+    ? [
+        { key: 'OPEN', label: 'Menunggu' },
+        { key: 'INVESTIGASI', label: 'Penanganan' },
+        { key: 'RESOLVED', label: 'Selesai' }
+      ]
+    : [
+        { key: 'OPEN', label: 'Lapor' },
+        { key: 'INVESTIGASI', label: 'Penanganan' },
+        { key: 'ESKALASI_COO', label: accStepLabel },
+        { key: 'RESOLVED', label: 'Selesai' }
+      ];
+
+  var curIdx = steps.findIndex(function(s) { return s.key === st; });
+  if (curIdx === -1) curIdx = 0;
+
+  stepperEl.innerHTML = steps.map(function(s, idx) {
+    var cls = '';
+    if (st === 'RESOLVED' || idx < curIdx) {
+      cls = (s.key === 'RESOLVED' && st === 'RESOLVED') ? 'active-completed' : 'passed';
+    } else if (idx === curIdx) {
+      if (s.key === 'OPEN') cls = 'active-waiting';
+      else if (s.key === 'INVESTIGASI') cls = 'active-inprogress';
+      else if (s.key === 'ESKALASI_COO') cls = 'active-review';
+      else cls = 'active-completed';
+    }
+    var arrowHtml = (idx < steps.length - 1) ? '<span class="stage-step-arrow">➔</span>' : '';
+    return '<div class="stage-step-pill ' + cls + '">' +
+      '<span class="stage-num">' + (idx + 1) + '</span>' +
+      '<span>' + s.label + '</span>' +
+    '</div>' + arrowHtml;
+  }).join('');
+
+  if (badgeEl) {
+    badgeEl.className = 'inc-stage-badge';
+    if (st === 'OPEN') {
+      badgeEl.classList.add('inc-stage-badge--open');
+      badgeEl.textContent = 'Menunggu Tindakan';
+    } else if (st === 'INVESTIGASI') {
+      badgeEl.classList.add('inc-stage-badge--investigasi');
+      badgeEl.textContent = 'Sedang Dikerjakan';
+    } else if (st === 'ESKALASI_COO') {
+      badgeEl.classList.add('inc-stage-badge--acc');
+      badgeEl.textContent = (urg === 'CRITICAL') ? 'Menunggu ACC COO' : 'Menunggu ACC Area Manager';
+    } else {
+      badgeEl.classList.add('inc-stage-badge--resolved');
+      badgeEl.textContent = 'Selesai & Ditutup';
+    }
+  }
+
+  if (roleInfo.isGuest) {
+    actionBoxEl.innerHTML = '<div class="task-stage-action-card" style="font-size:11.5px; color:var(--text-muted);">Mode Akun Tamu (Hanya Lihat — Tidak dapat mengubah status atau foto penanganan).</div>';
+    return;
+  }
+
+  if (st === 'OPEN') {
+    actionBoxEl.innerHTML =
+      '<div class="task-stage-action-card inc-stage-action-card--warn">' +
+        '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:11px; font-weight:800; color:#B45309;">' +
+          '<span>LANGKAH SELANJUTNYA</span>' +
+          '<span>Tahap 1 dari ' + steps.length + '</span>' +
+        '</div>' +
+        '<button type="button" class="btn-stage-action btn-stage-warning" onclick="proceedIncidentStep(\'INVESTIGASI\')">' +
+          'Mulai Penanganan / Investigasi ➔' +
+        '</button>' +
+        '<div style="font-size:11px; color:var(--text-muted); margin-top:7px;">Catat tindakan perbaikan di lapangan, lalu unggah foto hasil pekerjaan untuk menyelesaikan tiket.</div>' +
+      '</div>';
+    return;
+  }
+
+  if (st === 'INVESTIGASI') {
+    var proofStatusChip = hasProof
+      ? '<span style="color:#047857; font-weight:800;">✓ Foto Bukti Siap</span>'
+      : '<span style="color:#DC2626; font-weight:800;">Wajib Foto Sudah Dikerjakan</span>';
+
+    if (isReview) {
+      actionBoxEl.innerHTML =
+        '<div class="task-stage-action-card inc-stage-action-card--warn">' +
+          '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:11px; font-weight:800;">' +
+            '<span style="color:#B45309;">LANGKAH SELANJUTNYA (ULASAN PELANGGAN)</span>' +
+            proofStatusChip +
+          '</div>' +
+          '<button type="button" class="btn-stage-action btn-stage-primary" onclick="proceedIncidentStep(\'RESOLVED\')">' +
+            'Lampirkan Foto & Selesaikan Insiden ✓' +
+          '</button>' +
+          '<div style="font-size:11px; color:var(--text-muted); margin-top:7px;">Ulasan pelanggan langsung selesai begitu Foto Sudah Dikerjakan diunggah (tidak menunggu ACC atasan).</div>' +
+        '</div>';
+    } else {
+      var targetAccTitle = (urg === 'CRITICAL')
+        ? 'Ajukan ACC Area Manager & COO ↗'
+        : 'Ajukan ACC Area Manager (AM) ↗';
+      var helperAccText = (urg === 'CRITICAL')
+        ? 'Tingkat <b>CRITICAL</b> wajib upload Foto Sudah Dikerjakan, lalu menunggu ACC Area Manager & Head Ops (COO).'
+        : 'Tingkat <b>' + urg + '</b> wajib upload Foto Sudah Dikerjakan, lalu cukup ACC Area Manager untuk langsung selesai.';
+      actionBoxEl.innerHTML =
+        '<div class="task-stage-action-card inc-stage-action-card--warn">' +
+          '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:11px; font-weight:800;">' +
+            '<span style="color:#B45309;">LANGKAH SELANJUTNYA (LAPORAN LAPANGAN)</span>' +
+            proofStatusChip +
+          '</div>' +
+          '<button type="button" class="btn-stage-action btn-stage-review" onclick="proceedIncidentStep(\'ESKALASI_COO\')">' +
+            targetAccTitle +
+          '</button>' +
+          '<div style="font-size:11px; color:var(--text-muted); margin-top:7px;">' + helperAccText + '</div>' +
+        '</div>';
+    }
+    return;
+  }
+
+  if (st === 'ESKALASI_COO') {
+    var msgWait = (urg === 'CRITICAL')
+      ? (roleInfo.isMaster
+          ? 'Silakan periksa Foto Bukti Penanganan lalu klik tombol <b>ACC COO</b> di bawah untuk menyelesaikan insiden.'
+          : 'Foto sudah diajukan. Menunggu <b>ACC dari Area Manager & COO</b> (tingkat CRITICAL wajib disetujui COO).')
+      : ((roleInfo.isManager || roleInfo.isMaster)
+          ? 'Silakan periksa Foto Bukti Penanganan lalu klik tombol <b>ACC AM</b> di bawah — status akan otomatis selesai.'
+          : 'Foto sudah diajukan. Menunggu <b>ACC Area Manager</b> untuk menyelesaikan insiden.');
+    actionBoxEl.innerHTML =
+      '<div class="task-stage-action-card inc-stage-action-card--review">' +
+        '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; font-size:11px; font-weight:800; color:#6D28D9;">' +
+          '<span>TAHAP OTORISASI ATASAN (' + urg + ')</span>' +
+          '<span>' + (hasProof ? '✓ Foto Tersedia' : 'Foto Wajib Ada') + '</span>' +
+        '</div>' +
+        '<div style="font-size:11.5px; color:var(--text-main); line-height:1.45;">' + msgWait + '</div>' +
+      '</div>';
+    return;
+  }
+
+  var slaText = (item.slaJam && !isNaN(parseFloat(item.slaJam))) ? (' • SLA ' + item.slaJam + ' Jam') : '';
+  actionBoxEl.innerHTML =
+    '<div class="task-stage-action-card inc-stage-action-card--done">' +
+      '<div style="font-size:12px; font-weight:800; color:#047857;">✓ Penanganan Insiden Selesai & Ditutup' + slaText + '</div>' +
+      '<div style="font-size:11px; color:var(--text-muted); margin-top:4px;">Foto bukti penanganan telah tercatat di sistem dan tidak lagi membebani antrean aktif.</div>' +
+    '</div>';
+}
+
+function proceedIncidentStep(targetStatus) {
+  var item = window.PANORAMA_SELECTED_INCIDENT;
+  if (!item) return;
+
+  var roleInfo = getUserRoleInfo(window.PANORAMA_STATE.user);
+  if (roleInfo.isGuest) {
+    showToast('Akun Tamu hanya dapat melihat data.', 'warning');
+    return;
+  }
+
+  if ((targetStatus === 'ESKALASI_COO' || targetStatus === 'RESOLVED') && !hasIncHandlingProofReady(item)) {
+    highlightIncidentPhotoRequirement();
+    showToast('Wajib unggah Foto Bukti Sudah Dikerjakan terlebih dahulu sebelum melanjutkan!', 'danger');
+    return;
+  }
+
+  var selectEl = document.getElementById('detailIncStatusSelect');
+  if (selectEl) selectEl.value = targetStatus;
+  submitUpdateInsiden();
 }
 
 /**
@@ -37739,66 +38341,48 @@ function openDetailInsidenModal(item) {
  * ================================================================================
  */
 function renderDetailIncApprovalCard(item) {
-  const container = document.getElementById('detailIncApprovalCard');
+  var container = document.getElementById('detailIncApprovalCard');
   if (!container) return;
   if (!item) {
     container.innerHTML = '';
     return;
   }
 
-  // 1. Komplain Google Maps Review / Komplain Pelanggan TIDAK memerlukan ACC atasan
-  const isGoogleComplaint = (
-    item.kategori === 'Komplain Pelanggan' || 
-    (item.deskripsi && item.deskripsi.toLowerCase().indexOf('google') !== -1) ||
-    (item.reporter && item.reporter.toLowerCase().indexOf('google') !== -1)
-  );
-  if (isGoogleComplaint) {
-    container.innerHTML = '';
+  // 1. Komplain Customer Review (Google Maps / QR) tidak memakai ACC atasan — langsung selesai dengan Foto Bukti
+  if (isCustomerReviewIncident(item)) {
+    container.innerHTML =
+      '<div class="inc-approval-box" style="background:var(--bg-surface-subtle, #FFF1F2); border-color:#FECDD3;">' +
+        '<div style="font-size:11.5px; font-weight:800; color:#BE123C; margin-bottom:2px;">Aturan Ulasan Pelanggan</div>' +
+        '<div style="font-size:11px; color:var(--text-main); line-height:1.4;">Tiket ulasan pelanggan tidak memerlukan ACC Area Manager / COO. Cukup unggah <b>Foto Sudah Dikerjakan</b> lalu klik Selesaikan Insiden.</div>' +
+      '</div>';
     return;
   }
 
-  const u = window.PANORAMA_STATE.user || {};
-  const roleInfo = getUserRoleInfo(u);
-  const isCOO = (roleInfo.isMaster || roleInfo.isCOO || u.role === 'COO' || (u && u.areaId === 'ALL'));
-  const isManager = (!isCOO && (roleInfo.isManager || u.role === 'AREA_MANAGER' || u.role === 'MANAGER'));
+  var u = window.PANORAMA_STATE.user || {};
+  var roleInfo = getUserRoleInfo(u);
+  var isCOO = (roleInfo.isMaster || roleInfo.isCOO || u.role === 'COO' || (u && u.areaId === 'ALL'));
+  var isManager = (!isCOO && (roleInfo.isManager || u.role === 'AREA_MANAGER' || u.role === 'MANAGER'));
+  var urg = String(item.urgensi || 'MEDIUM').toUpperCase();
+  var isCritical = (urg === 'CRITICAL');
 
-  let otorisasi = {};
+  var otorisasi = {};
   try {
     if (item.otorisasi) {
       otorisasi = (typeof item.otorisasi === 'string') ? JSON.parse(item.otorisasi) : item.otorisasi;
     }
-  } catch(e) { otorisasi = {}; }
+  } catch (e) { otorisasi = {}; }
 
-  const mgr = otorisasi.manager || null;
-  const coo = otorisasi.coo || null;
+  var mgr = otorisasi.manager || null;
+  var coo = otorisasi.coo || null;
 
-  // 2. Hak tampil kartu sesuai peran akun yang login:
-  // - Di akun COO: HANYA ada ACC COO (tidak ada ACC MA kecuali jika MA sudah ada histori persetujuan)
-  // - Di akun MA: HANYA ada ACC AM
-  // - Di akun lain (SPV/Staff/Guest): Menampilkan stempel yang sudah di-ACC/Tolak
-  let showMgrCard = false;
-  let showCooCard = false;
+  // Aturan Kartu Otorisasi:
+  // - CRITICAL: AM & COO wajib (SPV butuh ACC AM -> COO; status baru RESOLVED setelah COO ACC)
+  // - MEDIUM / HIGH: Cukup ACC Area Manager (langsung RESOLVED). COO juga diberi fallback bila AM berhalangan.
+  var showMgrCard = true;
+  var showCooCard = isCritical || isCOO || Boolean(coo && (coo.status === 'APPROVED' || coo.status === 'REJECTED'));
 
-  if (isCOO) {
-    showCooCard = true;
-    if (mgr && (mgr.status === 'APPROVED' || mgr.status === 'REJECTED')) {
-      showMgrCard = true; // Ditampilkan sebagai riwayat bahwa AM sebelumnya sudah merespon
-    }
-  } else if (isManager) {
-    showMgrCard = true;
-    if (coo && (coo.status === 'APPROVED' || coo.status === 'REJECTED')) {
-      showCooCard = true;
-    }
-  } else {
-    if (mgr && (mgr.status === 'APPROVED' || mgr.status === 'REJECTED')) showMgrCard = true;
-    if (coo && (coo.status === 'APPROVED' || coo.status === 'REJECTED')) showCooCard = true;
-    if (!showMgrCard && !showCooCard) {
-      showMgrCard = true; // Fallback status menunggu
-    }
-  }
-
-  // 1. Stempel Manager Area (AM)
-  let mgrHtml = '';
+  // 1. Kartu Area Manager (AM)
+  var mgrHtml = '';
   if (showMgrCard) {
     if (mgr && mgr.status === 'APPROVED') {
       mgrHtml = `
@@ -37828,22 +38412,21 @@ function renderDetailIncApprovalCard(item) {
         </div>
       `;
     } else {
-      // Tombol ACC AM HANYA aktif jika akun adalah Area Manager (Bukan akun COO)
-      const canActAM = isManager;
+      var canActAM = isManager;
       mgrHtml = `
         <div class="inc-stamp-card pending">
           <div style="display:flex; justify-content:space-between; align-items:center;">
             <strong style="font-size:11px; color:var(--text-muted);">Otorisasi Area Manager (AM)</strong>
-            <span class="inc-stamp-badge pending">Menunggu Disposisi</span>
+            <span class="inc-stamp-badge pending">${isCritical ? 'Tahap 1 (Wajib)' : 'ACC Akhir (Otomatis Selesai)'}</span>
           </div>
-          <div class="inc-stamp-meta" style="font-style:italic;">Belum ada disposisi Area Manager</div>
+          <div class="inc-stamp-meta" style="font-style:italic;">${isCritical ? 'Menunggu tinjauan Area Manager sebelum ke COO' : 'Begitu AM ACC (+Foto), insiden langsung Selesai'}</div>
           ${canActAM ? `
             <div class="inc-stamp-actions">
               <button type="button" class="btn-inc-approve" onclick="executeApproveInsiden('MANAGER', 'APPROVED')">
-                <svg class="p-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> ACC AM
+                <svg class="p-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> ${isCritical ? 'ACC AM ➔ Teruskan COO' : 'ACC AM & Selesaikan'}
               </button>
               <button type="button" class="btn-inc-reject" onclick="executeApproveInsiden('MANAGER', 'REJECTED')">
-                <svg class="p-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Tolak
+                <svg class="p-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Tolak / Revisi
               </button>
             </div>
           ` : ''}
@@ -37852,8 +38435,8 @@ function renderDetailIncApprovalCard(item) {
     }
   }
 
-  // 2. Stempel COO / Head Operasional
-  let cooHtml = '';
+  // 2. Kartu Head Ops (COO)
+  var cooHtml = '';
   if (showCooCard) {
     if (coo && coo.status === 'APPROVED') {
       cooHtml = `
@@ -37883,21 +38466,20 @@ function renderDetailIncApprovalCard(item) {
         </div>
       `;
     } else {
-      // Tombol ACC COO HANYA aktif untuk akun COO
       cooHtml = `
         <div class="inc-stamp-card pending">
           <div style="display:flex; justify-content:space-between; align-items:center;">
             <strong style="font-size:11px; color:var(--text-muted);">Otorisasi Head Ops (COO)</strong>
-            <span class="inc-stamp-badge pending">Menunggu Disposisi</span>
+            <span class="inc-stamp-badge pending">${isCritical ? 'ACC Akhir (Wajib)' : 'Opsional / Pengganti AM'}</span>
           </div>
-          <div class="inc-stamp-meta" style="font-style:italic;">${item.status === 'ESKALASI_COO' ? 'Tiket butuh persetujuan biaya/pusat COO' : 'Belum ada disposisi COO'}</div>
+          <div class="inc-stamp-meta" style="font-style:italic;">${isCritical ? 'Tingkat CRITICAL wajib disetujui Head Ops (COO) untuk selesai' : 'Untuk tingkat ' + urg + ', ACC Area Manager sudah cukup untuk menyelesaikan'}</div>
           ${isCOO ? `
             <div class="inc-stamp-actions">
               <button type="button" class="btn-inc-approve" style="background:#047857;" onclick="executeApproveInsiden('COO', 'APPROVED')">
-                <svg class="p-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> ACC COO
+                <svg class="p-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> ACC COO & Selesaikan
               </button>
               <button type="button" class="btn-inc-reject" onclick="executeApproveInsiden('COO', 'REJECTED')">
-                <svg class="p-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Tolak
+                <svg class="p-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Tolak / Revisi
               </button>
             </div>
           ` : ''}
@@ -37906,25 +38488,24 @@ function renderDetailIncApprovalCard(item) {
     }
   }
 
-  // Input catatan lapangan (hanya tampil jika user memiliki tombol aksi aktif dan statusnya belum ACC)
-  const canApprove = (isManager && (!mgr || mgr.status !== 'APPROVED')) || (isCOO && (!coo || coo.status !== 'APPROVED'));
-  const noteInputHtml = canApprove ? `
+  var canApprove = (isManager && (!mgr || mgr.status !== 'APPROVED')) || (isCOO && (!coo || coo.status !== 'APPROVED'));
+  var noteInputHtml = canApprove ? `
     <div style="margin-top: 8px;">
-      <input type="text" id="incApprovalNote" placeholder="Catatan instruksi lapangan (opsional)..." class="form-input" style="font-size: 11px; height: 32px; border-radius: 6px; padding: 4px 8px; width: 100%; box-sizing: border-box;">
+      <input type="text" id="incApprovalNote" placeholder="Catatan instruksi / alasan ACC atau penolakan..." class="form-input" style="font-size: 11px; height: 32px; border-radius: 6px; padding: 4px 8px; width: 100%; box-sizing: border-box;">
     </div>
   ` : '';
 
-  const cardCount = (showMgrCard ? 1 : 0) + (showCooCard ? 1 : 0);
-  const gridStyle = (cardCount === 1) ? 'display:grid; grid-template-columns:1fr; gap:8px;' : 'display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:8px;';
+  var cardCount = (showMgrCard ? 1 : 0) + (showCooCard ? 1 : 0);
+  var gridStyle = (cardCount === 1) ? 'display:grid; grid-template-columns:1fr; gap:8px;' : 'display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:8px;';
 
-  const sectionTitle = isCOO ? 'Otorisasi & Disposisi Head Ops (COO)' : (isManager ? 'Otorisasi & Disposisi Area Manager (AM)' : 'Stempel Otorisasi Atasan');
-  const sectionSubtitle = isCOO ? 'Persetujuan COO' : (isManager ? 'Persetujuan Area Manager' : 'Status Disposisi');
+  var sectionTitle = isCritical ? 'Jalur Otorisasi CRITICAL (AM ➔ Wajib COO)' : ('Jalur Otorisasi ' + urg + ' (Cukup ACC Area Manager)');
+  var sectionSubtitle = isCritical ? 'Wajib ACC COO' : 'Otomatis Selesai via AM';
 
   container.innerHTML = `
     <div class="inc-approval-box">
       <div class="inc-approval-header">
         <span>${sectionTitle}</span>
-        <span style="font-size:10px; font-weight:600; text-transform:none; color:var(--forest-700);">${sectionSubtitle}</span>
+        <span style="font-size:10px; font-weight:700; text-transform:none; color:var(--forest-700);">${sectionSubtitle}</span>
       </div>
       <div style="${gridStyle}">
         ${mgrHtml}
@@ -37940,87 +38521,139 @@ function promptApproveInsiden(level, action) {
 }
 
 function executeApproveInsiden(level, action) {
-  const item = window.PANORAMA_SELECTED_INCIDENT;
+  var item = window.PANORAMA_SELECTED_INCIDENT;
   if (!item) {
     showToast('Tiket insiden tidak dipilih.', 'warning');
     return;
   }
 
-  const noteInput = document.getElementById('incApprovalNote');
-  let note = noteInput ? noteInput.value.trim() : '';
+  var urg = String(item.urgensi || 'MEDIUM').toUpperCase();
+  if (action === 'APPROVED' && !hasIncHandlingProofReady(item)) {
+    highlightIncidentPhotoRequirement();
+    showToast('Foto bukti sudah dikerjakan wajib tersedia sebelum menyetujui/menyelesaikan insiden!', 'danger');
+    return;
+  }
+
+  var noteInput = document.getElementById('incApprovalNote');
+  var note = noteInput ? noteInput.value.trim() : '';
   if (!note) {
-    note = (action === 'APPROVED') ? 'Disetujui untuk dilaksanakan sesuai SOP.' : 'Ditolak / perlu revisi atasan.';
+    note = (action === 'APPROVED') ? 'Disetujui & penanganan sesuai SOP.' : 'Ditolak / perlu perbaikan ulang di lapangan.';
   }
 
-  // Tentukan status insiden baru secara otomatis
-  const statusSelect = document.getElementById('detailIncStatusSelect');
-  let currentSelectVal = statusSelect ? statusSelect.value : (item.status || 'OPEN');
-  let targetNewStatus = currentSelectVal;
-
-  if (action === 'APPROVED') {
-    // Jika status saat ini OPEN atau ESKALASI_COO, ubah ke INVESTIGASI
-    if (currentSelectVal === 'OPEN' || currentSelectVal === 'ESKALASI_COO') {
-      targetNewStatus = 'INVESTIGASI';
-    }
-  } else if (action === 'REJECTED') {
+  var targetNewStatus = item.status || 'INVESTIGASI';
+  if (action === 'REJECTED') {
     targetNewStatus = 'INVESTIGASI';
+  } else if (action === 'APPROVED') {
+    if (isCustomerReviewIncident(item)) {
+      targetNewStatus = 'RESOLVED';
+    } else if (urg === 'CRITICAL') {
+      targetNewStatus = (level === 'COO') ? 'RESOLVED' : 'ESKALASI_COO';
+    } else {
+      targetNewStatus = 'RESOLVED';
+    }
   }
 
-  showGlobalLoader(true, 10000, `Menyimpan otorisasi ${level}...`);
+  var statusSelect = document.getElementById('detailIncStatusSelect');
+  showGlobalLoader(true, 15000, 'Menyimpan otorisasi ' + level + '...');
 
-  const payload = {
+  var payload = {
     insidenId: item.insidenId,
     approverLevel: level,
     action: action,
     newStatus: targetNewStatus,
     catatan: note
   };
+  if (window.PANORAMA_STATE && window.PANORAMA_STATE.incDetailFileData) {
+    payload.fileData = window.PANORAMA_STATE.incDetailFileData;
+  }
 
   callPanoramaApi('apiApproveInsiden', payload, function(res) {
     showGlobalLoader(false);
     if (res && res.success) {
+      var finalStatus = res.newStatus || targetNewStatus;
       item.otorisasi = res.otorisasi;
-      const finalStatus = res.newStatus || targetNewStatus;
       item.status = finalStatus;
-
-      // Update dropdown status di modal secara instan
-      if (statusSelect) {
-        statusSelect.value = finalStatus;
+      if (typeof res.slaJam === 'number') item.slaJam = res.slaJam;
+      if (res.waktuSelesai) item.waktuSelesai = res.waktuSelesai;
+      if (res.buktiPenangananUrl) item.buktiPenangananUrl = res.buktiPenangananUrl;
+      else if (window.PANORAMA_STATE.incDetailFileData && window.PANORAMA_STATE.incDetailFileData.dataUri) {
+        item.buktiPenangananUrl = window.PANORAMA_STATE.incDetailFileData.dataUri;
       }
+      removeIncDetailFile();
 
-      // Update di memori state antrean insiden
+      if (statusSelect) statusSelect.value = finalStatus;
+
       if (window.PANORAMA_STATE.data && window.PANORAMA_STATE.data.insiden) {
-        const found = window.PANORAMA_STATE.data.insiden.find(i => (i.insidenId === item.insidenId || i.insidenID === item.insidenId));
+        var found = window.PANORAMA_STATE.data.insiden.find(function(i) { return (i.insidenId === item.insidenId || i.insidenID === item.insidenId); });
         if (found) {
           found.otorisasi = res.otorisasi;
           found.status = finalStatus;
+          if (item.slaJam !== undefined) found.slaJam = item.slaJam;
+          if (item.waktuSelesai) found.waktuSelesai = item.waktuSelesai;
+          if (item.buktiPenangananUrl) found.buktiPenangananUrl = item.buktiPenangananUrl;
         }
       }
+      if (finalStatus === 'RESOLVED') {
+        updateReviewsStatusForResolvedIncident(item);
+      }
+      if (typeof saveScopedDataCache === 'function') {
+        saveScopedDataCache(window.PANORAMA_STATE.user, window.PANORAMA_STATE.data);
+      }
 
-      // Re-render visual stempel dan tabel
+      renderIncidentStageControls(item);
       renderDetailIncApprovalCard(item);
       renderInsidenView();
+      renderActiveView();
 
-      const actionText = (action === 'APPROVED') ? 'di-ACC' : 'ditolak/revisi';
-      showToast(`✅ Tiket ${item.insidenId} berhasil ${actionText} oleh ${level}! Status: ${finalStatus}`, 'success');
+      showToast(res.message || ('Tiket ' + item.insidenId + ' berhasil diproses oleh ' + level + '.'), 'success');
     } else {
+      if (res && res.code === 'PHOTO_PROOF_REQUIRED') {
+        highlightIncidentPhotoRequirement();
+      }
       showToast(res && res.message ? res.message : 'Gagal menyimpan otorisasi.', 'danger');
     }
   }, function(err) {
     showGlobalLoader(false);
-    showToast('Gagal menghubungi server: ' + (err && err.message ? err.message : 'Koneksi terputus'), 'danger');
+    showToast('Gagal menyimpan otorisasi ke server: ' + (err && err.message ? err.message : 'Koneksi terputus'), 'danger');
   });
 }
 
 // Simpan Update Insiden
 function submitUpdateInsiden() {
-  const item = window.PANORAMA_SELECTED_INCIDENT;
+  var item = window.PANORAMA_SELECTED_INCIDENT;
   if (!item) return;
 
-  const newStatus = document.getElementById('detailIncStatusSelect').value;
-  const tindakan = document.getElementById('detailIncTindakan').value;
+  var roleInfo = getUserRoleInfo(window.PANORAMA_STATE.user);
+  if (roleInfo.isGuest) {
+    showToast('Akun Tamu hanya dapat melihat data.', 'warning');
+    return;
+  }
 
-  const payload = {
+  var newStatus = document.getElementById('detailIncStatusSelect').value;
+  var tindakan = document.getElementById('detailIncTindakan').value;
+  var isReviewTrack = isCustomerReviewIncident(item);
+  var urgUpper = String(item.urgensi || 'MEDIUM').toUpperCase();
+
+  // Wajib Foto Sudah Dikerjakan sebelum ESKALASI_COO atau RESOLVED
+  if ((newStatus === 'ESKALASI_COO' || newStatus === 'RESOLVED') && !hasIncHandlingProofReady(item)) {
+    highlightIncidentPhotoRequirement();
+    showToast('Wajib unggah Foto Bukti Sudah Dikerjakan sebelum mengajukan ACC atau menyelesaikan insiden!', 'danger');
+    return;
+  }
+
+  // Validasi peran penyelesaian lapangan di sisi klien
+  if (!isReviewTrack && newStatus === 'RESOLVED' && !roleInfo.isMaster) {
+    if (urgUpper === 'CRITICAL') {
+      showToast('Insiden Lapangan tingkat CRITICAL hanya dapat diselesaikan setelah ACC Master Head Ops (COO).', 'danger');
+      return;
+    }
+    if (!roleInfo.isManager) {
+      showToast('Insiden Lapangan tingkat ' + urgUpper + ' wajib diajukan & di-ACC oleh Area Manager sebelum selesai.', 'danger');
+      return;
+    }
+  }
+
+  var payload = {
     insidenId: item.insidenId,
     newStatus: newStatus,
     tindakan: tindakan
@@ -38030,105 +38663,99 @@ function submitUpdateInsiden() {
     payload.fileData = window.PANORAMA_STATE.incDetailFileData;
   }
 
-  showGlobalLoader(true);
+  setSubmitButtonBusy('btnUpdateIncSubmit', true, 'Menyimpan...');
+  showGlobalLoader(true, 15000, 'Menyimpan pembaruan insiden...');
 
   callPanoramaApi('apiUpdateInsiden', payload, function(res) {
     showGlobalLoader(false);
-    closeModal('modalDetailInsiden');
-    item.status = newStatus;
+    setSubmitButtonBusy('btnUpdateIncSubmit', false);
+
+    if (!res || !res.success) {
+      if (res && res.code === 'PHOTO_PROOF_REQUIRED') {
+        highlightIncidentPhotoRequirement();
+      }
+      showToast(res && res.message ? res.message : 'Gagal memperbarui status insiden.', 'danger');
+      return;
+    }
+
+    var finalStatus = res.newStatus || newStatus;
+    item.status = finalStatus;
     item.tindakan = tindakan;
-    if (res && res.buktiPenangananUrl) {
+    if (res.buktiPenangananUrl) {
       item.buktiPenangananUrl = res.buktiPenangananUrl;
-    } else if (res && res.fileDriveUrl) {
+    } else if (res.fileDriveUrl) {
       item.buktiPenangananUrl = res.fileDriveUrl;
     } else if (window.PANORAMA_STATE.incDetailFileData && window.PANORAMA_STATE.incDetailFileData.dataUri) {
       item.buktiPenangananUrl = window.PANORAMA_STATE.incDetailFileData.dataUri;
     }
+    if (res.otorisasi) item.otorisasi = res.otorisasi;
+    if (typeof res.slaJam === 'number') item.slaJam = res.slaJam;
+    if (res.waktuSelesai) item.waktuSelesai = res.waktuSelesai;
+
     removeIncDetailFile();
 
-    if (newStatus === 'RESOLVED') {
-      item.slaJam = (res && typeof res.slaJam === 'number') ? res.slaJam : (item.slaJam || 0.5);
-      item.waktuSelesai = new Date().toISOString().replace('T', ' ').substring(0, 16);
-
-      // FITUR 1: Auto-update Customer Review menjadi RESOLVED / TERJAWAB
-      const d = window.PANORAMA_STATE.data || {};
-      const revList = d.reviews || [];
-      revList.forEach(r => {
-        const rStatus = String(r.statusRespon || '');
-        const rReviewer = String(r.reviewer || '');
-        const incDesk = String(item.deskripsi || '');
-        if (rStatus.includes(item.insidenId) || (item.kategori === 'Komplain Pelanggan' && r.cabangId === item.cabangId && rReviewer && incDesk.includes(rReviewer))) {
-          r.statusRespon = 'RESOLVED / TERJAWAB (' + item.insidenId + ')';
-        }
-      });
-      safeSetStorage('PANORAMA_CLIENT_REVIEWS', revList);
-      if (typeof renderMapsAiView === 'function') {
-        renderMapsAiView();
-      }
+    if (finalStatus === 'RESOLVED') {
+      updateReviewsStatusForResolvedIncident(item);
     }
+
+    if (typeof saveScopedDataCache === 'function') {
+      saveScopedDataCache(window.PANORAMA_STATE.user, window.PANORAMA_STATE.data);
+    }
+
+    closeModal('modalDetailInsiden');
     renderActiveView();
-    showToast(res && res.message ? res.message : 'Status insiden berhasil diperbarui.', 'success');
+    showToast(res.message || 'Status insiden berhasil diperbarui.', 'success');
   }, function(err) {
     showGlobalLoader(false);
-    closeModal('modalDetailInsiden');
-    item.status = newStatus;
-    item.tindakan = tindakan;
-    if (window.PANORAMA_STATE.incDetailFileData && window.PANORAMA_STATE.incDetailFileData.dataUri) {
-      item.driveUrl = window.PANORAMA_STATE.incDetailFileData.dataUri;
-    }
-    removeIncDetailFile();
-
-    if (newStatus === 'RESOLVED') {
-      const d = window.PANORAMA_STATE.data || {};
-      const revList = d.reviews || [];
-      revList.forEach(r => {
-        const rStatus = String(r.statusRespon || '');
-        const rReviewer = String(r.reviewer || '');
-        const incDesk = String(item.deskripsi || '');
-        if (rStatus.includes(item.insidenId) || (item.kategori === 'Komplain Pelanggan' && r.cabangId === item.cabangId && rReviewer && incDesk.includes(rReviewer))) {
-          r.statusRespon = 'RESOLVED / TERJAWAB (' + item.insidenId + ')';
-        }
-      });
-      safeSetStorage('PANORAMA_CLIENT_REVIEWS', revList);
-      if (typeof renderMapsAiView === 'function') {
-        renderMapsAiView();
-      }
-    }
-    renderActiveView();
-    showToast('Status insiden berhasil diperbarui di layar.', 'info');
+    setSubmitButtonBusy('btnUpdateIncSubmit', false);
+    showToast('Gagal menghubungi server: ' + (err && err.message ? err.message : 'Perubahan belum tersimpan.'), 'danger');
   });
 }
 
-// Hapus Laporan Insiden (Koreksi Human Error v3.7.8)
+// Hapus Laporan Insiden (Two-Track Guard: Review hanya Master COO; Lapangan boleh tim terkait)
 function confirmDeleteInsiden() {
-  const item = window.PANORAMA_SELECTED_INCIDENT;
+  var item = window.PANORAMA_SELECTED_INCIDENT;
   if (!item) return;
 
-  const incId = item.insidenId || item.insidenID || '';
-  const konfirmasi = confirm('Apakah Anda yakin ingin menghapus laporan insiden "' + incId + ' - ' + (item.kategori || '') + '"? Tindakan ini tidak dapat dibatalkan.');
+  if (!canUserDeleteIncident(item, window.PANORAMA_STATE.user)) {
+    if (isCustomerReviewIncident(item)) {
+      showToast('Akses ditolak: Insiden dari Ulasan Pelanggan hanya dapat dihapus oleh Master Head Ops (COO).', 'danger');
+    } else {
+      showToast('Akses ditolak: Anda tidak berwenang menghapus tiket insiden ini.', 'danger');
+    }
+    return;
+  }
+
+  var incId = item.insidenId || item.insidenID || '';
+  var konfirmasi = confirm('Apakah Anda yakin ingin menghapus laporan insiden "' + incId + ' - ' + (item.kategori || '') + '"? Tindakan ini tidak dapat dibatalkan.');
   if (!konfirmasi) return;
 
-  showGlobalLoader(true);
-
-  // Optimistic UI: hapus dari PANORAMA_STATE.data.insiden
-  const d = window.PANORAMA_STATE.data;
-  if (d && d.insiden) {
-    const idx = d.insiden.findIndex(x => (x.insidenId === incId || x.insidenID === incId));
-    if (idx !== -1) {
-      d.insiden.splice(idx, 1);
-    }
-  }
+  showGlobalLoader(true, 12000, 'Menghapus tiket insiden...');
 
   callPanoramaApi('apiDeleteInsiden', { insidenId: incId }, function(res) {
     showGlobalLoader(false);
+    if (!res || !res.success) {
+      showToast(res && res.message ? res.message : 'Gagal menghapus insiden.', 'danger');
+      return;
+    }
+
+    var d = window.PANORAMA_STATE.data;
+    if (d && d.insiden) {
+      var idx = d.insiden.findIndex(function(x) { return (x.insidenId === incId || x.insidenID === incId); });
+      if (idx !== -1) {
+        d.insiden.splice(idx, 1);
+      }
+      if (typeof saveScopedDataCache === 'function') {
+        saveScopedDataCache(window.PANORAMA_STATE.user, d);
+      }
+    }
+
     closeModal('modalDetailInsiden');
     renderActiveView();
-    showToast(res && res.message ? res.message : ('Laporan insiden ' + incId + ' berhasil dihapus.'), 'success');
+    showToast(res.message || ('Laporan insiden ' + incId + ' berhasil dihapus.'), 'success');
   }, function(err) {
     showGlobalLoader(false);
-    closeModal('modalDetailInsiden');
-    renderActiveView();
-    showToast('Laporan insiden ' + incId + ' berhasil dihapus dari sistem.', 'success');
+    showToast('Gagal menghapus insiden di server: ' + (err && err.message ? err.message : 'Koneksi terputus.'), 'danger');
   });
 }
 
@@ -41266,14 +41893,23 @@ function openKendalaProof(docId) {
   if (itemType === 'insiden') {
     const rawDrive = String(item.driveUrl || '').trim();
     const rawPenanganan = String(item.buktiPenangananUrl || '').trim();
-    const isMaps = rawDrive.includes('maps.google') || rawDrive.includes('goo.gl') || rawDrive.includes('google.com/maps') || rawDrive.includes('maps.app.goo.gl');
-    
+    const isMaps = isGoogleMapsIncidentUrl(rawDrive);
+    const preferredMode = (arguments.length > 1 && arguments[1]) ? String(arguments[1]).trim().toLowerCase() : '';
+
     if (isMaps) {
       isMapsIncidentSource = true;
       mapsSourceUrl = rawDrive;
     }
 
-    const rawProofTarget = rawPenanganan || (rawDrive && !isMaps ? rawDrive : '');
+    let rawProofTarget = '';
+    if (preferredMode === 'initial') {
+      rawProofTarget = (rawDrive && !isMaps) ? rawDrive : '';
+    } else if (preferredMode === 'handling') {
+      rawProofTarget = rawPenanganan;
+    } else {
+      rawProofTarget = rawPenanganan || (rawDrive && !isMaps ? rawDrive : '');
+    }
+
     const multiProofUrls = parseIncidentProofUrls(rawProofTarget);
 
     if (multiProofUrls.length > 1) {
@@ -41282,12 +41918,12 @@ function openKendalaProof(docId) {
       return;
     }
 
-    if (rawPenanganan) {
+    if (rawProofTarget && rawProofTarget === rawPenanganan && preferredMode !== 'initial') {
       targetFileUrl = rawPenanganan;
       targetFileName = 'BuktiPenanganan_' + targetId + '.jpg';
-    } else if (rawDrive && !isMaps) {
+    } else if (rawProofTarget && rawDrive && !isMaps) {
       targetFileUrl = rawDrive;
-      targetFileName = 'BuktiAwal_' + targetId + '.jpg';
+      targetFileName = 'FotoAwal_' + targetId + '.jpg';
     } else {
       targetFileUrl = '';
     }
@@ -45294,12 +45930,15 @@ function generateSmartNotifications(data, user) {
       const cbgName = cbg ? cbg.namaCabang : inc.cabangId;
 
       if (inc.status === 'ESKALASI_COO') {
+        const isIncCritical = String(inc.urgensi || '').toUpperCase() === 'CRITICAL';
         notifs.push({
           id: 'NOTIF-INC-' + inc.insidenId,
           category: 'incident',
           severity: 'danger',
-          title: isCOO ? 'Eskalasi Insiden: Butuh Otorisasi COO' : 'Eskalasi COO: ' + inc.kategori,
-          message: cbgName + ': ' + inc.deskripsi + ' (Menunggu persetujuan biaya dari COO).',
+          title: isIncCritical
+            ? (isCOO ? 'Eskalasi CRITICAL: Butuh ACC COO' : 'Menunggu ACC COO: ' + inc.kategori)
+            : ('Menunggu ACC Area Manager: ' + inc.kategori),
+          message: cbgName + ': ' + inc.deskripsi + (isIncCritical ? ' (Wajib ACC COO setelah foto bukti diunggah).' : ' (Cukup ACC Area Manager untuk langsung selesai).'),
           time: inc.tanggalLapor ? inc.tanggalLapor.substring(11) + ' WIB' : todayStr,
           areaId: inc.areaId,
           branchName: cbgName,
@@ -51169,24 +51808,30 @@ function renderMapsAiView() {
             '</button>'
           ) : '') +
 
-          // FITUR 2: Apabila tiket insiden sudah dikirim, tidak perlu ada lagi tombolnya supaya tidak dobel!
+          // Ulasan negatif <=3 bintang otomatis tertaut ke tiket INS-* dan hanya selesai setelah upload foto bukti penanganan
           (!isPositive ? (
             hasTicketSent ? (
-              '<span class="badge" style="background:#EFF6FF; color:#2563EB; border:1px solid #BFDBFE; font-size:11px; padding:6px 10px; border-radius:6px; font-weight:700; display:inline-flex; align-items:center; gap:4px;" title="Tiket insiden sudah dikirim dan aktif">' +
-                '<span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span> Tiket Terkirim ' + (linkedTicketId ? '(' + linkedTicketId + ')' : '') +
-              '</span>'
+              linkedTicketId ? (
+                '<button type="button" class="rev-auto-inc-chip maps-action-btn" onclick="openDetailInsidenById(\'' + linkedTicketId + '\')" title="Buka modal penanganan insiden untuk upload foto bukti selesai">' +
+                  '<span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span> Tiket Otomatis (' + linkedTicketId + ') ↗' +
+                '</button>'
+              ) : (
+                '<span class="rev-auto-inc-chip">' +
+                  '<span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span> Masuk Antrean Insiden' +
+                '</span>'
+              )
             ) : (
               (!isResolved ? (
-                '<button type="button" class="btn btn-primary maps-action-btn" onclick="escalateReviewToIncident(\'' + safeReviewId + '\')" title="Jadikan Tiket Insiden Resmi (SLA)">' +
-                  '<span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span> Tiket Insiden' +
+                '<button type="button" class="btn btn-primary maps-action-btn" onclick="escalateReviewToIncident(\'' + safeReviewId + '\')" title="Kirim ke Tiket Insiden Resmi (SLA)">' +
+                  '<span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span> Proses via Insiden' +
                 '</button>'
               ) : '')
             )
           ) : '') +
 
-          (!isPositive && !isResolved ? (
-            '<button type="button" class="btn btn-outline maps-action-btn" title="Tandai Selesai Ditangani" onclick="markReviewResolved(\'' + safeReviewId + '\')">' +
-              '<span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> Selesai' +
+          ((!isPositive && !isResolved && getUserRoleInfo(window.PANORAMA_STATE.user).isMaster) ? (
+            '<button type="button" class="btn btn-outline maps-action-btn" title="Override Master: Tandai Selesai Ditangani" onclick="markReviewResolved(\'' + safeReviewId + '\')">' +
+              '<span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> Selesai (Master)' +
             '</button>'
           ) : '') +
         '</div>' +
@@ -51596,20 +52241,21 @@ function escalateReviewToIncident(reviewId) {
   const tglToday = yyyy + '-' + mm + '-' + dd;
 
   const insList = d.insiden || [];
-  const newInsId = 'INS-' + yyyy + mm + '-' + ('00' + (insList.length + 1)).slice(-3);
-  const urgensi = (rev.rating <= 1 || rev.aiUrgensi === 'CRITICAL') ? 'CRITICAL' : 'HIGH';
+  const tempInsId = 'INS-' + yyyy + mm + '-' + ('00' + (insList.length + 1)).slice(-3);
+  const urgensi = (Number(rev.rating || 5) <= 2 || rev.aiUrgensi === 'CRITICAL') ? 'CRITICAL' : 'HIGH';
   const slaJam = (urgensi === 'CRITICAL') ? 6 : 12;
 
   const newIncident = {
-    insidenId: newInsId,
+    insidenId: tempInsId,
     tanggalLapor: tglToday + ' 09:00',
     areaId: rev.areaId || 'AREA-01',
     cabangId: rev.cabangId || 'CBG-001',
     namaCabang: rev.namaCabang,
     kategori: 'Komplain Pelanggan',
     urgensi: urgensi,
-    deskripsi: '[GOOGLE MAPS ' + rev.rating + '★] Dari ' + rev.reviewer + ': "' + rev.komentar + '". Solusi AI: ' + rev.aiAction,
+    deskripsi: '[GOOGLE MAPS ' + rev.rating + '★] Dari ' + rev.reviewer + ': "' + rev.komentar + '". Solusi AI: ' + rev.aiAction + (rev.id ? (' [REV:' + rev.id + ']') : ''),
     driveUrl: rev.mapsUrl || '',
+    buktiPenangananUrl: '',
     status: 'OPEN',
     waktuSelesai: '',
     slaJam: slaJam,
@@ -51621,10 +52267,8 @@ function escalateReviewToIncident(reviewId) {
   if (!d.insiden) d.insiden = [];
   d.insiden.unshift(newIncident);
 
-  rev.statusRespon = 'ESCALATED_TO_INCIDENT (' + newInsId + ')';
+  rev.statusRespon = 'ESCALATED_TO_INCIDENT (' + tempInsId + ')';
   safeSetStorage('PANORAMA_CLIENT_REVIEWS', d.reviews);
-
-  showToast('Komplain ' + rev.namaCabang + ' berhasil dieskalasi ke Tiket Insiden Resmi (' + newInsId + ') dengan SLA ' + slaJam + ' Jam!', 'success');
   renderMapsAiView();
 
   callPanoramaApi('apiEscalateReviewToIncident', {
@@ -51635,15 +52279,28 @@ function escalateReviewToIncident(reviewId) {
     rating: rev.rating,
     reviewer: rev.reviewer,
     komentar: rev.komentar,
+    aiTag: rev.aiTag,
     aiAction: rev.aiAction,
     mapsUrl: rev.mapsUrl,
     urgensi: urgensi
   }, function(res) {
-    if (res && res.message) {
-      showToast(res.message, 'success');
+    if (res && res.success) {
+      if (res.insidenId) {
+        newIncident.insidenId = res.insidenId;
+        rev.statusRespon = 'ESCALATED_TO_INCIDENT (' + res.insidenId + ')';
+      }
+      safeSetStorage('PANORAMA_CLIENT_REVIEWS', d.reviews);
+      if (typeof saveScopedDataCache === 'function') {
+        saveScopedDataCache(window.PANORAMA_STATE.user, d);
+      }
+      renderMapsAiView();
+      if (typeof renderInsidenView === 'function') renderInsidenView();
+      showToast(res.message || ('Komplain ' + rev.namaCabang + ' tertaut ke Tiket Insiden (' + (res.insidenId || tempInsId) + ').'), 'success');
+    } else {
+      showToast(res && res.message ? res.message : 'Gagal membuat tiket insiden review.', 'danger');
     }
   }, function(err) {
-    console.warn('Eskalasi ke sheet insiden offline fallback:', err);
+    showToast('Gagal menyimpan eskalasi insiden ke server: ' + (err && err.message ? err.message : 'Koneksi terputus'), 'danger');
   });
 }
 
@@ -51653,16 +52310,43 @@ function markReviewResolved(reviewId) {
   const rev = list.find(r => r.id === reviewId);
   if (!rev) return;
 
-  rev.statusRespon = 'TERJAWAB';
-  safeSetStorage('PANORAMA_CLIENT_REVIEWS', d.reviews);
-  showToast('Ulasan dari ' + rev.reviewer + ' (' + rev.namaCabang + ') ditandai selesai ditangani.', 'success');
-  renderMapsAiView();
+  const u = window.PANORAMA_STATE.user || {};
+  const roleInfo = getUserRoleInfo(u);
+  const revRating = Number(rev.rating || 5);
 
+  // Guard client-side: non-Master tidak bisa menutup langsung kritik <= 3* tanpa foto penanganan di modul Insiden
+  if (!roleInfo.isMaster && revRating <= 3) {
+    showToast('Ulasan kritik (≤ 3★) wajib ditangani lewat modul Insiden dengan upload Foto Sudah Dikerjakan.', 'warning');
+    const linked = (d.insiden || []).find(function(inc) {
+      const incDesk = String(inc.deskripsi || '');
+      return (rev.id && incDesk.includes(rev.id)) || String(rev.statusRespon || '').includes(inc.insidenId || '');
+    });
+    if (linked && typeof openDetailInsidenModal === 'function') {
+      openDetailInsidenModal(linked);
+    }
+    return;
+  }
+
+  showGlobalLoader(true, 10000, 'Menyimpan status ulasan...');
   callPanoramaApi('apiSaveReviewAction', {
     reviewId: rev.id,
     statusRespon: 'TERJAWAB'
-  }, function() {}, function(err) {
-    console.warn('Save review action notice:', err);
+  }, function(res) {
+    showGlobalLoader(false);
+    if (res && res.success) {
+      rev.statusRespon = 'TERJAWAB';
+      safeSetStorage('PANORAMA_CLIENT_REVIEWS', d.reviews);
+      if (typeof saveScopedDataCache === 'function') {
+        saveScopedDataCache(window.PANORAMA_STATE.user, d);
+      }
+      renderMapsAiView();
+      showToast(res.message || ('Ulasan dari ' + rev.reviewer + ' (' + rev.namaCabang + ') ditandai selesai.'), 'success');
+    } else {
+      showToast(res && res.message ? res.message : 'Gagal mengubah status ulasan.', 'danger');
+    }
+  }, function(err) {
+    showGlobalLoader(false);
+    showToast('Gagal menghubungi server: ' + (err && err.message ? err.message : 'Koneksi terputus'), 'danger');
   });
 }
 

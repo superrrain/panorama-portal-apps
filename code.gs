@@ -343,7 +343,7 @@ function handleApiRequest(action, params) {
         var revPayload = (params.payload && typeof params.payload === 'object') ? params.payload : params;
         if (!revPayload.reviewId && params.reviewId) revPayload.reviewId = params.reviewId;
         if (!revPayload.statusRespon && params.actionText) revPayload.statusRespon = params.actionText;
-        result = apiSaveReviewAction(revPayload);
+        result = apiSaveReviewAction(revPayload, user);
         break;
 
       case 'escalateReview':
