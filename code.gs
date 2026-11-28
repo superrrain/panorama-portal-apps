@@ -170,7 +170,8 @@ function handleApiRequest(action, params) {
       case 'apiGetInitialData':
       case 'apiGetDashboardData':
         var initLiteMode = Boolean(params.liteMode || (params.payload && params.payload.liteMode));
-        result = apiGetInitialData(user, null, initLiteMode ? { liteMode: true } : null);
+        var initForceRefresh = Boolean(params.forceRefresh || params.bypassCache || (params.payload && (params.payload.forceRefresh || params.payload.bypassCache)));
+        result = apiGetInitialData(user, null, { liteMode: initLiteMode, forceRefresh: initForceRefresh });
         break;
 
       case 'getLibraryData':
@@ -930,17 +931,44 @@ function warmupPanoramaCacheCron_() {
 }
 
 function apiWarmupCache(userSession) {
-  return warmupPanoramaCache_(false);
+  return warmupPanoramaCache_(true);
 }
 
 /**
- * Pasang / Perbarui Jadwal Pemanas Server Otomatis (Jalankan 1x oleh COO dari Editor atau Pengaturan)
+ * Simple Trigger & Installable Trigger: Hapus cache otomatis saat admin edit/hapus baris langsung di Google Sheet
+ */
+function onEdit(e) {
+  try {
+    var shName = (e && e.range && e.range.getSheet) ? e.range.getSheet().getName() : '';
+    if (!shName) {
+      invalidateCacheDomains_(['MASTER', 'SALES', 'OTHER_OPS', 'NOTIF']);
+    } else if (/Master/i.test(shName)) {
+      invalidateCacheDomains_(['MASTER', 'SALES', 'OTHER_OPS', 'NOTIF']);
+    } else if (/Sales|Tugas/i.test(shName)) {
+      invalidateCacheDomains_(['SALES']);
+    } else if (/Notifikasi/i.test(shName)) {
+      invalidateCacheDomains_(['NOTIF']);
+    } else {
+      invalidateCacheDomains_(['OTHER_OPS']);
+    }
+  } catch (eEdit) {}
+}
+
+function onSpreadsheetChange_(e) {
+  try {
+    invalidateCacheDomains_(['MASTER', 'SALES', 'OTHER_OPS', 'NOTIF']);
+  } catch (eChg) {}
+}
+
+/**
+ * Pasang / Perbarui Jadwal Pemanas Server Otomatis + Pemantau Edit Google Sheet (Jalankan 1x oleh COO)
  */
 function setupCacheWarmupTrigger() {
   try {
     var triggers = ScriptApp.getProjectTriggers();
     for (var i = 0; i < triggers.length; i++) {
-      if (triggers[i].getHandlerFunction() === 'warmupPanoramaCacheCron_') {
+      var hFn = triggers[i].getHandlerFunction();
+      if (hFn === 'warmupPanoramaCacheCron_' || hFn === 'onSpreadsheetChange_') {
         ScriptApp.deleteTrigger(triggers[i]);
       }
     }
@@ -948,10 +976,19 @@ function setupCacheWarmupTrigger() {
       .timeBased()
       .everyMinutes(10)
       .create();
+    try {
+      var ssTrig = getSpreadsheetInstance();
+      if (ssTrig) {
+        ScriptApp.newTrigger('onSpreadsheetChange_')
+          .forSpreadsheet(ssTrig)
+          .onChange()
+          .create();
+      }
+    } catch (eOnChg) {}
     var warmRes = warmupPanoramaCache_(true);
     return {
       success: true,
-      message: 'Robot pemanas cache otomatis tiap 10 menit aktif (' + warmRes.warmedSheets + ' tabel dihangatkan dalam ' + warmRes.durationMs + ' ms).'
+      message: 'Robot pemanas cache tiap 10 menit + pemantau hapus/edit Sheet aktif (' + warmRes.warmedSheets + ' tabel dihangatkan dalam ' + warmRes.durationMs + ' ms).'
     };
   } catch (err) {
     return { success: false, message: 'Gagal memasang pemicu otomatis: ' + err.message };
@@ -1177,6 +1214,16 @@ function apiGetInitialData(userSession, fallbackUser, options) {
     }
     var opts = (options && typeof options === 'object') ? options : {};
     var liteMode = Boolean(opts.liteMode);
+    var forceRefresh = Boolean(opts.forceRefresh || opts.bypassCache);
+    if (forceRefresh && typeof invalidateCacheDomains_ === 'function') {
+      try {
+        var forceCache = CacheService.getScriptCache();
+        if (!forceCache.get('PAN_FORCE_CD')) {
+          invalidateCacheDomains_(['MASTER', 'SALES', 'OTHER_OPS', 'NOTIF']);
+          forceCache.put('PAN_FORCE_CD', '1', 5);
+        }
+      } catch (eForceCd) {}
+    }
 
     var roleStr = String(userSession.role || '').trim().toUpperCase();
     var areaStr = String(userSession.areaId || '').trim().toUpperCase();

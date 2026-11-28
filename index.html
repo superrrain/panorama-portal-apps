@@ -26220,10 +26220,12 @@ function callPanoramaApi(action, payload, onSuccess, onFailure, options) {
 
         try {
           if (targetFn === 'apiGetInitialData' || targetFn === 'getInitialData') {
-            const rpcOpts = (payload && payload.liteMode) ? { liteMode: true } : null;
+            const rpcOpts = {};
+            if (payload && payload.liteMode) rpcOpts.liteMode = true;
+            if (payload && payload.forceRefresh) rpcOpts.forceRefresh = true;
             google.script.run
               .withSuccessHandler(handleRpcSuccess)
-              .withFailureHandler(handleRpcFailure)[targetFn](window.PANORAMA_STATE.user, null, rpcOpts);
+              .withFailureHandler(handleRpcFailure)[targetFn](window.PANORAMA_STATE.user, null, (rpcOpts.liteMode || rpcOpts.forceRefresh) ? rpcOpts : null);
             return;
           }
           if (targetFn === 'apiGetLibraryData' || targetFn === 'getLibraryData' || targetFn === 'apiWarmupCache' || targetFn === 'apiSetupWarmupTrigger') {
@@ -28203,11 +28205,14 @@ function fetchOperationalData(forceRefresh, options) {
       if (!responseReceived) {
         responseReceived = true;
         console.warn('GAS RPC lambat (6s), beralih ke sinkronisasi REST API Cloud...');
-        fallbackFetchCloudData(forceRefresh, { liteMode: liteMode });
+        fallbackFetchCloudData(forceRefresh, { liteMode: liteMode, forceRefresh: Boolean(forceRefresh) });
       }
     }, 6000);
 
     try {
+      const gasRpcOpts = {};
+      if (liteMode) gasRpcOpts.liteMode = true;
+      if (forceRefresh) gasRpcOpts.forceRefresh = true;
       google.script.run
         .withSuccessHandler(function(res) {
           if (responseReceived) return;
@@ -28218,7 +28223,7 @@ function fetchOperationalData(forceRefresh, options) {
             applyFetchedData(res.data, forceRefresh);
           } else {
             console.warn('Respons GAS RPC tidak sukses, mencoba fallback HTTP API:', res ? res.message : '');
-            fallbackFetchCloudData(forceRefresh, { liteMode: liteMode });
+            fallbackFetchCloudData(forceRefresh, { liteMode: liteMode, forceRefresh: Boolean(forceRefresh) });
           }
         })
         .withFailureHandler(function(err) {
@@ -28227,21 +28232,21 @@ function fetchOperationalData(forceRefresh, options) {
           clearTimeout(watchdogTimer);
           showGlobalLoader(false);
           console.warn('google.script.run gagal, mencoba fallback HTTP API:', err);
-          fallbackFetchCloudData(forceRefresh, { liteMode: liteMode });
+          fallbackFetchCloudData(forceRefresh, { liteMode: liteMode, forceRefresh: Boolean(forceRefresh) });
         })
-        .apiGetInitialData(cleanUser, null, liteMode ? { liteMode: true } : null);
+        .apiGetInitialData(cleanUser, null, (gasRpcOpts.liteMode || gasRpcOpts.forceRefresh) ? gasRpcOpts : null);
     } catch (eGasCall) {
       if (responseReceived) return;
       responseReceived = true;
       clearTimeout(watchdogTimer);
       showGlobalLoader(false);
       console.warn('Gagal memanggil API GAS langsung:', eGasCall);
-      fallbackFetchCloudData(forceRefresh, { liteMode: liteMode });
+      fallbackFetchCloudData(forceRefresh, { liteMode: liteMode, forceRefresh: Boolean(forceRefresh) });
     }
   } else {
     // Jalur Vercel / PWA / Standalone Browser
     if (shouldBlockLoader) showGlobalLoader(true, 15000);
-    fallbackFetchCloudData(forceRefresh, { liteMode: liteMode });
+    fallbackFetchCloudData(forceRefresh, { liteMode: liteMode, forceRefresh: Boolean(forceRefresh) });
   }
 }
 
@@ -28329,7 +28334,8 @@ function applyFetchedData(fetchedData, showSuccessToast) {
 
 function fallbackFetchCloudData(forceRefresh, fetchOpts) {
   const liteMode = Boolean(fetchOpts && fetchOpts.liteMode);
-  callPanoramaHttpRest('apiGetInitialData', { user: window.PANORAMA_STATE.user || {}, liteMode: liteMode }, function(res) {
+  const bypassCache = Boolean(forceRefresh || (fetchOpts && fetchOpts.forceRefresh));
+  callPanoramaHttpRest('apiGetInitialData', { user: window.PANORAMA_STATE.user || {}, liteMode: liteMode, forceRefresh: bypassCache }, function(res) {
     window._PANORAMA_FETCH_IN_FLIGHT = false;
     setBackgroundSyncUI(false);
     showGlobalLoader(false);
@@ -50743,7 +50749,7 @@ function triggerAiMapsScan() {
   showToast('Memperbarui data Customer Review dari database...', 'info');
 
   if (typeof callPanoramaApi === 'function') {
-    callPanoramaApi('apiGetInitialData', {}, function(res) {
+    callPanoramaApi('apiGetInitialData', { forceRefresh: true }, function(res) {
       if (btn) {
         btn.disabled = false;
         btn.innerHTML = '<span><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></span> Sinkronkan Ulasan';
@@ -50752,6 +50758,9 @@ function triggerAiMapsScan() {
         if (!window.PANORAMA_STATE.data) window.PANORAMA_STATE.data = {};
         window.PANORAMA_STATE.data.reviews = res.data.reviews;
         safeSetStorage('PANORAMA_CLIENT_REVIEWS', res.data.reviews);
+        if (typeof saveScopedDataCache === 'function') {
+          saveScopedDataCache(window.PANORAMA_STATE.user, window.PANORAMA_STATE.data);
+        }
         renderMapsAiView();
         showToast('Data Customer Review berhasil diperbarui (' + res.data.reviews.length + ' ulasan).', 'success');
       } else {
