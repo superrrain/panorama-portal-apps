@@ -3889,9 +3889,9 @@
             </div>
             <span class="ai-scanner-title">Scan Struk / Screenshot POS</span>
           </div>
-          <p class="ai-scanner-desc">Foto layar POS atau struk closing (Momoyo, Wedrink, Tomoro, Mixue, Tianlala).
-            AI otomatis memisahkan omzet Offline, GrabFood, ShopeeFood, GoFood, TikTok & Qpon — dukung hingga 3 foto
-            scroll.</p>
+          <p class="ai-scanner-desc">Foto layar POS atau struk closing (Momoyo, Wedrink, Tomoro, Mixue, Tianlala,
+            Ultimashot Billiard). AI otomatis memilah Tunai, QRIS, platform online, & channel khusus brand — dukung hingga
+            3 foto scroll.</p>
 
           <!-- Tombol Trigger Upload & Kamera -->
           <div class="ai-scanner-actions" id="aiScannerActionButtons">
@@ -4002,17 +4002,25 @@
           <input type="number" class="form-input" id="inputSalesTarget" placeholder="Contoh: 5000000"
             autocomplete="off">
         </div>
-        <!-- BREAKDOWN SALES 6 CHANNEL (OTOMATIS DIJUMLAHKAN) -->
+        <!-- BREAKDOWN SALES MULTI-CHANNEL DINAMIS SESUAI BRAND CABANG -->
         <div class="sales-channel-input-box" id="salesChannelInputSection">
           <div class="sales-channel-box-header">
-            <span class="sales-channel-box-title">Rincian Omzet per Channel (Rp)</span>
+            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+              <span class="sales-channel-box-title">Rincian Omzet per Channel (Rp)</span>
+              <span class="badge badge-neutral" id="salesBrandChannelBadge" style="font-size:10px; padding:2px 8px;">Standar 7 Channel</span>
+            </div>
             <span class="sales-channel-ratio-pill" id="salesChannelRatioPill">Belum diisi</span>
           </div>
-          <div class="sales-channel-input-grid">
-            <div class="sales-ch-field" data-channel="offline">
-              <label for="inputSalesOffline"><span class="ch-dot ch-dot-offline"></span>Omset Offline
-                (Kasir/QRIS)</label>
-              <input type="number" min="0" step="any" class="form-input ch-num-input" id="inputSalesOffline"
+          <div id="salesPosUnsplitBanner" class="sales-unsplit-hint" style="display:none;"></div>
+          <div class="sales-channel-input-grid" id="salesChannelInputGrid">
+            <div class="sales-ch-field" data-channel="tunai">
+              <label for="inputSalesTunai"><span class="ch-dot ch-dot-tunai"></span>Tunai (Cash)</label>
+              <input type="number" min="0" step="any" class="form-input ch-num-input" id="inputSalesTunai"
+                placeholder="0" autocomplete="off" oninput="recalculateSalesChannelInputs()">
+            </div>
+            <div class="sales-ch-field" data-channel="qris">
+              <label for="inputSalesQris"><span class="ch-dot ch-dot-qris"></span>QRIS / EDC Kasir</label>
+              <input type="number" min="0" step="any" class="form-input ch-num-input" id="inputSalesQris"
                 placeholder="0" autocomplete="off" oninput="recalculateSalesChannelInputs()">
             </div>
             <div class="sales-ch-field" data-channel="grabfood">
@@ -4040,10 +4048,30 @@
               <input type="number" min="0" step="any" class="form-input ch-num-input" id="inputSalesQpon"
                 placeholder="0" autocomplete="off" oninput="recalculateSalesChannelInputs()">
             </div>
-          </div>
-          <div class="sales-channel-live-summary" id="salesChannelLiveSummary">
-            <div>Offline: <strong id="sumOfflineText">Rp 0</strong> • Online: <strong id="sumOnlineText">Rp 0</strong>
+            <div class="sales-ch-field" data-channel="tomoroApp" data-brands="TOMORO" style="display:none;">
+              <label for="inputSalesTomoroApp"><span class="ch-dot ch-dot-tomoro"></span>Tomoro Aplikasi</label>
+              <input type="number" min="0" step="any" class="form-input ch-num-input" id="inputSalesTomoroApp"
+                placeholder="0" autocomplete="off" oninput="recalculateSalesChannelInputs()">
             </div>
+            <div class="sales-ch-field" data-channel="grabDineOut" data-brands="TIANLALA,TOMORO" style="display:none;">
+              <label for="inputSalesGrabDineOut"><span class="ch-dot ch-dot-dineout"></span>Grab Dine Out</label>
+              <input type="number" min="0" step="any" class="form-input ch-num-input" id="inputSalesGrabDineOut"
+                placeholder="0" autocomplete="off" oninput="recalculateSalesChannelInputs()">
+            </div>
+            <div class="sales-ch-field" data-channel="grabInstantDeal" data-brands="TOMORO" style="display:none;">
+              <label for="inputSalesGrabInstantDeal"><span class="ch-dot ch-dot-instant"></span>Grab Instant Deal</label>
+              <input type="number" min="0" step="any" class="form-input ch-num-input" id="inputSalesGrabInstantDeal"
+                placeholder="0" autocomplete="off" oninput="recalculateSalesChannelInputs()">
+            </div>
+            <div class="sales-ch-field sales-ch-field--welfare" data-channel="welfare" data-brands="MOMOYO,TIANLALA,TOMORO" style="display:none;">
+              <label for="inputSalesWelfare"><span class="ch-dot ch-dot-welfare"></span>Welfare / Compliment <small style="font-weight:700; color:#B45309;">(Non-Omzet)</small></label>
+              <input type="number" min="0" step="any" class="form-input ch-num-input" id="inputSalesWelfare"
+                placeholder="0" autocomplete="off" oninput="recalculateSalesChannelInputs()">
+            </div>
+          </div>
+          <input type="hidden" id="inputSalesOffline" value="">
+          <div class="sales-channel-live-summary" id="salesChannelLiveSummary">
+            <div>Offline: <strong id="sumOfflineText">Rp 0</strong> • Online/App: <strong id="sumOnlineText">Rp 0</strong><span id="sumWelfareSummaryWrap" style="display:none;"> • Welfare: <strong id="sumWelfareText" style="color:#B45309;">Rp 0</strong></span></div>
             <div id="sumTargetGapText" style="font-weight:700;">-</div>
           </div>
         </div>
@@ -4052,7 +4080,7 @@
           <label class="form-label">Total Realisasi Omzet / Actual Sales (Rp)
             <span class="badge" id="salesActualAutoBadge"
               style="display:none; font-size:9.5px; background:rgba(16,185,129,0.14); color:#047857; padding:2px 6px; margin-left:4px;">AUTO-SUM
-              6 CHANNEL</span>
+              OMZET</span>
             <span class="ai-fill-tag" id="tagActualAi" style="display:none;"><svg class="p-ico" width="13" height="13"
                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"
                 stroke-linejoin="round">

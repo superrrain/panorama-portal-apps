@@ -31,7 +31,7 @@ var TAB = {
 // Objek Pemetaan Kolom Baku (Index-Based Mapping - Kebal terhadap perubahan label header)
 var COL_USER = { ID: 0, USERNAME: 1, PASSWORD: 2, NAMA: 3, ROLE: 4, AREA_ID: 5, WA: 6, STATUS: 7, CABANG_ID: 8 };
 var COL_CABANG = { ID: 0, AREA_ID: 1, MANAGER: 2, BRAND: 3, NAMA: 4, KOTA: 5, TARGET: 6, STATUS: 7, MAPS_URL: 8 };
-var COL_SALES = { ID: 0, TANGGAL: 1, AREA_ID: 2, CABANG_ID: 3, NAMA: 4, TARGET: 5, ACTUAL: 6, PERSEN: 7, TRX: 8, CREATED_BY: 9, CREATED_AT: 10, OFFLINE: 11, GRABFOOD: 12, SHOPEEFOOD: 13, GOFOOD: 14, TIKTOK: 15, QPON: 16 };
+var COL_SALES = { ID: 0, TANGGAL: 1, AREA_ID: 2, CABANG_ID: 3, NAMA: 4, TARGET: 5, ACTUAL: 6, PERSEN: 7, TRX: 8, CREATED_BY: 9, CREATED_AT: 10, OFFLINE: 11, GRABFOOD: 12, SHOPEEFOOD: 13, GOFOOD: 14, TIKTOK: 15, QPON: 16, TUNAI: 17, QRIS: 18, TOMORO_APP: 19, GRAB_DINE_OUT: 20, WELFARE: 21, GRAB_INSTANT_DEAL: 22 };
 var COL_INSIDEN = { ID: 0, TANGGAL: 1, AREA_ID: 2, CABANG_ID: 3, KATEGORI: 4, URGENSI: 5, DESK: 6, DRIVE_URL: 7, STATUS: 8, SELESAI: 9, SLA_JAM: 10, AKSI: 11, REPORTER: 12, BUKTI_PENANGANAN: 13, OTORISASI: 14 };
 var COL_EFISIENSI = { ID: 0, TANGGAL: 1, AREA_ID: 2, CABANG_ID: 3, HPP: 4, TARGET_HPP: 5, WASTE: 6, TARGET_WASTE: 7, PLAFON_CASH: 8, TERPAKAI_CASH: 9, NOTA_URL: 10, CATATAN: 11, UPDATED_BY: 12 };
 var COL_TUGAS = { ID: 0, JUDUL: 1, AREA_ID: 2, ASSIGNED_TO: 3, DEADLINE: 4, PRIORITAS: 5, STATUS: 6, CATATAN: 7, BUKTI_URL: 8, FEEDBACK: 9, CREATED_AT: 10, SIKLUS: 11, ACTION_LINK: 12 };
@@ -705,7 +705,7 @@ function testDatabaseConnection() {
 const DEFAULT_HEADERS = {
   MasterUser: ['UserID', 'Username', 'Password', 'NamaLengkap', 'Role', 'AreaID', 'NoWhatsApp', 'Status', 'CabangID'],
   MasterCabang: ['CabangID', 'AreaID', 'AreaManager', 'Brand', 'NamaCabang', 'KotaKabupaten', 'TargetSalesBulanan', 'StatusCabang'],
-  DataSales: ['SalesID', 'Tanggal', 'AreaID', 'CabangID', 'NamaCabang', 'TargetHarian', 'ActualSales', 'PersentaseCapaian', 'TotalTransaksi', 'CreatedBy', 'CreatedAt', 'SalesOffline', 'SalesGrabFood', 'SalesShopeeFood', 'SalesGoFood', 'SalesTikTok', 'SalesQpon'],
+  DataSales: ['SalesID', 'Tanggal', 'AreaID', 'CabangID', 'NamaCabang', 'TargetHarian', 'ActualSales', 'PersentaseCapaian', 'TotalTransaksi', 'CreatedBy', 'CreatedAt', 'SalesOffline', 'SalesGrabFood', 'SalesShopeeFood', 'SalesGoFood', 'SalesTikTok', 'SalesQpon', 'SalesTunai', 'SalesQris', 'SalesTomoroApp', 'SalesGrabDineOut', 'SalesWelfare', 'SalesGrabInstantDeal'],
   DataInsiden: ['InsidenID', 'TanggalLapor', 'AreaID', 'CabangID', 'Kategori', 'TingkatUrgensi', 'DeskripsiKasus', 'FileDriveUrl', 'StatusResolusi', 'WaktuSelesai', 'DurasiPenangananJam', 'TindakanPerbaikan', 'ReportedBy', 'BuktiPenangananUrl'],
   DataEfisiensi: ['EfisiensiID', 'Tanggal', 'AreaID', 'CabangID', 'HPPBahanBakuPersen', 'TargetHPPMax', 'WasteSpoiledPersen', 'TargetWasteMax', 'PlafonPettyCash', 'TerpakaiPettyCash', 'BuktiNotaDriveUrl', 'CatatanOperasional', 'UpdatedBy'],
   DataTugas: ['TugasID', 'JudulTugas', 'AreaID', 'AssignedTo', 'Deadline', 'Prioritas', 'StatusTugas', 'CatatanProgres', 'FileBuktiTugasUrl', 'FeedbackCOO', 'CreatedAt', 'Siklus', 'ActionLink'],
@@ -1339,7 +1339,13 @@ function apiGetInitialData(userSession, fallbackUser, options) {
             salesShopeeFood: Number(rs[COL_SALES.SHOPEEFOOD] || 0),
             salesGoFood: Number(rs[COL_SALES.GOFOOD] || 0),
             salesTikTok: Number(rs[COL_SALES.TIKTOK] || 0),
-            salesQpon: Number(rs[COL_SALES.QPON] || 0)
+            salesQpon: Number(rs[COL_SALES.QPON] || 0),
+            salesTunai: Number(rs[COL_SALES.TUNAI] || 0),
+            salesQris: Number(rs[COL_SALES.QRIS] || 0),
+            salesTomoroApp: Number(rs[COL_SALES.TOMORO_APP] || 0),
+            salesGrabDineOut: Number(rs[COL_SALES.GRAB_DINE_OUT] || 0),
+            salesWelfare: Number(rs[COL_SALES.WELFARE] || 0),
+            salesGrabInstantDeal: Number(rs[COL_SALES.GRAB_INSTANT_DEAL] || 0)
           };
           var salesKey = sCabId + '_' + cleanTgl;
           if (cleanTgl && salesMap[salesKey] !== undefined) {

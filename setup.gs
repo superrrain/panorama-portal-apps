@@ -254,9 +254,9 @@ function initPanoramaDatabase() {
   const headerCabang = ['CabangID', 'AreaID', 'AreaManager', 'Brand', 'NamaCabang', 'KotaKabupaten', 'TargetSalesBulanan', 'StatusCabang', 'GoogleMapsUrl'];
   safeCreateSheet(ss, SHEETS.CABANG, headerCabang, getMasterDataCabang());
 
-  // 3. Inisialisasi Tab DataSales (Bersih / Siap Input Riil)
+  // 3. Inisialisasi Tab DataSales (Bersih / Siap Input Riil - 23 Kolom Multi-Channel per Brand)
   console.log('[3/7] Menyiapkan tab DataSales...');
-  const headerSales = ['SalesID', 'Tanggal', 'AreaID', 'CabangID', 'NamaCabang', 'TargetHarian', 'ActualSales', 'PersentaseCapaian', 'TotalTransaksi', 'CreatedBy', 'CreatedAt', 'SalesOffline', 'SalesGrabFood', 'SalesShopeeFood', 'SalesGoFood', 'SalesTikTok', 'SalesQpon'];
+  const headerSales = ['SalesID', 'Tanggal', 'AreaID', 'CabangID', 'NamaCabang', 'TargetHarian', 'ActualSales', 'PersentaseCapaian', 'TotalTransaksi', 'CreatedBy', 'CreatedAt', 'SalesOffline', 'SalesGrabFood', 'SalesShopeeFood', 'SalesGoFood', 'SalesTikTok', 'SalesQpon', 'SalesTunai', 'SalesQris', 'SalesTomoroApp', 'SalesGrabDineOut', 'SalesWelfare', 'SalesGrabInstantDeal'];
   safeCreateSheet(ss, SHEETS.SALES, headerSales, []);
 
   // 4. Inisialisasi Tab DataInsiden (Bersih / Siap Input Riil)

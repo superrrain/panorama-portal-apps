@@ -18323,8 +18323,15 @@
   }
 
   .ch-dot-offline,
-  .ch-pill-offline-dot {
+  .ch-pill-offline-dot,
+  .ch-dot-tunai,
+  .ch-pill-tunai-dot {
     background: #10B981;
+  }
+
+  .ch-dot-qris,
+  .ch-pill-qris-dot {
+    background: #0284C7;
   }
 
   .ch-dot-grab,
@@ -18352,8 +18359,33 @@
     background: #7C3AED;
   }
 
-  .ch-pill-offline-bg {
+  .ch-dot-tomoro,
+  .ch-pill-tomoro-dot {
+    background: #F97316;
+  }
+
+  .ch-dot-dineout,
+  .ch-pill-dineout-dot {
+    background: #0D9488;
+  }
+
+  .ch-dot-instant,
+  .ch-pill-instant-dot {
+    background: #65A30D;
+  }
+
+  .ch-dot-welfare,
+  .ch-pill-welfare-dot {
+    background: #D97706;
+  }
+
+  .ch-pill-offline-bg,
+  .ch-pill-tunai-bg {
     background: #10B981;
+  }
+
+  .ch-pill-qris-bg {
+    background: #0284C7;
   }
 
   .ch-pill-grab-bg {
@@ -18374,6 +18406,22 @@
 
   .ch-pill-qpon-bg {
     background: #7C3AED;
+  }
+
+  .ch-pill-tomoro-bg {
+    background: #F97316;
+  }
+
+  .ch-pill-dineout-bg {
+    background: #0D9488;
+  }
+
+  .ch-pill-instant-bg {
+    background: #65A30D;
+  }
+
+  .ch-pill-welfare-bg {
+    background: #D97706;
   }
 
   .ch-pill-legacy-bg {
@@ -18429,7 +18477,7 @@
 
   .sales-ch-summary-grid {
     display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
     gap: 8px;
     margin-top: 12px;
   }
@@ -18439,6 +18487,32 @@
     border: 1px solid #E2E8F0;
     border-radius: 10px;
     padding: 8px 10px;
+  }
+
+  .sales-ch-summary-item--welfare {
+    background: #FFFBEB;
+    border: 1px dashed #F59E0B;
+  }
+
+  .sales-ch-field--welfare input {
+    border-style: dashed;
+    border-color: #F59E0B;
+  }
+
+  .sales-unsplit-hint {
+    background: #FFFBEB;
+    border: 1px solid #FDE68A;
+    color: #92400E;
+    border-radius: 8px;
+    padding: 7px 10px;
+    font-size: 11px;
+    line-height: 1.4;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
   }
 
   .sales-ch-summary-top {
@@ -18493,10 +18567,17 @@
     white-space: nowrap;
   }
 
-  .ch-mini-chip.ch-pill-offline {
+  .ch-mini-chip.ch-pill-offline,
+  .ch-mini-chip.ch-pill-tunai {
     background: rgba(16, 185, 129, 0.1);
     color: #065F46;
     border-color: rgba(16, 185, 129, 0.25);
+  }
+
+  .ch-mini-chip.ch-pill-qris {
+    background: rgba(2, 132, 199, 0.1);
+    color: #0369A1;
+    border-color: rgba(2, 132, 199, 0.28);
   }
 
   .ch-mini-chip.ch-pill-grab {
@@ -18527,6 +18608,31 @@
     background: rgba(124, 58, 237, 0.1);
     color: #5B21B6;
     border-color: rgba(124, 58, 237, 0.25);
+  }
+
+  .ch-mini-chip.ch-pill-tomoro {
+    background: rgba(249, 115, 22, 0.12);
+    color: #C2410C;
+    border-color: rgba(249, 115, 22, 0.28);
+  }
+
+  .ch-mini-chip.ch-pill-dineout {
+    background: rgba(13, 148, 136, 0.12);
+    color: #0F766E;
+    border-color: rgba(13, 148, 136, 0.28);
+  }
+
+  .ch-mini-chip.ch-pill-instant {
+    background: rgba(101, 163, 13, 0.12);
+    color: #3F6212;
+    border-color: rgba(101, 163, 13, 0.28);
+  }
+
+  .ch-mini-chip.ch-pill-welfare {
+    background: rgba(217, 119, 6, 0.12);
+    color: #B45309;
+    border-style: dashed;
+    border-color: rgba(217, 119, 6, 0.4);
   }
 
   .ch-mini-chip.ch-pill-legacy {
@@ -18687,16 +18793,34 @@
     border-color: #20372B;
   }
 
+  :is(html[data-theme="dark"], html.theme-dark) .sales-ch-summary-item--welfare {
+    background: rgba(217, 119, 6, 0.14);
+    border-color: rgba(245, 158, 11, 0.4);
+  }
+
+  :is(html[data-theme="dark"], html.theme-dark) .sales-unsplit-hint {
+    background: rgba(245, 158, 11, 0.15);
+    border-color: rgba(251, 191, 36, 0.35);
+    color: #FDE68A;
+  }
+
   :is(html[data-theme="dark"], html.theme-dark) .ch-dot-tiktok,
   :is(html[data-theme="dark"], html.theme-dark) .ch-pill-tiktok-dot,
   :is(html[data-theme="dark"], html.theme-dark) .ch-pill-tiktok-bg {
     background: #38BDF8;
   }
 
-  :is(html[data-theme="dark"], html.theme-dark) .ch-mini-chip.ch-pill-offline {
+  :is(html[data-theme="dark"], html.theme-dark) .ch-mini-chip.ch-pill-offline,
+  :is(html[data-theme="dark"], html.theme-dark) .ch-mini-chip.ch-pill-tunai {
     background: rgba(16, 185, 129, 0.18);
     color: #6EE7B7;
     border-color: rgba(16, 185, 129, 0.35);
+  }
+
+  :is(html[data-theme="dark"], html.theme-dark) .ch-mini-chip.ch-pill-qris {
+    background: rgba(56, 189, 248, 0.18);
+    color: #7DD3FC;
+    border-color: rgba(56, 189, 248, 0.35);
   }
 
   :is(html[data-theme="dark"], html.theme-dark) .ch-mini-chip.ch-pill-grab {
@@ -18727,6 +18851,30 @@
     background: rgba(139, 92, 246, 0.22);
     color: #C4B5FD;
     border-color: rgba(139, 92, 246, 0.4);
+  }
+
+  :is(html[data-theme="dark"], html.theme-dark) .ch-mini-chip.ch-pill-tomoro {
+    background: rgba(249, 115, 22, 0.2);
+    color: #FDBA74;
+    border-color: rgba(249, 115, 22, 0.4);
+  }
+
+  :is(html[data-theme="dark"], html.theme-dark) .ch-mini-chip.ch-pill-dineout {
+    background: rgba(20, 184, 166, 0.2);
+    color: #5EEAD4;
+    border-color: rgba(20, 184, 166, 0.4);
+  }
+
+  :is(html[data-theme="dark"], html.theme-dark) .ch-mini-chip.ch-pill-instant {
+    background: rgba(132, 204, 22, 0.2);
+    color: #BEF264;
+    border-color: rgba(132, 204, 22, 0.4);
+  }
+
+  :is(html[data-theme="dark"], html.theme-dark) .ch-mini-chip.ch-pill-welfare {
+    background: rgba(245, 158, 11, 0.2);
+    color: #FDE68A;
+    border-color: rgba(245, 158, 11, 0.42);
   }
 
   :is(html[data-theme="dark"], html.theme-dark) .ch-mini-chip.ch-pill-legacy {
@@ -22726,9 +22874,9 @@
             </div>
             <span class="ai-scanner-title">Scan Struk / Screenshot POS</span>
           </div>
-          <p class="ai-scanner-desc">Foto layar POS atau struk closing (Momoyo, Wedrink, Tomoro, Mixue, Tianlala).
-            AI otomatis memisahkan omzet Offline, GrabFood, ShopeeFood, GoFood, TikTok & Qpon — dukung hingga 3 foto
-            scroll.</p>
+          <p class="ai-scanner-desc">Foto layar POS atau struk closing (Momoyo, Wedrink, Tomoro, Mixue, Tianlala,
+            Ultimashot Billiard). AI otomatis memilah Tunai, QRIS, platform online, & channel khusus brand — dukung hingga
+            3 foto scroll.</p>
 
           <!-- Tombol Trigger Upload & Kamera -->
           <div class="ai-scanner-actions" id="aiScannerActionButtons">
@@ -22839,17 +22987,25 @@
           <input type="number" class="form-input" id="inputSalesTarget" placeholder="Contoh: 5000000"
             autocomplete="off">
         </div>
-        <!-- BREAKDOWN SALES 6 CHANNEL (OTOMATIS DIJUMLAHKAN) -->
+        <!-- BREAKDOWN SALES MULTI-CHANNEL DINAMIS SESUAI BRAND CABANG -->
         <div class="sales-channel-input-box" id="salesChannelInputSection">
           <div class="sales-channel-box-header">
-            <span class="sales-channel-box-title">Rincian Omzet per Channel (Rp)</span>
+            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+              <span class="sales-channel-box-title">Rincian Omzet per Channel (Rp)</span>
+              <span class="badge badge-neutral" id="salesBrandChannelBadge" style="font-size:10px; padding:2px 8px;">Standar 7 Channel</span>
+            </div>
             <span class="sales-channel-ratio-pill" id="salesChannelRatioPill">Belum diisi</span>
           </div>
-          <div class="sales-channel-input-grid">
-            <div class="sales-ch-field" data-channel="offline">
-              <label for="inputSalesOffline"><span class="ch-dot ch-dot-offline"></span>Omset Offline
-                (Kasir/QRIS)</label>
-              <input type="number" min="0" step="any" class="form-input ch-num-input" id="inputSalesOffline"
+          <div id="salesPosUnsplitBanner" class="sales-unsplit-hint" style="display:none;"></div>
+          <div class="sales-channel-input-grid" id="salesChannelInputGrid">
+            <div class="sales-ch-field" data-channel="tunai">
+              <label for="inputSalesTunai"><span class="ch-dot ch-dot-tunai"></span>Tunai (Cash)</label>
+              <input type="number" min="0" step="any" class="form-input ch-num-input" id="inputSalesTunai"
+                placeholder="0" autocomplete="off" oninput="recalculateSalesChannelInputs()">
+            </div>
+            <div class="sales-ch-field" data-channel="qris">
+              <label for="inputSalesQris"><span class="ch-dot ch-dot-qris"></span>QRIS / EDC Kasir</label>
+              <input type="number" min="0" step="any" class="form-input ch-num-input" id="inputSalesQris"
                 placeholder="0" autocomplete="off" oninput="recalculateSalesChannelInputs()">
             </div>
             <div class="sales-ch-field" data-channel="grabfood">
@@ -22877,10 +23033,30 @@
               <input type="number" min="0" step="any" class="form-input ch-num-input" id="inputSalesQpon"
                 placeholder="0" autocomplete="off" oninput="recalculateSalesChannelInputs()">
             </div>
-          </div>
-          <div class="sales-channel-live-summary" id="salesChannelLiveSummary">
-            <div>Offline: <strong id="sumOfflineText">Rp 0</strong> • Online: <strong id="sumOnlineText">Rp 0</strong>
+            <div class="sales-ch-field" data-channel="tomoroApp" data-brands="TOMORO" style="display:none;">
+              <label for="inputSalesTomoroApp"><span class="ch-dot ch-dot-tomoro"></span>Tomoro Aplikasi</label>
+              <input type="number" min="0" step="any" class="form-input ch-num-input" id="inputSalesTomoroApp"
+                placeholder="0" autocomplete="off" oninput="recalculateSalesChannelInputs()">
             </div>
+            <div class="sales-ch-field" data-channel="grabDineOut" data-brands="TIANLALA,TOMORO" style="display:none;">
+              <label for="inputSalesGrabDineOut"><span class="ch-dot ch-dot-dineout"></span>Grab Dine Out</label>
+              <input type="number" min="0" step="any" class="form-input ch-num-input" id="inputSalesGrabDineOut"
+                placeholder="0" autocomplete="off" oninput="recalculateSalesChannelInputs()">
+            </div>
+            <div class="sales-ch-field" data-channel="grabInstantDeal" data-brands="TOMORO" style="display:none;">
+              <label for="inputSalesGrabInstantDeal"><span class="ch-dot ch-dot-instant"></span>Grab Instant Deal</label>
+              <input type="number" min="0" step="any" class="form-input ch-num-input" id="inputSalesGrabInstantDeal"
+                placeholder="0" autocomplete="off" oninput="recalculateSalesChannelInputs()">
+            </div>
+            <div class="sales-ch-field sales-ch-field--welfare" data-channel="welfare" data-brands="MOMOYO,TIANLALA,TOMORO" style="display:none;">
+              <label for="inputSalesWelfare"><span class="ch-dot ch-dot-welfare"></span>Welfare / Compliment <small style="font-weight:700; color:#B45309;">(Non-Omzet)</small></label>
+              <input type="number" min="0" step="any" class="form-input ch-num-input" id="inputSalesWelfare"
+                placeholder="0" autocomplete="off" oninput="recalculateSalesChannelInputs()">
+            </div>
+          </div>
+          <input type="hidden" id="inputSalesOffline" value="">
+          <div class="sales-channel-live-summary" id="salesChannelLiveSummary">
+            <div>Offline: <strong id="sumOfflineText">Rp 0</strong> • Online/App: <strong id="sumOnlineText">Rp 0</strong><span id="sumWelfareSummaryWrap" style="display:none;"> • Welfare: <strong id="sumWelfareText" style="color:#B45309;">Rp 0</strong></span></div>
             <div id="sumTargetGapText" style="font-weight:700;">-</div>
           </div>
         </div>
@@ -22889,7 +23065,7 @@
           <label class="form-label">Total Realisasi Omzet / Actual Sales (Rp)
             <span class="badge" id="salesActualAutoBadge"
               style="display:none; font-size:9.5px; background:rgba(16,185,129,0.14); color:#047857; padding:2px 6px; margin-left:4px;">AUTO-SUM
-              6 CHANNEL</span>
+              OMZET</span>
             <span class="ai-fill-tag" id="tagActualAi" style="display:none;"><svg class="p-ico" width="13" height="13"
                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"
                 stroke-linejoin="round">
@@ -26267,11 +26443,17 @@ function applySalesRecordToLocalData(dataObj, payload, isPending) {
     const ex = dataObj.sales[existingIdx];
     ex.actualSales = actual;
     ex.salesOffline = Number(payload.salesOffline || 0);
+    ex.salesTunai = Number(payload.salesTunai || 0);
+    ex.salesQris = Number(payload.salesQris || 0);
     ex.salesGrabFood = Number(payload.salesGrabFood || 0);
     ex.salesShopeeFood = Number(payload.salesShopeeFood || 0);
     ex.salesGoFood = Number(payload.salesGoFood || 0);
     ex.salesTikTok = Number(payload.salesTikTok || 0);
     ex.salesQpon = Number(payload.salesQpon || 0);
+    ex.salesTomoroApp = Number(payload.salesTomoroApp || 0);
+    ex.salesGrabDineOut = Number(payload.salesGrabDineOut || 0);
+    ex.salesWelfare = Number(payload.salesWelfare || 0);
+    ex.salesGrabInstantDeal = Number(payload.salesGrabInstantDeal || 0);
     ex.targetHarian = target;
     ex.persentase = persen;
     ex.totalTransaksi = Number(payload.totalTransaksi || 0);
@@ -26295,11 +26477,17 @@ function applySalesRecordToLocalData(dataObj, payload, isPending) {
       targetHarian: target,
       actualSales: actual,
       salesOffline: Number(payload.salesOffline || 0),
+      salesTunai: Number(payload.salesTunai || 0),
+      salesQris: Number(payload.salesQris || 0),
       salesGrabFood: Number(payload.salesGrabFood || 0),
       salesShopeeFood: Number(payload.salesShopeeFood || 0),
       salesGoFood: Number(payload.salesGoFood || 0),
       salesTikTok: Number(payload.salesTikTok || 0),
       salesQpon: Number(payload.salesQpon || 0),
+      salesTomoroApp: Number(payload.salesTomoroApp || 0),
+      salesGrabDineOut: Number(payload.salesGrabDineOut || 0),
+      salesWelfare: Number(payload.salesWelfare || 0),
+      salesGrabInstantDeal: Number(payload.salesGrabInstantDeal || 0),
       persentase: persen,
       totalTransaksi: Number(payload.totalTransaksi || 0),
       createdBy: (payload.createdBy || 'Staff') + (isPending ? ' (Antrean HP)' : ''),
@@ -29253,25 +29441,71 @@ function formatManagerShortName(name) {
  * Memastikan filter 'Hari Ini' HANYA membaca transaksi tanggal hari ini (anti-akumulasi tanggal kemarin)
  */
 /**
- * Definisi Terpusat Channel Sales Panorama (6 Channel + Legacy Compatibility)
+ * Definisi Terpusat Channel Sales Panorama (11 Channel Multi-Brand + Legacy Compatibility)
+ * - offline: Tunai + QRIS (data baru); fallback salesOffline lama bila belum dipecah
+ * - online: GrabFood, ShopeeFood, GoFood, TikTok, Qpon, Tomoro App, Grab Dine Out, Grab Instant Deal
+ * - nonRevenue: Welfare / Compliment (Pilihan A: dicatat terpisah, TIDAK dihitung ke Actual Sales)
  */
 const PANORAMA_SALES_CHANNELS = [
-  { key: 'offline', payloadKey: 'salesOffline', inputId: 'inputSalesOffline', label: 'Offline', shortLabel: 'Offline', color: '#10B981', pillClass: 'ch-pill-offline' },
-  { key: 'grabFood', payloadKey: 'salesGrabFood', inputId: 'inputSalesGrabFood', label: 'GrabFood', shortLabel: 'Grab', color: '#00B14F', pillClass: 'ch-pill-grab' },
-  { key: 'shopeeFood', payloadKey: 'salesShopeeFood', inputId: 'inputSalesShopeeFood', label: 'ShopeeFood', shortLabel: 'Shopee', color: '#EE4D2D', pillClass: 'ch-pill-shopee' },
-  { key: 'goFood', payloadKey: 'salesGoFood', inputId: 'inputSalesGoFood', label: 'GoFood', shortLabel: 'GoFood', color: '#DC2626', pillClass: 'ch-pill-gofood' },
-  { key: 'tikTok', payloadKey: 'salesTikTok', inputId: 'inputSalesTikTok', label: 'TikTok', shortLabel: 'TikTok', color: '#0F172A', pillClass: 'ch-pill-tiktok' },
-  { key: 'qpon', payloadKey: 'salesQpon', inputId: 'inputSalesQpon', label: 'Qpon', shortLabel: 'Qpon', color: '#7C3AED', pillClass: 'ch-pill-qpon' }
+  { key: 'tunai', payloadKey: 'salesTunai', inputId: 'inputSalesTunai', fieldName: 'tunai', label: 'Tunai (Cash)', shortLabel: 'Tunai', category: 'offline', color: '#10B981', pillClass: 'ch-pill-tunai' },
+  { key: 'qris', payloadKey: 'salesQris', inputId: 'inputSalesQris', fieldName: 'qris', label: 'QRIS / EDC', shortLabel: 'QRIS', category: 'offline', color: '#0284C7', pillClass: 'ch-pill-qris' },
+  { key: 'grabFood', payloadKey: 'salesGrabFood', inputId: 'inputSalesGrabFood', fieldName: 'grabfood', label: 'GrabFood', shortLabel: 'Grab', category: 'online', color: '#00B14F', pillClass: 'ch-pill-grab' },
+  { key: 'shopeeFood', payloadKey: 'salesShopeeFood', inputId: 'inputSalesShopeeFood', fieldName: 'shopeefood', label: 'ShopeeFood', shortLabel: 'Shopee', category: 'online', color: '#EE4D2D', pillClass: 'ch-pill-shopee' },
+  { key: 'goFood', payloadKey: 'salesGoFood', inputId: 'inputSalesGoFood', fieldName: 'gofood', label: 'GoFood', shortLabel: 'GoFood', category: 'online', color: '#DC2626', pillClass: 'ch-pill-gofood' },
+  { key: 'tikTok', payloadKey: 'salesTikTok', inputId: 'inputSalesTikTok', fieldName: 'tiktok', label: 'TikTok', shortLabel: 'TikTok', category: 'online', color: '#0F172A', pillClass: 'ch-pill-tiktok' },
+  { key: 'qpon', payloadKey: 'salesQpon', inputId: 'inputSalesQpon', fieldName: 'qpon', label: 'Qpon', shortLabel: 'Qpon', category: 'online', color: '#7C3AED', pillClass: 'ch-pill-qpon' },
+  { key: 'tomoroApp', payloadKey: 'salesTomoroApp', inputId: 'inputSalesTomoroApp', fieldName: 'tomoroApp', label: 'Tomoro App', shortLabel: 'TomoroApp', category: 'online', brands: ['TOMORO'], color: '#F97316', pillClass: 'ch-pill-tomoro' },
+  { key: 'grabDineOut', payloadKey: 'salesGrabDineOut', inputId: 'inputSalesGrabDineOut', fieldName: 'grabDineOut', label: 'Grab Dine Out', shortLabel: 'Dine Out', category: 'online', brands: ['TIANLALA', 'TOMORO'], color: '#0D9488', pillClass: 'ch-pill-dineout' },
+  { key: 'grabInstantDeal', payloadKey: 'salesGrabInstantDeal', inputId: 'inputSalesGrabInstantDeal', fieldName: 'grabInstantDeal', label: 'Grab Instant Deal', shortLabel: 'Instant Deal', category: 'online', brands: ['TOMORO'], color: '#65A30D', pillClass: 'ch-pill-instant' },
+  { key: 'welfare', payloadKey: 'salesWelfare', inputId: 'inputSalesWelfare', fieldName: 'welfare', label: 'Welfare / Compliment', shortLabel: 'Welfare', category: 'nonRevenue', isNonRevenue: true, brands: ['MOMOYO', 'TIANLALA', 'TOMORO'], color: '#D97706', pillClass: 'ch-pill-welfare' }
 ];
+
+function resolveSalesBrandKey(brandOrBranch) {
+  let raw = '';
+  if (typeof brandOrBranch === 'string') {
+    raw = brandOrBranch;
+  } else if (brandOrBranch && typeof brandOrBranch === 'object') {
+    raw = String(brandOrBranch.brand || '') + ' ' + String(brandOrBranch.namaCabang || '');
+  }
+  const u = raw.trim().toUpperCase();
+  if (!u || u === 'ALL') return 'DEFAULT';
+  if (u.includes('TOMORO')) return 'TOMORO';
+  if (u.includes('TIANLALA')) return 'TIANLALA';
+  if (u.includes('MOMOYO')) return 'MOMOYO';
+  if (u.includes('WEDRINK')) return 'WEDRINK';
+  if (u.includes('MIXUE')) return 'MIXUE';
+  if (u.includes('ULTIMA') || u.includes('BILLIARD')) return 'ULTIMASHOT';
+  return 'DEFAULT';
+}
+
+function isChannelEnabledForBrand(chMeta, brandOrBranch) {
+  if (!chMeta) return false;
+  if (!Array.isArray(chMeta.brands) || chMeta.brands.length === 0) return true;
+  const brandKey = resolveSalesBrandKey(brandOrBranch);
+  return chMeta.brands.indexOf(brandKey) !== -1;
+}
+
+function getVisibleChannelsForBrand(brandOrBranch) {
+  return PANORAMA_SALES_CHANNELS.filter(function(meta) {
+    return isChannelEnabledForBrand(meta, brandOrBranch);
+  });
+}
 
 function createEmptyChannelBucket() {
   return {
+    tunai: 0,
+    qris: 0,
+    offlineLegacy: 0,
     offline: 0,
     grabFood: 0,
     shopeeFood: 0,
     goFood: 0,
     tikTok: 0,
     qpon: 0,
+    tomoroApp: 0,
+    grabDineOut: 0,
+    grabInstantDeal: 0,
+    welfare: 0,
     onlineTotal: 0,
     legacyUnclassified: 0
   };
@@ -29280,13 +29514,24 @@ function createEmptyChannelBucket() {
 function extractSalesRecordChannels(record) {
   const r = record || {};
   const ch = createEmptyChannelBucket();
-  ch.offline = Math.max(0, Number(r.salesOffline || 0));
+  ch.tunai = Math.max(0, Number(r.salesTunai || 0));
+  ch.qris = Math.max(0, Number(r.salesQris || 0));
+  const rawOffline = Math.max(0, Number(r.salesOffline || 0));
+  const splitOffline = ch.tunai + ch.qris;
+  ch.offlineLegacy = (splitOffline === 0 && rawOffline > 0) ? rawOffline : 0;
+  ch.offline = splitOffline > 0 ? splitOffline : rawOffline;
+
   ch.grabFood = Math.max(0, Number(r.salesGrabFood || 0));
   ch.shopeeFood = Math.max(0, Number(r.salesShopeeFood || 0));
   ch.goFood = Math.max(0, Number(r.salesGoFood || 0));
   ch.tikTok = Math.max(0, Number(r.salesTikTok || 0));
   ch.qpon = Math.max(0, Number(r.salesQpon || 0));
-  ch.onlineTotal = ch.grabFood + ch.shopeeFood + ch.goFood + ch.tikTok + ch.qpon;
+  ch.tomoroApp = Math.max(0, Number(r.salesTomoroApp || 0));
+  ch.grabDineOut = Math.max(0, Number(r.salesGrabDineOut || 0));
+  ch.grabInstantDeal = Math.max(0, Number(r.salesGrabInstantDeal || 0));
+  ch.welfare = Math.max(0, Number(r.salesWelfare || 0)); // Non-omzet tracking
+
+  ch.onlineTotal = ch.grabFood + ch.shopeeFood + ch.goFood + ch.tikTok + ch.qpon + ch.tomoroApp + ch.grabDineOut + ch.grabInstantDeal;
   const act = Math.max(0, Number(r.actualSales || 0));
   const knownSum = ch.offline + ch.onlineTotal;
   if (act > knownSum) {
@@ -29297,12 +29542,19 @@ function extractSalesRecordChannels(record) {
 
 function addChannelBuckets(target, addition) {
   if (!target || !addition) return target;
+  target.tunai += Number(addition.tunai || 0);
+  target.qris += Number(addition.qris || 0);
+  target.offlineLegacy += Number(addition.offlineLegacy || 0);
   target.offline += Number(addition.offline || 0);
   target.grabFood += Number(addition.grabFood || 0);
   target.shopeeFood += Number(addition.shopeeFood || 0);
   target.goFood += Number(addition.goFood || 0);
   target.tikTok += Number(addition.tikTok || 0);
   target.qpon += Number(addition.qpon || 0);
+  target.tomoroApp += Number(addition.tomoroApp || 0);
+  target.grabDineOut += Number(addition.grabDineOut || 0);
+  target.grabInstantDeal += Number(addition.grabInstantDeal || 0);
+  target.welfare += Number(addition.welfare || 0);
   target.onlineTotal += Number(addition.onlineTotal || 0);
   target.legacyUnclassified += Number(addition.legacyUnclassified || 0);
   return target;
@@ -29318,8 +29570,10 @@ function buildChannelMixStripHtml(channels, totalActual, options) {
   const total = Math.max(0, Number(totalActual || 0));
   const knownTotal = Number(ch.offline || 0) + Number(ch.onlineTotal || 0);
   const legacy = Math.max(0, Number(ch.legacyUnclassified || 0));
+  const offlineLegacy = Math.max(0, Number(ch.offlineLegacy || 0));
+  const welfareVal = Math.max(0, Number(ch.welfare || 0));
 
-  if (total <= 0 && knownTotal <= 0) {
+  if (total <= 0 && knownTotal <= 0 && welfareVal <= 0) {
     return '';
   }
 
@@ -29332,25 +29586,38 @@ function buildChannelMixStripHtml(channels, totalActual, options) {
     PANORAMA_SALES_CHANNELS.forEach(meta => {
       const val = Number(ch[meta.key] || 0);
       if (val > 0) {
+        const chipTitle = meta.isNonRevenue
+          ? (meta.label + ' (Non-Omzet): Rp ' + formatRupiah(val))
+          : (meta.label + ': Rp ' + formatRupiah(val));
         activeChips.push(
-          '<span class="ch-mini-chip ' + meta.pillClass + '" title="' + meta.label + ': Rp ' + formatRupiah(val) + '">' +
+          '<span class="ch-mini-chip ' + meta.pillClass + '" title="' + chipTitle + '">' +
             meta.shortLabel + ' <strong>' + formatCompactRupiah(val) + '</strong>' +
           '</span>'
         );
       }
     });
-    if (legacy > 0 && activeChips.length === 0) {
+    if (offlineLegacy > 0) {
+      activeChips.unshift(
+        '<span class="ch-mini-chip ch-pill-offline" title="Offline (Pra-pemisahan Tunai/QRIS): Rp ' + formatRupiah(offlineLegacy) + '">' +
+          'Offline <strong>' + formatCompactRupiah(offlineLegacy) + '</strong>' +
+        '</span>'
+      );
+    }
+    if (legacy > 0) {
       activeChips.push('<span class="ch-mini-chip ch-pill-legacy" title="Data historis sebelum breakdown channel">Legacy <strong>' + formatCompactRupiah(legacy) + '</strong></span>');
-    } else if (legacy > 0) {
-      activeChips.push('<span class="ch-mini-chip ch-pill-legacy">Legacy ' + formatCompactRupiah(legacy) + '</span>');
     }
     if (activeChips.length === 0) return '';
     return '<div class="ch-mini-chips-wrap">' + activeChips.join('') + '</div>';
   }
 
-  // Stacked proportional progress bar
+  // Stacked proportional progress bar (hanya channel omzet berbayar + legacy offline)
   const segs = [];
+  if (offlineLegacy > 0 && denom > 0) {
+    const offLegPct = (offlineLegacy / denom) * 100;
+    segs.push('<div class="ch-bar-seg ch-pill-offline-bg" style="width:' + offLegPct.toFixed(2) + '%;" title="Offline (Pra-Pisah): Rp ' + formatRupiah(offlineLegacy) + ' (' + offLegPct.toFixed(1) + '%)"></div>');
+  }
   PANORAMA_SALES_CHANNELS.forEach(meta => {
+    if (meta.isNonRevenue) return;
     const val = Number(ch[meta.key] || 0);
     if (val > 0 && denom > 0) {
       const pct = (val / denom) * 100;
@@ -29362,9 +29629,22 @@ function buildChannelMixStripHtml(channels, totalActual, options) {
     segs.push('<div class="ch-bar-seg ch-pill-legacy-bg" style="width:' + legPct.toFixed(2) + '%;" title="Belum Dirinci (Legacy): Rp ' + formatRupiah(legacy) + ' (' + legPct.toFixed(1) + '%)"></div>');
   }
 
+  // Tampilkan 7 channel dasar + channel spesial brand yang bernilai > 0 (atau relevan di filter) + offlineLegacy bila ada
+  const visibleSummaryMetas = PANORAMA_SALES_CHANNELS.filter(meta => {
+    if (meta.isNonRevenue) return Number(ch[meta.key] || 0) > 0;
+    if (!meta.brands) return true;
+    return Number(ch[meta.key] || 0) > 0;
+  });
+
   if (mode === 'dashboard') {
-    const itemsHtml = PANORAMA_SALES_CHANNELS.map(meta => {
+    const itemsHtml = visibleSummaryMetas.map(meta => {
       const val = Number(ch[meta.key] || 0);
+      if (meta.isNonRevenue) {
+        return '<div class="dash-ch-item">' +
+          '<span class="dash-ch-lbl"><span class="ch-dot ' + meta.pillClass + '-dot"></span>' + meta.shortLabel + '</span>' +
+          '<span class="dash-ch-val" style="color:#B45309;">Rp ' + formatCompactRupiah(val) + ' <small>(Non-Omzet)</small></span>' +
+        '</div>';
+      }
       const pct = denom > 0 ? Math.round((val / denom) * 1000) / 10 : 0;
       return '<div class="dash-ch-item">' +
         '<span class="dash-ch-lbl"><span class="ch-dot ' + meta.pillClass + '-dot"></span>' + meta.shortLabel + '</span>' +
@@ -29377,12 +29657,23 @@ function buildChannelMixStripHtml(channels, totalActual, options) {
     '</div>' +
     '<div class="ch-stacked-bar dash-ch-bar">' + segs.join('') + '</div>' +
     '<div class="dash-ch-grid">' + itemsHtml + '</div>' +
+    (offlineLegacy > 0 ? '<div class="ch-legacy-note">*Rp ' + formatCompactRupiah(offlineLegacy) + ' adalah omzet Offline sebelum pemisahan Tunai vs QRIS</div>' : '') +
     (legacy > 0 ? '<div class="ch-legacy-note">*Rp ' + formatCompactRupiah(legacy) + ' berasal dari histori pra-breakdown (Legacy)</div>' : '');
   }
 
   // Full Summary Card Mode ('summary')
-  const cardsHtml = PANORAMA_SALES_CHANNELS.map(meta => {
+  const cardsHtml = visibleSummaryMetas.map(meta => {
     const val = Number(ch[meta.key] || 0);
+    if (meta.isNonRevenue) {
+      return '<div class="sales-ch-summary-item sales-ch-summary-item--welfare">' +
+        '<div class="sales-ch-summary-top">' +
+          '<span class="ch-dot ' + meta.pillClass + '-dot"></span>' +
+          '<span class="sales-ch-name">' + meta.label + '</span>' +
+          '<span class="sales-ch-pct" style="color:#B45309;">Non-Omzet</span>' +
+        '</div>' +
+        '<div class="sales-ch-val" style="color:#B45309;">Rp ' + formatCompactRupiah(val) + '</div>' +
+      '</div>';
+    }
     const pct = denom > 0 ? Math.round((val / denom) * 1000) / 10 : 0;
     return '<div class="sales-ch-summary-item ' + meta.pillClass + '-card">' +
       '<div class="sales-ch-summary-top">' +
@@ -29396,8 +29687,9 @@ function buildChannelMixStripHtml(channels, totalActual, options) {
 
   return '<div class="sales-ch-mix-header">' +
     '<div>' +
-      '<div class="sales-ch-mix-title">' + escapeHtml(opts.title || 'Komposisi Channel Omzet (Offline vs Platform Online)') + '</div>' +
-      '<div class="sales-ch-mix-sub">Offline: <strong>Rp ' + formatRupiah(ch.offline) + '</strong> (' + offlinePct + '%) • Online & Qpon: <strong>Rp ' + formatRupiah(ch.onlineTotal) + '</strong> (' + onlinePct + '%)' +
+      '<div class="sales-ch-mix-title">' + escapeHtml(opts.title || 'Komposisi Channel Omzet (Tunai/QRIS vs Platform Online)') + '</div>' +
+      '<div class="sales-ch-mix-sub">Offline (Tunai+QRIS): <strong>Rp ' + formatRupiah(ch.offline) + '</strong> (' + offlinePct + '%) • Online &amp; App: <strong>Rp ' + formatRupiah(ch.onlineTotal) + '</strong> (' + onlinePct + '%)' +
+      (welfareVal > 0 ? ' • Welfare (Non-Omzet): <strong style="color:#B45309;">Rp ' + formatRupiah(welfareVal) + '</strong>' : '') +
       (legacy > 0 ? ' • Legacy: <strong>Rp ' + formatCompactRupiah(legacy) + '</strong>' : '') + '</div>' +
     '</div>' +
   '</div>' +
@@ -35747,8 +36039,74 @@ function setKanbanMobileTab(stage) {
 // ============================================================================
 
 /**
- * Helper Input Modal Sales: Bersihkan, Isi, & Hitung Ulang 6 Channel Otomatis
+ * Helper Input Modal Sales: Deteksi Brand Cabang Terpilih & Visibilitas Channel Dinamis (v5.14.0)
  */
+function getSelectedSalesBranchObj() {
+  const d = window.PANORAMA_STATE && window.PANORAMA_STATE.data;
+  const selectCabang = document.getElementById('salesInputCabang');
+  const selectedCId = selectCabang ? selectCabang.value : '';
+  if (d && Array.isArray(d.cabang) && selectedCId) {
+    return d.cabang.find(c => String(c.cabangId) === String(selectedCId)) || null;
+  }
+  return null;
+}
+
+function applyBrandVisibilityToSalesModal(branchOrBrand) {
+  const brandKey = resolveSalesBrandKey(branchOrBrand || getSelectedSalesBranchObj());
+  const visibleChannels = getVisibleChannelsForBrand(brandKey);
+  const visibleCount = visibleChannels.length;
+
+  const badgeEl = document.getElementById('salesBrandChannelBadge');
+  if (badgeEl) {
+    if (brandKey === 'TOMORO') badgeEl.textContent = 'TOMORO • ' + visibleCount + ' Channel';
+    else if (brandKey === 'TIANLALA') badgeEl.textContent = 'TIANLALA • ' + visibleCount + ' Channel';
+    else if (brandKey === 'MOMOYO') badgeEl.textContent = 'MOMOYO • ' + visibleCount + ' Channel';
+    else if (brandKey === 'WEDRINK') badgeEl.textContent = 'WEDRINK • Standar 7 Channel';
+    else if (brandKey === 'MIXUE') badgeEl.textContent = 'MIXUE • Standar 7 Channel';
+    else if (brandKey === 'ULTIMASHOT') badgeEl.textContent = 'ULTIMASHOT BILLIARD • Standar 7 Channel';
+    else badgeEl.textContent = 'Standar • 7 Channel';
+  }
+
+  const grid = document.getElementById('salesChannelInputGrid');
+  if (grid && typeof grid.querySelectorAll === 'function') {
+    const fields = grid.querySelectorAll('.sales-ch-field[data-channel]');
+    fields.forEach(function(field) {
+      const chName = String(field.getAttribute('data-channel') || '');
+      const meta = PANORAMA_SALES_CHANNELS.find(function(m) {
+        return m.fieldName === chName || m.key === chName;
+      });
+      const allowed = meta ? isChannelEnabledForBrand(meta, brandKey) : true;
+      field.style.display = allowed ? '' : 'none';
+      if (!allowed && meta) {
+        const inp = document.getElementById(meta.inputId);
+        if (inp) {
+          inp.value = '';
+          inp.classList.remove('input-ai-highlight');
+        }
+      }
+    });
+  }
+}
+
+function applyUnsplitOfflineRemainderToQris() {
+  const offlineHidden = document.getElementById('inputSalesOffline');
+  const tunaiEl = document.getElementById('inputSalesTunai');
+  const qrisEl = document.getElementById('inputSalesQris');
+  const totalPos = offlineHidden ? Math.max(0, Number(offlineHidden.value || 0)) : 0;
+  const tunaiVal = tunaiEl ? Math.max(0, Number(tunaiEl.value || 0)) : 0;
+  if (totalPos <= 0 || !qrisEl) return;
+  if (tunaiVal > totalPos) {
+    showToast('Nominal Tunai melebihi total POS gabungan (Rp ' + formatRupiah(totalPos) + ').', 'warning');
+    return;
+  }
+  qrisEl.value = Math.max(0, Math.round(totalPos - tunaiVal));
+  if (offlineHidden) offlineHidden.value = '';
+  const banner = document.getElementById('salesPosUnsplitBanner');
+  if (banner) banner.style.display = 'none';
+  recalculateSalesChannelInputs();
+  showToast('Sisa non-tunai Rp ' + formatRupiah(qrisEl.value) + ' otomatis diisi ke QRIS.', 'info');
+}
+
 function clearSalesChannelInputs(removeHighlight) {
   PANORAMA_SALES_CHANNELS.forEach(ch => {
     const el = document.getElementById(ch.inputId);
@@ -35757,45 +36115,113 @@ function clearSalesChannelInputs(removeHighlight) {
       if (removeHighlight) el.classList.remove('input-ai-highlight');
     }
   });
+  const offlineHidden = document.getElementById('inputSalesOffline');
+  if (offlineHidden) {
+    offlineHidden.value = '';
+    if (removeHighlight) offlineHidden.classList.remove('input-ai-highlight');
+  }
+  const banner = document.getElementById('salesPosUnsplitBanner');
+  if (banner) {
+    banner.style.display = 'none';
+    banner.innerHTML = '';
+  }
   recalculateSalesChannelInputs();
 }
 
 function populateSalesChannelInputsFromRecord(record, isAiSource) {
   if (!record) return;
+  const selectedBranch = getSelectedSalesBranchObj();
+  const brandKey = resolveSalesBrandKey((record.detectedBrand || record.namaCabang || '') + ' ' + (selectedBranch ? selectedBranch.brand : ''));
   let filledCount = 0;
+
   PANORAMA_SALES_CHANNELS.forEach(ch => {
     const el = document.getElementById(ch.inputId);
     if (!el) return;
+    if (!isChannelEnabledForBrand(ch, brandKey)) {
+      el.value = '';
+      if (isAiSource) el.classList.remove('input-ai-highlight');
+      return;
+    }
     const rawVal = Number(record[ch.payloadKey] !== undefined ? record[ch.payloadKey] : (record[ch.key] || 0));
     if (rawVal > 0) {
       el.value = Math.round(rawVal);
       if (isAiSource) el.classList.add('input-ai-highlight');
-      filledCount++;
+      if (!ch.isNonRevenue) filledCount++;
     } else {
       el.value = '';
       if (isAiSource) el.classList.remove('input-ai-highlight');
     }
   });
+
+  const tunaiNum = Math.max(0, Number(record.salesTunai || 0));
+  const qrisNum = Math.max(0, Number(record.salesQris || 0));
+  const legacyOffNum = Math.max(0, Number(record.salesOffline || 0));
+  const offlineHidden = document.getElementById('inputSalesOffline');
+  const banner = document.getElementById('salesPosUnsplitBanner');
+
+  if (tunaiNum === 0 && qrisNum === 0 && legacyOffNum > 0) {
+    if (offlineHidden) offlineHidden.value = Math.round(legacyOffNum);
+    filledCount++;
+    if (banner) {
+      banner.style.display = 'flex';
+      banner.innerHTML =
+        '<span>Terdeteksi total Offline/POS gabungan <strong>Rp ' + formatRupiah(legacyOffNum) + '</strong>. Silakan ketik angka <strong>Tunai</strong> lalu klik tombol di samping untuk hitung sisa QRIS.</span>' +
+        '<button type="button" class="btn btn-outline" style="font-size:10.5px; padding:3px 9px; white-space:nowrap;" onclick="applyUnsplitOfflineRemainderToQris()">Isi Sisa ke QRIS ➔</button>';
+    }
+  } else {
+    if (offlineHidden) offlineHidden.value = (tunaiNum + qrisNum > 0) ? Math.round(tunaiNum + qrisNum) : '';
+    if (banner) {
+      banner.style.display = 'none';
+      banner.innerHTML = '';
+    }
+  }
+
   recalculateSalesChannelInputs({ preserveManualActual: filledCount === 0 });
 }
 
 function recalculateSalesChannelInputs(options) {
   const opts = options || {};
-  let offline = 0;
+  const selectedBranch = getSelectedSalesBranchObj();
+  const brandKey = resolveSalesBrandKey(selectedBranch || (window.PANORAMA_STATE && window.PANORAMA_STATE.lastOcrResult && window.PANORAMA_STATE.lastOcrResult.detectedBrand) || '');
+
+  let splitOffline = 0;
   let online = 0;
+  let welfare = 0;
+
   PANORAMA_SALES_CHANNELS.forEach(ch => {
+    if (!isChannelEnabledForBrand(ch, brandKey)) return;
     const el = document.getElementById(ch.inputId);
     const val = el ? Math.max(0, Number(el.value || 0)) : 0;
-    if (ch.key === 'offline') offline += val;
-    else online += val;
+    if (ch.isNonRevenue) {
+      welfare += val;
+    } else if (ch.category === 'offline') {
+      splitOffline += val;
+    } else {
+      online += val;
+    }
   });
 
+  const offlineHidden = document.getElementById('inputSalesOffline');
+  const unsplitBanner = document.getElementById('salesPosUnsplitBanner');
+  let offline = splitOffline;
+  if (splitOffline > 0) {
+    if (offlineHidden) offlineHidden.value = Math.round(splitOffline);
+    if (unsplitBanner && document.getElementById('inputSalesTunai') && Number(document.getElementById('inputSalesTunai').value || 0) > 0 && document.getElementById('inputSalesQris') && Number(document.getElementById('inputSalesQris').value || 0) > 0) {
+      unsplitBanner.style.display = 'none';
+    }
+  } else if (offlineHidden && Number(offlineHidden.value || 0) > 0) {
+    offline = Math.max(0, Number(offlineHidden.value || 0));
+  }
+
+  // Pilihan A: Welfare / Compliment TIDAK ikut menjumlah ke Total Realisasi Omzet (Actual Sales)
   const totalChannels = offline + online;
   const actualInput = document.getElementById('inputSalesActual');
   const autoBadge = document.getElementById('salesActualAutoBadge');
   const ratioPill = document.getElementById('salesChannelRatioPill');
   const sumOffEl = document.getElementById('sumOfflineText');
   const sumOnEl = document.getElementById('sumOnlineText');
+  const sumWelfWrap = document.getElementById('sumWelfareSummaryWrap');
+  const sumWelfEl = document.getElementById('sumWelfareText');
   const sumGapEl = document.getElementById('sumTargetGapText');
   const targetInput = document.getElementById('inputSalesTarget');
 
@@ -35818,6 +36244,14 @@ function recalculateSalesChannelInputs(options) {
   const effectiveTotal = totalChannels > 0 ? totalChannels : (actualInput ? Math.max(0, Number(actualInput.value || 0)) : 0);
   if (sumOffEl) sumOffEl.textContent = 'Rp ' + formatRupiah(offline);
   if (sumOnEl) sumOnEl.textContent = 'Rp ' + formatRupiah(online);
+  if (sumWelfWrap && sumWelfEl) {
+    if (welfare > 0) {
+      sumWelfWrap.style.display = 'inline';
+      sumWelfEl.textContent = 'Rp ' + formatRupiah(welfare);
+    } else {
+      sumWelfWrap.style.display = 'none';
+    }
+  }
 
   if (ratioPill) {
     if (totalChannels > 0) {
@@ -35870,8 +36304,7 @@ function onSalesBranchOrDateChange(isBranchOrDateChange, isExplicitEdit) {
   const actualInput = document.getElementById('inputSalesActual');
   const trxInput = document.getElementById('inputSalesTrx');
 
-  // Bersihkan input angka actual, 6 channel, dan total transaksi jika bukan aksi edit eksplisit / scan AI
-  // Menjamin saat user ganti cabang atau buka form, angka bekas cabang sebelumnya TIDAK PERNAH tersisa!
+  // Bersihkan input angka actual, semua channel, dan total transaksi jika bukan aksi edit eksplisit / scan AI
   if (!isExplicitEdit) {
     clearSalesChannelInputs(true);
     if (actualInput) {
@@ -35887,6 +36320,9 @@ function onSalesBranchOrDateChange(isBranchOrDateChange, isExplicitEdit) {
       resetSalesAiScanner(true);
     }
   }
+
+  // Sesuaikan kolom input per brand cabang terpilih
+  applyBrandVisibilityToSalesModal(selectedBranch);
 
   // Hitung target harian secara dinamis sesuai kalender bulan berjalan (28, 29, 30, atau 31 hari)
   if (targetInput) {
@@ -36083,7 +36519,7 @@ function editSalesDayRow(targetDate) {
 
   onSalesBranchOrDateChange(false, true);
 
-  const firstChannelInput = document.getElementById('inputSalesOffline') || actualInput;
+  const firstChannelInput = document.getElementById('inputSalesTunai') || document.getElementById('inputSalesOffline') || actualInput;
   if (firstChannelInput) {
     firstChannelInput.focus();
     if (typeof firstChannelInput.select === 'function') firstChannelInput.select();
@@ -36122,9 +36558,9 @@ function checkExistingSalesData(isExplicitEdit) {
   if (existing) {
     // Mode Koreksi Terdeteksi: ganti angka lama
     const ch = extractSalesRecordChannels(existing);
-    const hasCh = (ch.offline + ch.onlineTotal) > 0;
+    const hasCh = (ch.offline + ch.onlineTotal + ch.welfare) > 0;
     const chDesc = hasCh
-      ? (' (Offline Rp ' + formatCompactRupiah(ch.offline) + ' • Online/Qpon Rp ' + formatCompactRupiah(ch.onlineTotal) + ')')
+      ? (' (Tunai Rp ' + formatCompactRupiah(ch.tunai) + ' • QRIS Rp ' + formatCompactRupiah(ch.qris) + (ch.offlineLegacy > 0 ? (' • Offline Lama Rp ' + formatCompactRupiah(ch.offlineLegacy)) : '') + ' • Online/App Rp ' + formatCompactRupiah(ch.onlineTotal) + (ch.welfare > 0 ? (' • Welfare Rp ' + formatCompactRupiah(ch.welfare)) : '') + ')')
       : '';
     if (alertBanner) alertBanner.style.display = 'flex';
     if (alertDetail) {
@@ -36902,7 +37338,9 @@ function parseReceiptOcrText(rawTextsInput, brandHint) {
   if (texts.length === 0) {
     return {
       actualSales: null, totalTransaksi: null, tanggal: null, cabangId: null,
-      salesOffline: 0, salesGrabFood: 0, salesShopeeFood: 0, salesGoFood: 0, salesTikTok: 0, salesQpon: 0
+      salesTunai: 0, salesQris: 0, salesOffline: 0,
+      salesGrabFood: 0, salesShopeeFood: 0, salesGoFood: 0, salesTikTok: 0, salesQpon: 0,
+      salesTomoroApp: 0, salesGrabDineOut: 0, salesGrabInstantDeal: 0, salesWelfare: 0
     };
   }
 
@@ -37049,14 +37487,22 @@ function parseReceiptOcrText(rawTextsInput, brandHint) {
     return isNaN(num) ? 0 : num;
   }
 
-  // 4. Ekstraksi 6 Channel Multi-Brand POS dengan Deduplikasi Antar-Foto Scroll
+  const effectiveBrandKey = resolveSalesBrandKey((brandHint || '') + ' ' + (matchedCabangName || '') + ' ' + rawText);
+
+  // 4. Ekstraksi Multi-Brand POS (Pisah Tunai vs QRIS + Channel Khusus Brand) dengan Deduplikasi Antar-Foto Scroll
   const channelTotals = {
+    salesTunai: 0,
+    salesQris: 0,
     salesOffline: 0,
     salesGrabFood: 0,
     salesShopeeFood: 0,
     salesGoFood: 0,
     salesTikTok: 0,
-    salesQpon: 0
+    salesQpon: 0,
+    salesTomoroApp: 0,
+    salesGrabDineOut: 0,
+    salesGrabInstantDeal: 0,
+    salesWelfare: 0
   };
   let tianlalaCashReplacement = null;
   let tianlalaRecordedCash = null;
@@ -37114,10 +37560,18 @@ function parseReceiptOcrText(rawTextsInput, brandHint) {
         }
       }
 
-      // Pemetaan label baris POS -> Channel Target
+      // Pemetaan label baris POS -> Channel Target (Cek varian Grab khusus, Tomoro App & Welfare terlebih dahulu)
       let targetKey = '';
       let rowNormTag = '';
-      if (/\bgrab\s*food(?:\s*integrasi)?\b|\bgrabfood\b/i.test(l)) {
+      if ((effectiveBrandKey === 'TOMORO' || effectiveBrandKey === 'DEFAULT') && (/\bgrab\s*instant\s*deals?\b|\binstant\s*deals?\b/i.test(l))) {
+        targetKey = 'salesGrabInstantDeal'; rowNormTag = 'grabinstantdeal';
+      } else if ((effectiveBrandKey === 'TIANLALA' || effectiveBrandKey === 'TOMORO' || effectiveBrandKey === 'DEFAULT') && (/\bgrab\s*dine\s*out(?:\s*integrasi)?\b|\bdine\s*out(?:\s*integrasi)?\b/i.test(l))) {
+        targetKey = 'salesGrabDineOut'; rowNormTag = 'grabdineout';
+      } else if ((effectiveBrandKey === 'TOMORO' || effectiveBrandKey === 'DEFAULT') && (/\btomoro\s*(?:app|aplikasi)\b|\bin[-\s]*app\b|\bapp\s*(?:order|tomoro)\b/i.test(l))) {
+        targetKey = 'salesTomoroApp'; rowNormTag = 'tomoroapp';
+      } else if ((effectiveBrandKey === 'MOMOYO' || effectiveBrandKey === 'TIANLALA' || effectiveBrandKey === 'TOMORO') && (/\b(?:welfare|walfare|compliment(?:ary)?|employee\s*benefit)\b/i.test(l))) {
+        targetKey = 'salesWelfare'; rowNormTag = 'welfare';
+      } else if (/\bgrab\s*food(?:\s*integrasi)?\b|\bgrabfood\b/i.test(l)) {
         targetKey = 'salesGrabFood'; rowNormTag = 'grabfood';
       } else if (/\bshopee\s*food\b|\bshopeefood\b|\bshopee\s*integrasi\b/i.test(l)) {
         targetKey = 'salesShopeeFood'; rowNormTag = 'shopeefood';
@@ -37127,9 +37581,9 @@ function parseReceiptOcrText(rawTextsInput, brandHint) {
         targetKey = 'salesTikTok'; rowNormTag = 'tiktok';
       } else if (/\bqpon\b/i.test(l)) {
         targetKey = 'salesQpon'; rowNormTag = 'qpon';
+      } else if (/\buang\s*tunai\b|\btunai\b|\bcash\b/i.test(l)) {
+        targetKey = 'salesTunai'; rowNormTag = 'tunai';
       } else if (
-        /\bpos\b/i.test(l) ||
-        /\buang\s*tunai\b|\btunai\b|\bcash\b/i.test(l) ||
         /\bqris(?:\s*manual)?\b|\bdebit(?:\s*card)?\b|\bedc\b/i.test(l) ||
         /\bbca\b|\bbri\b|\bmandiri\b|\bbni\b/i.test(l) ||
         (/\bgopay\b/i.test(l) && !/gofood|gojek/i.test(l)) ||
@@ -37137,8 +37591,11 @@ function parseReceiptOcrText(rawTextsInput, brandHint) {
         /\bdana\b|\bovo\b/i.test(l) ||
         /^(?:\d+\s*\.\s*)?online\b/i.test(l)
       ) {
-        targetKey = 'salesOffline';
+        targetKey = 'salesQris';
         rowNormTag = l.replace(/[^a-z]/g, '').slice(0, 14);
+      } else if (/\bpos\b/i.test(l)) {
+        targetKey = 'salesOffline';
+        rowNormTag = 'pos';
       }
 
       if (!targetKey) continue;
@@ -37188,20 +37645,30 @@ function parseReceiptOcrText(rawTextsInput, brandHint) {
 
   // Koreksi Tianlala Cash jika blok detail Penjualan terpisah dari Kas Masuk terbaca
   if (tianlalaCashReplacement !== null && tianlalaRecordedCash !== null && tianlalaRecordedCash > tianlalaCashReplacement) {
-    channelTotals.salesOffline = Math.max(0, channelTotals.salesOffline - tianlalaRecordedCash + tianlalaCashReplacement);
+    channelTotals.salesTunai = Math.max(0, channelTotals.salesTunai - tianlalaRecordedCash + tianlalaCashReplacement);
+  }
+
+  // Hitung total salesOffline (jika sudah terpecah Tunai+QRIS, gabungkan untuk summary; jika POS gabungan seperti Momoyo tetap terjaga)
+  const splitOfflineSum = channelTotals.salesTunai + channelTotals.salesQris;
+  if (splitOfflineSum > 0) {
+    channelTotals.salesOffline += splitOfflineSum;
   }
 
   if (!bestTrx && sumRowQty > 0) {
     bestTrx = sumRowQty;
   }
 
+  // Pilihan A: Welfare TIDAK masuk Actual Sales
   const totalFromChannels =
     channelTotals.salesOffline +
     channelTotals.salesGrabFood +
     channelTotals.salesShopeeFood +
     channelTotals.salesGoFood +
     channelTotals.salesTikTok +
-    channelTotals.salesQpon;
+    channelTotals.salesQpon +
+    channelTotals.salesTomoroApp +
+    channelTotals.salesGrabDineOut +
+    channelTotals.salesGrabInstantDeal;
 
   // 5. Ekstrak Total Penjualan Fallback (jika tidak ada rincian channel terdeteksi)
   lines.forEach((line, idx) => {
@@ -37257,12 +37724,18 @@ function parseReceiptOcrText(rawTextsInput, brandHint) {
 
   return {
     actualSales: totalFromChannels > 0 ? totalFromChannels : bestSales,
+    salesTunai: channelTotals.salesTunai,
+    salesQris: channelTotals.salesQris,
     salesOffline: channelTotals.salesOffline,
     salesGrabFood: channelTotals.salesGrabFood,
     salesShopeeFood: channelTotals.salesShopeeFood,
     salesGoFood: channelTotals.salesGoFood,
     salesTikTok: channelTotals.salesTikTok,
     salesQpon: channelTotals.salesQpon,
+    salesTomoroApp: channelTotals.salesTomoroApp,
+    salesGrabDineOut: channelTotals.salesGrabDineOut,
+    salesGrabInstantDeal: channelTotals.salesGrabInstantDeal,
+    salesWelfare: channelTotals.salesWelfare,
     totalTransaksi: bestTrx,
     tanggal: detectedDate,
     cabangId: matchedCabangId,
@@ -37284,16 +37757,22 @@ function applyAiScanResult(data, engineSource) {
 
   if (scanline) scanline.style.display = 'none';
 
+  const scanSplitOff = Math.max(0, Number((data && data.salesTunai) || 0)) + Math.max(0, Number((data && data.salesQris) || 0));
+  const scanOfflineEff = scanSplitOff > 0 ? scanSplitOff : Math.max(0, Number((data && data.salesOffline) || 0));
   const chSum = data ? (
-    Math.max(0, Number(data.salesOffline || 0)) +
+    scanOfflineEff +
     Math.max(0, Number(data.salesGrabFood || 0)) +
     Math.max(0, Number(data.salesShopeeFood || 0)) +
     Math.max(0, Number(data.salesGoFood || 0)) +
     Math.max(0, Number(data.salesTikTok || 0)) +
-    Math.max(0, Number(data.salesQpon || 0))
+    Math.max(0, Number(data.salesQpon || 0)) +
+    Math.max(0, Number(data.salesTomoroApp || 0)) +
+    Math.max(0, Number(data.salesGrabDineOut || 0)) +
+    Math.max(0, Number(data.salesGrabInstantDeal || 0))
   ) : 0;
+  const welfScanned = data ? Math.max(0, Number(data.salesWelfare || 0)) : 0;
 
-  if (!data || (!data.actualSales && chSum === 0 && !data.totalTransaksi)) {
+  if (!data || (!data.actualSales && chSum === 0 && welfScanned === 0 && !data.totalTransaksi)) {
     if (statusText) {
       statusText.innerHTML = '<span style="color:#D97706;"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Angka Total Tidak Terbaca Jelas</span>';
     }
@@ -37315,20 +37794,24 @@ function applyAiScanResult(data, engineSource) {
 
   const tags = [];
 
-  // 1. Isi 6 Input Channel jika terdeteksi > 0
-  if (chSum > 0) {
+  // 1. Isi Input Channel jika terdeteksi > 0
+  if (chSum > 0 || welfScanned > 0) {
     populateSalesChannelInputsFromRecord(data, true);
+    if (scanSplitOff === 0 && Number(data.salesOffline || 0) > 0) {
+      tags.push('<div class="ai-result-tag-item">POS Offline (Pisah Tunai/QRIS): <strong>Rp ' + formatRupiah(data.salesOffline) + '</strong></div>');
+    }
     PANORAMA_SALES_CHANNELS.forEach(meta => {
       const v = Math.max(0, Number(data[meta.payloadKey] || 0));
       if (v > 0) {
-        tags.push('<div class="ai-result-tag-item">' + meta.label + ': <strong>Rp ' + formatRupiah(v) + '</strong></div>');
+        const suffix = meta.isNonRevenue ? ' <small>(Non-Omzet)</small>' : '';
+        tags.push('<div class="ai-result-tag-item">' + meta.label + ': <strong>Rp ' + formatRupiah(v) + '</strong>' + suffix + '</div>');
       }
     });
   } else {
     clearSalesChannelInputs(true);
   }
 
-  // 2. Isi Kolom Actual Sales (Auto-Sum dari 6 channel atau Fallback Total Tunggal)
+  // 2. Isi Kolom Actual Sales (Auto-Sum channel berbayar atau Fallback Total Tunggal)
   const effectiveActual = chSum > 0 ? chSum : Number(data.actualSales || 0);
   if (effectiveActual > 0) {
     const inputActual = document.getElementById('inputSalesActual');
@@ -37375,7 +37858,7 @@ function applyAiScanResult(data, engineSource) {
     tags.push('<div class="ai-result-tag-item"><svg class="p-ico" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1.5-5h15L21 9"/><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/><path d="M5 12v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8"/><path d="M10 15h4v6h-4z"/></svg> Toko: <strong>' + (data.namaCabang || data.cabangId) + '</strong></div>');
   }
 
-  // Perbarui target harian & ringkasan channel untuk tanggal/cabang yang terdeteksi
+  // Perbarui target harian, visibilitas brand & ringkasan channel
   onSalesBranchOrDateChange(false, true);
   recalculateSalesChannelInputs({ preserveManualActual: true });
 
@@ -37404,20 +37887,41 @@ function handleAiOcrFailure(errorMsg) {
   showToast(errorMsg || 'Gagal membaca struk. Anda tetap dapat mengisi data secara manual.', 'warning');
 }
 
-// Simpan Sales Harian (Dukungan 6 Channel + Auto-Sum)
+// Simpan Sales Harian (Multi-Channel Dinamis per Brand + Pisah Tunai/QRIS + Auto-Sum)
 function submitSalesForm() {
   const cabangId = document.getElementById('salesInputCabang').value;
   const rawTanggal = document.getElementById('inputSalesDate').value;
   const tanggal = normalizeDateStr(rawTanggal);
   const target = Number(document.getElementById('inputSalesTarget').value || 0);
 
-  const salesOffline = Math.max(0, Number((document.getElementById('inputSalesOffline') && document.getElementById('inputSalesOffline').value) || 0));
-  const salesGrabFood = Math.max(0, Number((document.getElementById('inputSalesGrabFood') && document.getElementById('inputSalesGrabFood').value) || 0));
-  const salesShopeeFood = Math.max(0, Number((document.getElementById('inputSalesShopeeFood') && document.getElementById('inputSalesShopeeFood').value) || 0));
-  const salesGoFood = Math.max(0, Number((document.getElementById('inputSalesGoFood') && document.getElementById('inputSalesGoFood').value) || 0));
-  const salesTikTok = Math.max(0, Number((document.getElementById('inputSalesTikTok') && document.getElementById('inputSalesTikTok').value) || 0));
-  const salesQpon = Math.max(0, Number((document.getElementById('inputSalesQpon') && document.getElementById('inputSalesQpon').value) || 0));
-  const channelSum = salesOffline + salesGrabFood + salesShopeeFood + salesGoFood + salesTikTok + salesQpon;
+  const selectedCabang = (window.PANORAMA_STATE.data && window.PANORAMA_STATE.data.cabang)
+    ? window.PANORAMA_STATE.data.cabang.find(c => c.cabangId === cabangId)
+    : null;
+  const brandKey = resolveSalesBrandKey(selectedCabang || cabangId);
+
+  function readChVal(channelKey) {
+    const meta = PANORAMA_SALES_CHANNELS.find(m => m.key === channelKey);
+    if (!meta || !isChannelEnabledForBrand(meta, brandKey)) return 0;
+    const el = document.getElementById(meta.inputId);
+    return el ? Math.max(0, Number(el.value || 0)) : 0;
+  }
+
+  const salesTunai = readChVal('tunai');
+  const salesQris = readChVal('qris');
+  const rawOfflineHidden = Math.max(0, Number((document.getElementById('inputSalesOffline') && document.getElementById('inputSalesOffline').value) || 0));
+  const salesOffline = (salesTunai + salesQris) > 0 ? (salesTunai + salesQris) : rawOfflineHidden;
+
+  const salesGrabFood = readChVal('grabFood');
+  const salesShopeeFood = readChVal('shopeeFood');
+  const salesGoFood = readChVal('goFood');
+  const salesTikTok = readChVal('tikTok');
+  const salesQpon = readChVal('qpon');
+  const salesTomoroApp = readChVal('tomoroApp');
+  const salesGrabDineOut = readChVal('grabDineOut');
+  const salesGrabInstantDeal = readChVal('grabInstantDeal');
+  const salesWelfare = readChVal('welfare'); // Pilihan A: Dicatat terpisah, TIDAK dihitung ke Actual Sales
+
+  const channelSum = salesOffline + salesGrabFood + salesShopeeFood + salesGoFood + salesTikTok + salesQpon + salesTomoroApp + salesGrabDineOut + salesGrabInstantDeal;
 
   const actual = channelSum > 0 ? channelSum : Math.max(0, Number(document.getElementById('inputSalesActual').value || 0));
   const trx = Number(document.getElementById('inputSalesTrx').value || 0);
@@ -37436,7 +37940,6 @@ function submitSalesForm() {
   const btnSales = document.getElementById('btnSubmitSales');
   if (btnSales && btnSales.disabled) return;
 
-  const selectedCabang = window.PANORAMA_STATE.data.cabang.find(c => c.cabangId === cabangId);
   const payload = {
     tanggal: tanggal,
     areaId: selectedCabang ? selectedCabang.areaId : 'AREA-01',
@@ -37445,11 +37948,17 @@ function submitSalesForm() {
     targetHarian: target || 5000000,
     actualSales: actual,
     salesOffline: salesOffline,
+    salesTunai: salesTunai,
+    salesQris: salesQris,
     salesGrabFood: salesGrabFood,
     salesShopeeFood: salesShopeeFood,
     salesGoFood: salesGoFood,
     salesTikTok: salesTikTok,
     salesQpon: salesQpon,
+    salesTomoroApp: salesTomoroApp,
+    salesGrabDineOut: salesGrabDineOut,
+    salesWelfare: salesWelfare,
+    salesGrabInstantDeal: salesGrabInstantDeal,
     totalTransaksi: trx || 150,
     createdBy: window.PANORAMA_STATE.user.namaLengkap
   };
@@ -37463,7 +37972,7 @@ function submitSalesForm() {
     renderSalesDailyBreakdown(cabangId);
     closeModal('modalInputSales');
 
-    // Bersihkan input angka actual, 6 channel, dan total transaksi setelah proses selesai
+    // Bersihkan input angka actual, semua channel, dan total transaksi setelah proses selesai
     clearSalesChannelInputs(true);
     const actualInputEl = document.getElementById('inputSalesActual');
     const trxInputEl = document.getElementById('inputSalesTrx');
@@ -45015,16 +45524,26 @@ function buildExecutivePresentationSlides() {
           addChannelBuckets(slideCh, extractSalesRecordChannels(s));
         });
         let slideChBanner = '';
-        if (slideChTotal > 0 && (slideCh.offline + slideCh.onlineTotal) > 0) {
-          const chBadges = PANORAMA_SALES_CHANNELS.map(meta => {
+        if (slideChTotal > 0 && (slideCh.offline + slideCh.onlineTotal + slideCh.welfare) > 0) {
+          const chBadges = PANORAMA_SALES_CHANNELS.filter(meta => {
+            if (!meta.brands) return true;
+            return Number(slideCh[meta.key] || 0) > 0;
+          }).map(meta => {
             const v = Number(slideCh[meta.key] || 0);
+            if (meta.isNonRevenue) {
+              return '<span style="background:#FFFBEB; border:1px dashed #F59E0B; border-radius:6px; padding:3px 7px; font-size:10px; font-weight:700; color:#B45309;">' +
+                meta.label + ': Rp ' + formatCompactRupiah(v) + ' (Non-Omzet)</span>';
+            }
             const pct = Math.round((v / slideChTotal) * 1000) / 10;
             return '<span style="background:#FFFFFF; border:1px solid #CBD5E1; border-radius:6px; padding:3px 7px; font-size:10px; font-weight:700; color:#0F172A;">' +
               meta.label + ': Rp ' + formatCompactRupiah(v) + ' (' + pct + '%)</span>';
           }).join('');
+          const legacyOffBadge = (slideCh.offlineLegacy > 0)
+            ? '<span style="background:#ECFDF5; border:1px solid #A7F3D0; border-radius:6px; padding:3px 7px; font-size:10px; font-weight:700; color:#065F46;">Offline (Pra-Pisah): Rp ' + formatCompactRupiah(slideCh.offlineLegacy) + '</span>'
+            : '';
           slideChBanner = '<div style="margin-top:8px; padding:8px 10px; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px;">' +
             '<div style="font-size:10.5px; font-weight:800; color:var(--forest-900); margin-bottom:5px;">Distribusi Channel Omzet (' + (isSPV ? escapeHtml(storeName) : (isManager ? escapeHtml(targetAreaId) : 'Nasional')) + '):</div>' +
-            '<div style="display:flex; flex-wrap:wrap; gap:6px;">' + chBadges + '</div>' +
+            '<div style="display:flex; flex-wrap:wrap; gap:6px;">' + chBadges + legacyOffBadge + '</div>' +
           '</div>';
         }
 
@@ -50375,10 +50894,10 @@ function exportSalesAnalysisToExcel() {
 
   // Bagian A: Banner Header Laporan
   xml += '<table>' +
-    '<tr><td colspan="20" class="title-main">REKAPITULASI SALES PERFORMANCE &amp; ANALISA EKSEKUTIF NASIONAL</td></tr>' +
-    '<tr><td colspan="20" class="title-sub">PORTAL MONITORING EKSEKUTIF PANORAMA • REVENUE &amp; FINANCIAL INTELLIGENCE</td></tr>' +
-    '<tr><td colspan="20" style="font-size:9pt; color:#64748B;">Dicetak otomatis pada: ' + dateStr + ' pk ' + timeStr + ' WIB | Periode Filter: ' + escapeXml(periodLabel) + ' | Cakupan: Seluruh Jaringan Gerai Nasional (' + allBranches.length + ' Gerai)</td></tr>' +
-    '<tr><td colspan="20"></td></tr>' +
+    '<tr><td colspan="26" class="title-main">REKAPITULASI SALES PERFORMANCE &amp; ANALISA EKSEKUTIF NASIONAL</td></tr>' +
+    '<tr><td colspan="26" class="title-sub">PORTAL MONITORING EKSEKUTIF PANORAMA • REVENUE &amp; FINANCIAL INTELLIGENCE</td></tr>' +
+    '<tr><td colspan="26" style="font-size:9pt; color:#64748B;">Dicetak otomatis pada: ' + dateStr + ' pk ' + timeStr + ' WIB | Periode Filter: ' + escapeXml(periodLabel) + ' | Cakupan: Seluruh Jaringan Gerai Nasional (' + allBranches.length + ' Gerai)</td></tr>' +
+    '<tr><td colspan="26"></td></tr>' +
   '</table>';
 
   // Bagian B: Executive KPI Snapshot Board + Channel Mix Nasional
@@ -50406,31 +50925,43 @@ function exportSalesAnalysisToExcel() {
     '<tr><td colspan="8"></td></tr>' +
   '</table>' +
   '<table>' +
-    '<tr><td colspan="7" style="background:#0F172A; color:#FFFFFF; font-weight:bold; font-size:10.5pt; padding:6px 10px;">KOMPOSISI CHANNEL OMZET NASIONAL (6 CHANNEL + LEGACY)</td></tr>' +
+    '<tr><td colspan="13" style="background:#0F172A; color:#FFFFFF; font-weight:bold; font-size:10.5pt; padding:6px 10px;">KOMPOSISI CHANNEL OMZET NASIONAL (TUNAI, QRIS, PLATFORM ONLINE &amp; KHUSUS BRAND)</td></tr>' +
     '<tr class="kpi-header">' +
-      '<th>Omset Offline (' + formatPctCell((nationalChannels.offline / natChDenom) * 100) + ')</th>' +
+      '<th>Tunai (' + formatPctCell((nationalChannels.tunai / natChDenom) * 100) + ')</th>' +
+      '<th>QRIS (' + formatPctCell((nationalChannels.qris / natChDenom) * 100) + ')</th>' +
+      '<th>Offline Pra-Pisah</th>' +
       '<th>GrabFood (' + formatPctCell((nationalChannels.grabFood / natChDenom) * 100) + ')</th>' +
       '<th>ShopeeFood (' + formatPctCell((nationalChannels.shopeeFood / natChDenom) * 100) + ')</th>' +
       '<th>GoFood (' + formatPctCell((nationalChannels.goFood / natChDenom) * 100) + ')</th>' +
       '<th>TikTok (' + formatPctCell((nationalChannels.tikTok / natChDenom) * 100) + ')</th>' +
       '<th>Qpon (' + formatPctCell((nationalChannels.qpon / natChDenom) * 100) + ')</th>' +
-      '<th>Belum Dirinci / Legacy</th>' +
+      '<th>Tomoro App (' + formatPctCell((nationalChannels.tomoroApp / natChDenom) * 100) + ')</th>' +
+      '<th>Grab Dine Out (' + formatPctCell((nationalChannels.grabDineOut / natChDenom) * 100) + ')</th>' +
+      '<th>Grab Instant Deal (' + formatPctCell((nationalChannels.grabInstantDeal / natChDenom) * 100) + ')</th>' +
+      '<th>Legacy</th>' +
+      '<th style="background:#FEF3C7; color:#92400E;">Welfare (Non-Omzet)</th>' +
     '</tr>' +
     '<tr style="font-size:10.5pt; font-weight:bold; text-align:right; background:#F8FAFC;">' +
-      '<td style="color:#065F46;">' + formatRpCell(nationalChannels.offline) + '</td>' +
+      '<td style="color:#065F46;">' + formatRpCell(nationalChannels.tunai) + '</td>' +
+      '<td style="color:#0369A1;">' + formatRpCell(nationalChannels.qris) + '</td>' +
+      '<td style="color:#047857;">' + formatRpCell(nationalChannels.offlineLegacy) + '</td>' +
       '<td style="color:#15803D;">' + formatRpCell(nationalChannels.grabFood) + '</td>' +
       '<td style="color:#9A3412;">' + formatRpCell(nationalChannels.shopeeFood) + '</td>' +
       '<td style="color:#991B1B;">' + formatRpCell(nationalChannels.goFood) + '</td>' +
       '<td style="color:#0F172A;">' + formatRpCell(nationalChannels.tikTok) + '</td>' +
       '<td style="color:#5B21B6;">' + formatRpCell(nationalChannels.qpon) + '</td>' +
+      '<td style="color:#C2410C;">' + formatRpCell(nationalChannels.tomoroApp) + '</td>' +
+      '<td style="color:#0F766E;">' + formatRpCell(nationalChannels.grabDineOut) + '</td>' +
+      '<td style="color:#3F6212;">' + formatRpCell(nationalChannels.grabInstantDeal) + '</td>' +
       '<td style="color:#64748B;">' + formatRpCell(nationalChannels.legacyUnclassified) + '</td>' +
+      '<td style="color:#B45309; background:#FFFBEB;">' + formatRpCell(nationalChannels.welfare) + '</td>' +
     '</tr>' +
-    '<tr><td colspan="7"></td></tr>' +
+    '<tr><td colspan="13"></td></tr>' +
   '</table>';
 
   // Bagian C: Matriks Evaluasi per Area Manager (Top Leadership Summary)
   xml += '<table>' +
-    '<tr><td colspan="17" style="background:#0F172A; color:#FFFFFF; font-weight:bold; font-size:11pt; padding:8px 10px;">ANALISIS KINERJA REVENUE PER WILAYAH OPERASIONAL (AREA MANAGER)</td></tr>' +
+    '<tr><td colspan="23" style="background:#0F172A; color:#FFFFFF; font-weight:bold; font-size:11pt; padding:8px 10px;">ANALISIS KINERJA REVENUE PER WILAYAH OPERASIONAL (AREA MANAGER)</td></tr>' +
     '<tr class="th-summary">' +
       '<th style="width:40px;">No</th>' +
       '<th style="width:110px;">Wilayah</th>' +
@@ -50438,12 +50969,18 @@ function exportSalesAnalysisToExcel() {
       '<th style="width:100px;">Total Gerai</th>' +
       '<th style="width:140px;">Target Omzet</th>' +
       '<th style="width:140px;">Realisasi Omzet</th>' +
-      '<th style="width:125px;">Omset Offline</th>' +
+      '<th style="width:120px;">Tunai</th>' +
+      '<th style="width:120px;">QRIS</th>' +
+      '<th style="width:120px;">Offline Lama</th>' +
       '<th style="width:115px;">GrabFood</th>' +
       '<th style="width:115px;">ShopeeFood</th>' +
       '<th style="width:115px;">GoFood</th>' +
       '<th style="width:115px;">TikTok</th>' +
       '<th style="width:115px;">Qpon</th>' +
+      '<th style="width:115px;">Tomoro App</th>' +
+      '<th style="width:120px;">Grab Dine Out</th>' +
+      '<th style="width:125px;">Grab Instant Deal</th>' +
+      '<th style="width:125px; background:#78350F; color:#FEF3C7;">Welfare (Non-Omzet)</th>' +
       '<th style="width:90px;">Pencapaian</th>' +
       '<th style="width:140px;">Gap / Defisit</th>' +
       '<th style="width:140px;">Status Capaian</th>' +
@@ -50461,12 +50998,18 @@ function exportSalesAnalysisToExcel() {
       '<td class="txt-center">' + ag.branches.length + ' Cabang</td>' +
       '<td class="txt-right">' + formatRpCell(ag.totalTarget) + '</td>' +
       '<td class="txt-right txt-bold" style="color:#0F172A;">' + formatRpCell(ag.totalActual) + '</td>' +
-      '<td class="txt-right">' + formatRpCell(aCh.offline) + '</td>' +
+      '<td class="txt-right">' + formatRpCell(aCh.tunai) + '</td>' +
+      '<td class="txt-right">' + formatRpCell(aCh.qris) + '</td>' +
+      '<td class="txt-right">' + formatRpCell(aCh.offlineLegacy) + '</td>' +
       '<td class="txt-right">' + formatRpCell(aCh.grabFood) + '</td>' +
       '<td class="txt-right">' + formatRpCell(aCh.shopeeFood) + '</td>' +
       '<td class="txt-right">' + formatRpCell(aCh.goFood) + '</td>' +
       '<td class="txt-right">' + formatRpCell(aCh.tikTok) + '</td>' +
       '<td class="txt-right">' + formatRpCell(aCh.qpon) + '</td>' +
+      '<td class="txt-right">' + formatRpCell(aCh.tomoroApp) + '</td>' +
+      '<td class="txt-right">' + formatRpCell(aCh.grabDineOut) + '</td>' +
+      '<td class="txt-right">' + formatRpCell(aCh.grabInstantDeal) + '</td>' +
+      '<td class="txt-right" style="background:#FFFBEB; color:#B45309;">' + formatRpCell(aCh.welfare) + '</td>' +
       '<td class="txt-center txt-bold ' + ag.statusClass + '">' + formatPctCell(ag.persen) + '</td>' +
       '<td class="txt-right txt-bold" style="color:' + (ag.gap >= 0 ? '#15803D' : '#B91C1C') + ';">' + formatGapCell(ag.gap) + '</td>' +
       '<td class="' + ag.statusClass + '">' + escapeXml(ag.statusText) + '</td>' +
@@ -50481,12 +51024,18 @@ function exportSalesAnalysisToExcel() {
     '<td class="txt-center" style="color:#FFFFFF;">' + allBranches.length + ' Cabang</td>' +
     '<td class="txt-right" style="color:#FFFFFF;">' + formatRpCell(nationalTarget) + '</td>' +
     '<td class="txt-right" style="color:#A7F3D0;">' + formatRpCell(nationalActual) + '</td>' +
-    '<td class="txt-right" style="color:#6EE7B7;">' + formatRpCell(nationalChannels.offline) + '</td>' +
+    '<td class="txt-right" style="color:#6EE7B7;">' + formatRpCell(nationalChannels.tunai) + '</td>' +
+    '<td class="txt-right" style="color:#7DD3FC;">' + formatRpCell(nationalChannels.qris) + '</td>' +
+    '<td class="txt-right" style="color:#A7F3D0;">' + formatRpCell(nationalChannels.offlineLegacy) + '</td>' +
     '<td class="txt-right" style="color:#86EFAC;">' + formatRpCell(nationalChannels.grabFood) + '</td>' +
     '<td class="txt-right" style="color:#FDBA74;">' + formatRpCell(nationalChannels.shopeeFood) + '</td>' +
     '<td class="txt-right" style="color:#FCA5A5;">' + formatRpCell(nationalChannels.goFood) + '</td>' +
     '<td class="txt-right" style="color:#7DD3FC;">' + formatRpCell(nationalChannels.tikTok) + '</td>' +
     '<td class="txt-right" style="color:#DDD6FE;">' + formatRpCell(nationalChannels.qpon) + '</td>' +
+    '<td class="txt-right" style="color:#FDBA74;">' + formatRpCell(nationalChannels.tomoroApp) + '</td>' +
+    '<td class="txt-right" style="color:#5EEAD4;">' + formatRpCell(nationalChannels.grabDineOut) + '</td>' +
+    '<td class="txt-right" style="color:#BEF264;">' + formatRpCell(nationalChannels.grabInstantDeal) + '</td>' +
+    '<td class="txt-right" style="color:#FDE68A;">' + formatRpCell(nationalChannels.welfare) + '</td>' +
     '<td class="txt-center" style="color:' + (nationalPersen >= 100 ? '#A7F3D0' : '#FDE68A') + ';">' + formatPctCell(nationalPersen) + '</td>' +
     '<td class="txt-right" style="color:' + (nationalGap >= 0 ? '#A7F3D0' : '#FECACA') + ';">' + formatGapCell(nationalGap) + '</td>' +
     '<td class="txt-center" style="color:#FFFFFF;">' + (nationalPersen >= 100 ? '🟢 TERCAPAI' : (nationalPersen >= 80 ? '🟡 MENDEKATI' : '🔴 DEFISIT')) + '</td>' +
@@ -50494,7 +51043,7 @@ function exportSalesAnalysisToExcel() {
     '<td style="color:#E2E8F0; font-size:9pt;">Agregasi performa revenue seluruh jaringan gerai F&amp;B nasional.</td>' +
   '</tr>';
 
-  xml += '<tr><td colspan="17"></td></tr></table>';
+  xml += '<tr><td colspan="23"></td></tr></table>';
 
   // Bagian D: Top 10 Champion & Bottom 10 Focus
   xml += '<table>' +
@@ -50537,12 +51086,12 @@ function exportSalesAnalysisToExcel() {
 
   // Bagian E: Daftar Rincian Seluruh Gerai per Wilayah Operasional
   xml += '<table>' +
-    '<tr><td colspan="20" style="background:#0F172A; color:#FFFFFF; font-weight:bold; font-size:11pt; padding:8px 10px;">RINCIAN LENGKAP SALES REALISASI SELURUH GERAI (DIKELOMPOKKAN PER WILAYAH)</td></tr>';
+    '<tr><td colspan="26" style="background:#0F172A; color:#FFFFFF; font-weight:bold; font-size:11pt; padding:8px 10px;">RINCIAN LENGKAP SALES REALISASI SELURUH GERAI (DIKELOMPOKKAN PER WILAYAH)</td></tr>';
 
   areaGroups.forEach(areaGroup => {
     const aCh = areaGroup.channels || createEmptyChannelBucket();
     xml += '<tr class="th-area">' +
-      '<td colspan="20">' +
+      '<td colspan="26">' +
         'WILAYAH: ' + escapeXml(areaGroup.areaId) + 
         ' &nbsp;|&nbsp; Area Manager: ' + escapeXml(areaGroup.manager) + 
         ' &nbsp;|&nbsp; Total: ' + areaGroup.branches.length + ' Gerai' +
@@ -50557,12 +51106,18 @@ function exportSalesAnalysisToExcel() {
       '<th style="width:120px;">Kota</th>' +
       '<th style="width:140px;">Target Omzet</th>' +
       '<th style="width:140px;">Realisasi Omzet</th>' +
-      '<th style="width:120px;">Omset Offline</th>' +
+      '<th style="width:115px;">Tunai</th>' +
+      '<th style="width:115px;">QRIS</th>' +
+      '<th style="width:115px;">Offline Lama</th>' +
       '<th style="width:110px;">GrabFood</th>' +
       '<th style="width:110px;">ShopeeFood</th>' +
       '<th style="width:110px;">GoFood</th>' +
       '<th style="width:110px;">TikTok</th>' +
       '<th style="width:110px;">Qpon</th>' +
+      '<th style="width:110px;">Tomoro App</th>' +
+      '<th style="width:115px;">Grab Dine Out</th>' +
+      '<th style="width:120px;">Grab Instant Deal</th>' +
+      '<th style="width:120px; background:#78350F; color:#FEF3C7;">Welfare (Non-Omzet)</th>' +
       '<th style="width:85px;">Capaian</th>' +
       '<th style="width:140px;">Gap / Selisih</th>' +
       '<th style="width:135px;">Status Capaian</th>' +
@@ -50585,12 +51140,18 @@ function exportSalesAnalysisToExcel() {
         '<td>' + escapeXml(b.kota) + '</td>' +
         '<td class="txt-right">' + formatRpCell(b.target) + '</td>' +
         '<td class="txt-right txt-bold" style="color:#0F172A;">' + formatRpCell(b.actual) + '</td>' +
-        '<td class="txt-right">' + formatRpCell(bCh.offline) + '</td>' +
+        '<td class="txt-right">' + formatRpCell(bCh.tunai) + '</td>' +
+        '<td class="txt-right">' + formatRpCell(bCh.qris) + '</td>' +
+        '<td class="txt-right">' + formatRpCell(bCh.offlineLegacy) + '</td>' +
         '<td class="txt-right">' + formatRpCell(bCh.grabFood) + '</td>' +
         '<td class="txt-right">' + formatRpCell(bCh.shopeeFood) + '</td>' +
         '<td class="txt-right">' + formatRpCell(bCh.goFood) + '</td>' +
         '<td class="txt-right">' + formatRpCell(bCh.tikTok) + '</td>' +
         '<td class="txt-right">' + formatRpCell(bCh.qpon) + '</td>' +
+        '<td class="txt-right">' + formatRpCell(bCh.tomoroApp) + '</td>' +
+        '<td class="txt-right">' + formatRpCell(bCh.grabDineOut) + '</td>' +
+        '<td class="txt-right">' + formatRpCell(bCh.grabInstantDeal) + '</td>' +
+        '<td class="txt-right" style="background:#FFFBEB; color:#B45309;">' + formatRpCell(bCh.welfare) + '</td>' +
         '<td class="txt-center txt-bold ' + b.statusClass + '">' + formatPctCell(b.persen) + '</td>' +
         '<td class="txt-right txt-bold" style="color:' + (b.gap >= 0 ? '#15803D' : '#B91C1C') + ';">' + formatGapCell(b.gap) + '</td>' +
         '<td class="' + b.statusClass + '">' + escapeXml(b.statusText) + '</td>' +
@@ -50606,12 +51167,18 @@ function exportSalesAnalysisToExcel() {
       '<td colspan="5" class="txt-center">SUBTOTAL ' + escapeXml(areaGroup.areaId) + ' (' + areaGroup.branches.length + ' Cabang)</td>' +
       '<td class="txt-right">' + formatRpCell(areaGroup.totalTarget) + '</td>' +
       '<td class="txt-right" style="color:#0F172A;">' + formatRpCell(areaGroup.totalActual) + '</td>' +
-      '<td class="txt-right">' + formatRpCell(aCh.offline) + '</td>' +
+      '<td class="txt-right">' + formatRpCell(aCh.tunai) + '</td>' +
+      '<td class="txt-right">' + formatRpCell(aCh.qris) + '</td>' +
+      '<td class="txt-right">' + formatRpCell(aCh.offlineLegacy) + '</td>' +
       '<td class="txt-right">' + formatRpCell(aCh.grabFood) + '</td>' +
       '<td class="txt-right">' + formatRpCell(aCh.shopeeFood) + '</td>' +
       '<td class="txt-right">' + formatRpCell(aCh.goFood) + '</td>' +
       '<td class="txt-right">' + formatRpCell(aCh.tikTok) + '</td>' +
       '<td class="txt-right">' + formatRpCell(aCh.qpon) + '</td>' +
+      '<td class="txt-right">' + formatRpCell(aCh.tomoroApp) + '</td>' +
+      '<td class="txt-right">' + formatRpCell(aCh.grabDineOut) + '</td>' +
+      '<td class="txt-right">' + formatRpCell(aCh.grabInstantDeal) + '</td>' +
+      '<td class="txt-right" style="background:#FFFBEB; color:#B45309;">' + formatRpCell(aCh.welfare) + '</td>' +
       '<td class="txt-center ' + areaGroup.statusClass + '">' + formatPctCell(areaGroup.persen) + '</td>' +
       '<td class="txt-right txt-bold" style="color:' + (areaGroup.gap >= 0 ? '#15803D' : '#B91C1C') + ';">' + formatGapCell(areaGroup.gap) + '</td>' +
       '<td class="' + areaGroup.statusClass + '">' + escapeXml(areaGroup.statusText) + '</td>' +
@@ -50619,7 +51186,7 @@ function exportSalesAnalysisToExcel() {
       '<td class="txt-right">' + formatRpCell(areaGroup.aov) + '</td>' +
       '<td colspan="2" style="font-size:9pt; color:#475569;">' + escapeXml(areaGroup.rekomendasi) + '</td>' +
     '</tr>' +
-    '<tr><td colspan="20" style="border:none; height:10px;"></td></tr>';
+    '<tr><td colspan="26" style="border:none; height:10px;"></td></tr>';
   });
 
   xml += '</table>' +

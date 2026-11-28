@@ -13,7 +13,7 @@
  */
 
 // Konstanta Pemetaan Kolom Baku DataSales
-var COL_SALES = { ID: 0, TANGGAL: 1, AREA_ID: 2, CABANG_ID: 3, NAMA: 4, TARGET: 5, ACTUAL: 6, PERSEN: 7, TRX: 8, CREATED_BY: 9, CREATED_AT: 10, OFFLINE: 11, GRABFOOD: 12, SHOPEEFOOD: 13, GOFOOD: 14, TIKTOK: 15, QPON: 16 };
+var COL_SALES = { ID: 0, TANGGAL: 1, AREA_ID: 2, CABANG_ID: 3, NAMA: 4, TARGET: 5, ACTUAL: 6, PERSEN: 7, TRX: 8, CREATED_BY: 9, CREATED_AT: 10, OFFLINE: 11, GRABFOOD: 12, SHOPEEFOOD: 13, GOFOOD: 14, TIKTOK: 15, QPON: 16, TUNAI: 17, QRIS: 18, TOMORO_APP: 19, GRAB_DINE_OUT: 20, WELFARE: 21, GRAB_INSTANT_DEAL: 22 };
 
 // Global Aliases untuk Dukungan Pemanggilan google.script.run
 function saveSales(payload) { return apiSaveSales(payload); }
@@ -500,7 +500,10 @@ function hitungLeaderboardNasional(dCabang, dSales, dEff, dInsiden, operationalC
  */
 function ensureSalesChannelHeaders_(sheet) {
   try {
-    var channelHeaders = ['SalesOffline', 'SalesGrabFood', 'SalesShopeeFood', 'SalesGoFood', 'SalesTikTok', 'SalesQpon'];
+    var channelHeaders = [
+      'SalesOffline', 'SalesGrabFood', 'SalesShopeeFood', 'SalesGoFood', 'SalesTikTok', 'SalesQpon',
+      'SalesTunai', 'SalesQris', 'SalesTomoroApp', 'SalesGrabDineOut', 'SalesWelfare', 'SalesGrabInstantDeal'
+    ];
     var startCol = COL_SALES.OFFLINE + 1;
     var existingHeaders = sheet.getRange(1, startCol, 1, channelHeaders.length).getValues()[0];
     var needsUpdate = false;
@@ -543,13 +546,23 @@ function apiSaveSales(payload) {
     var targetDate = normalizeDateStr(payload.tanggal) || nowIso.split('T')[0];
     var targetCabangId = String(payload.cabangId || '').trim();
 
-    var salesOffline = Math.max(0, Number(payload.salesOffline || 0));
+    var salesTunai = Math.max(0, Number(payload.salesTunai || 0));
+    var salesQris = Math.max(0, Number(payload.salesQris || 0));
+    var rawOffline = Math.max(0, Number(payload.salesOffline || 0));
+    // Backward-compatible: jika ada Tunai/QRIS maka Offline = Tunai + QRIS; jika payload lama hanya kirim salesOffline maka tetap dijaga
+    var salesOffline = (salesTunai + salesQris) > 0 ? (salesTunai + salesQris) : rawOffline;
+
     var salesGrabFood = Math.max(0, Number(payload.salesGrabFood || 0));
     var salesShopeeFood = Math.max(0, Number(payload.salesShopeeFood || 0));
     var salesGoFood = Math.max(0, Number(payload.salesGoFood || 0));
     var salesTikTok = Math.max(0, Number(payload.salesTikTok || 0));
     var salesQpon = Math.max(0, Number(payload.salesQpon || 0));
-    var channelSum = salesOffline + salesGrabFood + salesShopeeFood + salesGoFood + salesTikTok + salesQpon;
+    var salesTomoroApp = Math.max(0, Number(payload.salesTomoroApp || 0));
+    var salesGrabDineOut = Math.max(0, Number(payload.salesGrabDineOut || 0));
+    var salesWelfare = Math.max(0, Number(payload.salesWelfare || 0)); // Dicatat terpisah (Pilihan A: TIDAK dihitung ke Actual Sales)
+    var salesGrabInstantDeal = Math.max(0, Number(payload.salesGrabInstantDeal || 0));
+
+    var channelSum = salesOffline + salesGrabFood + salesShopeeFood + salesGoFood + salesTikTok + salesQpon + salesTomoroApp + salesGrabDineOut + salesGrabInstantDeal;
 
     var target = Number(payload.targetHarian || 0);
     var actual = channelSum > 0 ? channelSum : Math.max(0, Number(payload.actualSales || 0));
@@ -578,8 +591,9 @@ function apiSaveSales(payload) {
       sheet.getRange(primaryRow, COL_SALES.TRX + 1).setValue(Number(payload.totalTransaksi || 0));
       sheet.getRange(primaryRow, COL_SALES.CREATED_BY + 1).setValue(payload.createdBy + ' (Koreksi)');
       sheet.getRange(primaryRow, COL_SALES.CREATED_AT + 1).setValue(nowIso);
-      sheet.getRange(primaryRow, COL_SALES.OFFLINE + 1, 1, 6).setValues([[
-        salesOffline, salesGrabFood, salesShopeeFood, salesGoFood, salesTikTok, salesQpon
+      sheet.getRange(primaryRow, COL_SALES.OFFLINE + 1, 1, 12).setValues([[
+        salesOffline, salesGrabFood, salesShopeeFood, salesGoFood, salesTikTok, salesQpon,
+        salesTunai, salesQris, salesTomoroApp, salesGrabDineOut, salesWelfare, salesGrabInstantDeal
       ]]);
 
       // Hapus baris ekstra jika sebelumnya sempat terduplikasi
@@ -625,7 +639,13 @@ function apiSaveSales(payload) {
         salesShopeeFood,
         salesGoFood,
         salesTikTok,
-        salesQpon
+        salesQpon,
+        salesTunai,
+        salesQris,
+        salesTomoroApp,
+        salesGrabDineOut,
+        salesWelfare,
+        salesGrabInstantDeal
       ];
 
       sheet.appendRow(newRow);
@@ -696,25 +716,31 @@ function apiScanReceiptWithAI(payload) {
     var brandHint = String(payload.brand || '').trim().toUpperCase();
     var cabangHint = String(payload.cabangName || '').trim();
 
-    var promptText = "Kamu adalah sistem AI pembaca foto layar POS kasir dan struk closing F&B Indonesia (khususnya POS Momoyo, Wedrink ESB POS, Tomoro Coffee POS, Mixue HiStone POS, dan Tianlala Olsera/Rekapan Shift). " +
+    var promptText = "Kamu adalah sistem AI pembaca foto layar POS kasir dan struk closing F&B Indonesia (khususnya POS Momoyo, Wedrink ESB POS, Tomoro Coffee POS, Mixue HiStone POS, Tianlala Rekapan Shift, dan Ultimashot Billiard). " +
       (brandHint ? ("Konteks cabang aktif saat ini adalah brand " + brandHint + (cabangHint ? (" (" + cabangHint + ")") : "") + ". ") : "") +
-      "Analisis " + rawImages.length + " gambar berikut dan ekstrak rincian omzet ke dalam 6 channel ini (dalam integer Rupiah bulat, tanpa titik/koma, isi 0 jika tidak ada di gambar):\n" +
-      "1. salesOffline: Seluruh penjualan toko/kasir langsung (Cash/Tunai/POS + QRIS/Debit/EDC/E-Wallet kasir seperti BCA, BRI, QRIS Manual, Gopay kasir, ShopeePay/SPayLater, OVO, DANA, Online transfer kasir). PENTING: Gopay & ShopeePay di layar payment kasir adalah salesOffline, JANGAN tertukar dengan GoFood/ShopeeFood!\n" +
-      "2. salesGrabFood: Penjualan GrabFood ('GRAB FOOD', 'GRABFOOD', 'grabfood', 'GrabFood Integrasi').\n" +
-      "3. salesShopeeFood: Penjualan ShopeeFood ('Shopee food', 'SHOPEEFOOD', 'ShopeeFood', 'Shopee Integrasi'). Bila ada HP Shopee Partner terfoto di samping monitor POS Mixue, utamakan angka di monitor POS agar tidak double count.\n" +
-      "4. salesGoFood: Penjualan GoFood ('Gojek' di Momoyo, 'GoFood manual input' di Mixue, 'GoFood Integrasi' di Tianlala, 'GOFOOD').\n" +
-      "5. salesTikTok: Penjualan TikTok ('Tiktok', 'TIKTOK GO' di Wedrink, 'TikTok').\n" +
-      "6. salesQpon: Penjualan voucher Qpon ('Qpon', 'QPON').\n\n" +
+      "Analisis " + rawImages.length + " gambar berikut dan ekstrak rincian omzet dalam integer Rupiah bulat (tanpa titik/koma, isi 0 jika tidak ada di gambar):\n" +
+      "1. salesTunai: Penjualan TUNAI / CASH fisik di kasir ('Tunai', 'Uang tunai', 'CASH'). Khusus Tianlala blok detail 'Uang tunai -> Penjualan' vs 'Kas Masuk', ambil nominal 'Penjualan' saja (jangan hitung modal Kas Masuk).\n" +
+      "2. salesQris: Penjualan non-tunai/QRIS/EDC/E-Wallet langsung di kasir ('QRIS', 'QRIS MANUAL', 'DEBIT CARD', 'EDC', 'BCA', 'BRI', 'Mandiri', 'BNI', 'Gopay' kasir, 'ShopeePay/SPayLater' kasir, 'OVO', 'DANA', 'Online' di Mixue). PENTING: Gopay & ShopeePay di kasir adalah salesQris, JANGAN tertukar dengan GoFood/ShopeeFood!\n" +
+      "3. salesOffline: JIKA struk POS menggabung Tunai + QRIS dalam satu baris 'POS' (contoh layar ringkas 'Detail platform' Momoyo) sehingga tidak terlihat pecahan Cash vs QRIS, masukkan ke salesOffline (isi salesTunai=0, salesQris=0). JIKA Tunai & QRIS terlihat terpisah, isi salesOffline = salesTunai + salesQris.\n" +
+      "4. salesGrabFood: Penjualan delivery GrabFood ('GRAB FOOD', 'GRABFOOD', 'grabfood', 'GrabFood Integrasi'). JANGAN masukkan Grab Dine Out atau Grab Instant Deal ke sini.\n" +
+      "5. salesShopeeFood: Penjualan ShopeeFood ('Shopee food', 'SHOPEEFOOD', 'Shopee Integrasi'). Utamakan monitor POS agar tidak double count.\n" +
+      "6. salesGoFood: Penjualan GoFood ('Gojek' di Momoyo, 'GoFood manual input' di Mixue, 'GoFood Integrasi' di Tianlala, 'GOFOOD').\n" +
+      "7. salesTikTok: Penjualan TikTok ('Tiktok', 'TIKTOK GO' di Wedrink, 'TikTok').\n" +
+      "8. salesQpon: Penjualan voucher Qpon ('Qpon', 'QPON').\n" +
+      "9. salesTomoroApp: KHUSUS TOMORO - Penjualan Aplikasi resmi Tomoro ('Tomoro App', 'TOMORO APLIKASI', 'App Order', 'In-App'). Brand selain Tomoro isi 0.\n" +
+      "10. salesGrabDineOut: KHUSUS TIANLALA & TOMORO - Penjualan Grab Dine Out ('Grab Dine Out', 'Dine Out', 'Grab DineOut'). Brand lain isi 0.\n" +
+      "11. salesGrabInstantDeal: KHUSUS TOMORO - Penjualan Grab Instant Deal ('Grab Instant Deal', 'Instant Deal'). Brand lain isi 0.\n" +
+      "12. salesWelfare: KHUSUS MOMOYO, TIANLALA & TOMORO (Mixue, Wedrink, Ultimashot isi 0) - Nilai Welfare / Compliment / Staff Benefit. PENTING: salesWelfare TIDAK ikut dijumlah ke actualSales!\n\n" +
       "ATURAN KHUSUS PER BRAND POS:\n" +
-      "- MOMOYO (HiStone 'Detail platform'): 'POS' -> salesOffline, 'Tiktok' -> salesTikTok, 'Shopee food' -> salesShopeeFood, 'Qpon' -> salesQpon, 'Gojek' -> salesGoFood. Jumlah Qty = totalTransaksi ('Persamaan').\n" +
-      "- WEDRINK (ESB POS 'Sales Payment Recapitulation'): 'CASH' + 'QRIS MANUAL' -> salesOffline, 'GRAB FOOD' -> salesGrabFood, 'QPON' -> salesQpon, 'TIKTOK GO' -> salesTikTok. Abaikan baris 'Menu Discount'/'Sales Menu' di tabel bawah.\n" +
-      "- TOMORO (POS Daily Report Closing, sering terbagi 2 foto scroll): Cash + Gopay + ShopeePay/SPayLater + DANA + OVO + BCA + BRI -> salesOffline; 'SHOPEEFOOD' -> salesShopeeFood; 'GRABFOOD' -> salesGrabFood; 'TikTok' -> salesTikTok; 'QPON' -> salesQpon. WAJIB DEDUPLIKASI: jika baris yang sama (misal OVO) terlihat berulang di 2 foto screenshot yang di-scroll, hitung HANYA 1 KALI! Jumlahkan kolom Quantity payment unik sebagai totalTransaksi.\n" +
-      "- MIXUE (HiStone 'Laporan'): Baca blok 'Rincian penerimaan uang' (jumlahnya = 'Uang yang diterima'). 'Tunai' + 'Gopay' + 'Online' -> salesOffline; 'GoFood manual input' -> salesGoFood; 'ShopeeFood' -> salesShopeeFood; 'TikTok' -> salesTikTok; 'grabfood' -> salesGrabFood. Ambil 'Jumlah pesanan pelanggan' sebagai totalTransaksi.\n" +
-      "- TIANLALA (Rekapan Shift 'Ringkasan'): Baca HANYA kolom 'TERCATAT' (abaikan kolom TERHITUNG, kolom SELISIH yang minus, dan angka Rp 0 di panel kiri). 'QRIS' + 'DEBIT CARD' + tunai -> salesOffline; 'QPON' -> salesQpon; 'GoFood Integrasi' -> salesGoFood; 'Shopee Integrasi' -> salesShopeeFood; 'GrabFood Integrasi' -> salesGrabFood. Khusus baris 'Uang tunai': jika bagian rincian 'Uang tunai' di bawah menampilkan angka 'Penjualan' terpisah dari 'Kas Masuk' (modal awal), gunakan nominal 'Penjualan' agar modal awal tidak ikut terhitung.\n" +
-      "- TANGGAL & CABANG: Ekstrak tanggal YYYY-MM-DD (baca dari layar POS seperti 'Report Date', header jam, atau watermark tanggal kamera bila layar tidak mencantumkan tanggal). totalTransaksi integer bulat atau null jika tidak tercantum.\n" +
-      "- actualSales: Jumlah dari salesOffline + salesGrabFood + salesShopeeFood + salesGoFood + salesTikTok + salesQpon.\n\n" +
+      "- MOMOYO (HiStone 'Detail platform'): jika hanya ada 'POS' tanpa rincian Tunai/QRIS -> salesOffline, 'Tiktok' -> salesTikTok, 'Shopee food' -> salesShopeeFood, 'Qpon' -> salesQpon, 'Gojek' -> salesGoFood, 'Welfare/Compliment' (jika ada) -> salesWelfare.\n" +
+      "- WEDRINK (ESB POS 'Sales Payment Recapitulation'): 'CASH' -> salesTunai, 'QRIS MANUAL' -> salesQris, 'GRAB FOOD' -> salesGrabFood, 'QPON' -> salesQpon, 'TIKTOK GO' -> salesTikTok. (Abaikan Welfare).\n" +
+      "- TOMORO (POS Daily Report Closing, sering 2 foto scroll): 'Cash' -> salesTunai; Gopay + ShopeePay/SPayLater + DANA + OVO + BCA + BRI -> salesQris; 'Tomoro App'/'Aplikasi' -> salesTomoroApp; 'SHOPEEFOOD' -> salesShopeeFood; 'GRABFOOD' -> salesGrabFood; 'Grab Dine Out' -> salesGrabDineOut; 'Grab Instant Deal' -> salesGrabInstantDeal; 'TikTok' -> salesTikTok; 'QPON' -> salesQpon; 'Welfare/Compliment' -> salesWelfare. WAJIB DEDUPLIKASI baris berulang di 2 foto scroll!\n" +
+      "- MIXUE (HiStone 'Laporan'): 'Tunai' -> salesTunai; 'Gopay' + 'Online' -> salesQris; 'GoFood manual input' -> salesGoFood; 'ShopeeFood' -> salesShopeeFood; 'TikTok' -> salesTikTok; 'grabfood' -> salesGrabFood.\n" +
+      "- TIANLALA (Rekapan Shift 'Ringkasan'): baca kolom 'TERCATAT'. 'Uang tunai' (nominal 'Penjualan') -> salesTunai; 'QRIS' + 'DEBIT CARD' -> salesQris; 'QPON' -> salesQpon; 'GoFood Integrasi' -> salesGoFood; 'Shopee Integrasi' -> salesShopeeFood; 'GrabFood Integrasi' -> salesGrabFood; 'Grab Dine Out'/'Dine Out' -> salesGrabDineOut; 'Welfare/Compliment' -> salesWelfare.\n" +
+      "- ULTIMASHOT BILLIARD: standar ('Tunai/Cash' -> salesTunai, 'QRIS/EDC/Transfer' -> salesQris, beserta channel ojol/Qpon bila ada).\n" +
+      "- actualSales: Jumlah dari salesOffline + salesGrabFood + salesShopeeFood + salesGoFood + salesTikTok + salesQpon + salesTomoroApp + salesGrabDineOut + salesGrabInstantDeal (TANPA salesWelfare).\n\n" +
       "Keluarkan HANYA JSON valid tanpa markdown: " +
-      "{\"detectedBrand\":\"MOMOYO\",\"actualSales\":4276100,\"salesOffline\":2145000,\"salesGrabFood\":0,\"salesShopeeFood\":625400,\"salesGoFood\":172500,\"salesTikTok\":938200,\"salesQpon\":395000,\"totalTransaksi\":136,\"tanggal\":\"2026-11-25\",\"namaCabang\":\"Momoyo Babakan\"}";
+      "{\"detectedBrand\":\"TOMORO\",\"actualSales\":4815100,\"salesTunai\":889000,\"salesQris\":3243600,\"salesOffline\":4132600,\"salesGrabFood\":83000,\"salesShopeeFood\":227000,\"salesGoFood\":0,\"salesTikTok\":295500,\"salesQpon\":77000,\"salesTomoroApp\":0,\"salesGrabDineOut\":0,\"salesGrabInstantDeal\":0,\"salesWelfare\":0,\"totalTransaksi\":126,\"tanggal\":\"2026-11-24\",\"namaCabang\":\"Tomoro Purnawarman\"}";
 
     var parts = [{ text: promptText }];
     for (var imgIdx = 0; imgIdx < Math.min(rawImages.length, 3); imgIdx++) {
