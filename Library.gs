@@ -15,12 +15,73 @@
 var COL_LIBRARY = { ID: 0, JUDUL: 1, KATEGORI: 2, BRAND: 3, VERSI: 4, TANGGAL: 5, FILE_URL: 6, AUDIENCE: 7, DESKRIPSI: 8, STATUS: 9, UPLOADER: 10 };
 
 // Global Aliases untuk Dukungan Pemanggilan google.script.run
+function getLibraryData(userSession) { return apiGetLibraryData(userSession); }
 function saveLibrary(payload) { return apiSaveLibraryDocument(payload); }
 function saveLibraryDocument(payload) { return apiSaveLibraryDocument(payload); }
 function approveLibrary(sopId, approverName) { return apiApproveLibraryDocument(sopId, approverName); }
 function approveLibraryDocument(sopId, approverName) { return apiApproveLibraryDocument(sopId, approverName); }
 function deleteLibrary(sopId) { return apiDeleteLibraryDocument(sopId); }
 function deleteLibraryDocument(sopId) { return apiDeleteLibraryDocument(sopId); }
+
+/**
+ * Helper Bersama: Bangun Daftar Dokumen SOP & Library Sesuai Hak Akses
+ */
+function buildLibraryListForUser_(userSession) {
+  var listLibrary = [];
+  var u = userSession || {};
+  var roleStr = String(u.role || '').trim().toUpperCase();
+  var areaStr = String(u.areaId || '').trim().toUpperCase();
+  var unameStr = String(u.username || '').trim().toLowerCase();
+  var isGuest = (roleStr === 'TAMU' || roleStr === 'GUEST' || roleStr === 'AUDITOR' || roleStr === 'VIEWER');
+  var isCOO = !isGuest && (roleStr === 'MASTER' || roleStr === 'COO' || areaStr === 'ALL' || unameStr === 'admin' || unameStr === 'coo_master');
+
+  var dLib = (typeof getCachedSheetValues_ === 'function')
+    ? getCachedSheetValues_(TAB.LIBRARY, 'OTHER_OPS', 900)
+    : (function() {
+        var s = getSheet(TAB.LIBRARY);
+        return s ? s.getDataRange().getValues() : [];
+      })();
+
+  for (var p = 1; p < dLib.length; p++) {
+    var rl = dLib[p];
+    var libId = String(rl[COL_LIBRARY.ID] || '').trim();
+    if (!libId) continue;
+    var docStatus = String(rl[COL_LIBRARY.STATUS] || 'AKTIF').toUpperCase();
+    var docUploader = String(rl[COL_LIBRARY.UPLOADER] || '');
+    var isOwnDoc = (u.namaLengkap && docUploader.indexOf(u.namaLengkap) !== -1) ||
+                   (u.areaId && docUploader.indexOf(u.areaId) !== -1);
+    if (isCOO || docStatus === 'AKTIF' || isOwnDoc) {
+      listLibrary.push({
+        id: libId,
+        judul: String(rl[COL_LIBRARY.JUDUL] || '').trim(),
+        kategori: String(rl[COL_LIBRARY.KATEGORI] || '').trim(),
+        brand: String(rl[COL_LIBRARY.BRAND] || '').trim(),
+        versi: String(rl[COL_LIBRARY.VERSI] || '').trim(),
+        tanggal: (typeof sanitizeGasVal === 'function') ? sanitizeGasVal(rl[COL_LIBRARY.TANGGAL]) : String(rl[COL_LIBRARY.TANGGAL] || ''),
+        fileUrl: String(rl[COL_LIBRARY.FILE_URL] || '').trim(),
+        audience: String(rl[COL_LIBRARY.AUDIENCE] || '').trim(),
+        deskripsi: String(rl[COL_LIBRARY.DESKRIPSI] || '').trim(),
+        status: docStatus,
+        uploader: docUploader
+      });
+    }
+  }
+  return listLibrary;
+}
+
+/**
+ * API Lazy-Load: Ambil Daftar Dokumen SOP & Library Secara Terpisah Saat Tab Dibuka
+ */
+function apiGetLibraryData(userSession) {
+  try {
+    return {
+      success: true,
+      library: buildLibraryListForUser_(userSession)
+    };
+  } catch (err) {
+    return { success: false, message: 'Gagal memuat dokumen SOP: ' + err.message, library: [] };
+  }
+}
 
 // ================================================================================
 // BAGIAN 1: PENGELOLAAN DOKUMEN SOP, PERSETUJUAN & PENGHAPUSAN
@@ -89,6 +150,7 @@ function apiSaveLibraryDocument(payload) {
       sheet.getRange(rowIdx, COL_LIBRARY.AUDIENCE + 1).setValue(payload.audience || 'ALL');
       sheet.getRange(rowIdx, COL_LIBRARY.DESKRIPSI + 1).setValue(payload.deskripsi || '');
       sheet.getRange(rowIdx, COL_LIBRARY.STATUS + 1).setValue(effectiveStatus);
+      if (typeof invalidateCacheDomains_ === 'function') invalidateCacheDomains_(['OTHER_OPS']);
       return {
         success: true,
         message: 'Dokumen SOP "' + payload.judul + '" berhasil diperbarui!',
@@ -111,6 +173,7 @@ function apiSaveLibraryDocument(payload) {
         payload.uploader || 'Executive COO'
       ];
       sheet.appendRow(newRow);
+      if (typeof invalidateCacheDomains_ === 'function') invalidateCacheDomains_(['OTHER_OPS']);
       payload.id = sopId;
       payload.status = effectiveStatus;
 
@@ -176,6 +239,7 @@ function apiApproveLibraryDocument(sopId, approverName) {
       var dd = ('0' + now.getDate()).slice(-2);
       var tglToday = yyyy + '-' + mm + '-' + dd;
       sheet.getRange(rowIdx, COL_LIBRARY.TANGGAL + 1).setValue(tglToday);
+      if (typeof invalidateCacheDomains_ === 'function') invalidateCacheDomains_(['OTHER_OPS']);
 
       // Push Notifikasi Luar Aplikasi (Status Bar HP): Kategori LIBRARY (Approved)
       try {
@@ -226,6 +290,7 @@ function apiDeleteLibraryDocument(sopId) {
 
     if (rowIdx > 0) {
       sheet.deleteRow(rowIdx);
+      if (typeof invalidateCacheDomains_ === 'function') invalidateCacheDomains_(['OTHER_OPS']);
     }
     return {
       success: true,

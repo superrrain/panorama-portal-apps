@@ -157,7 +157,7 @@ function handleApiRequest(action, params) {
     var isGuestUser = (userRole === 'TAMU' || userRole === 'GUEST' || userRole === 'AUDITOR' || userRole === 'VIEWER');
 
     // Proteksi Keamanan Backend: Tolak seluruh operasi mutasi data jika pengguna adalah Akun Tamu
-    var readOnlyAllowedActions = ['getInitialData', 'apiGetInitialData', 'ping', 'getCustomerReviews', 'exportToExcel', 'getPublicBranchInfo', 'apiGetPublicBranchInfo'];
+    var readOnlyAllowedActions = ['getInitialData', 'apiGetInitialData', 'getLibraryData', 'apiGetLibraryData', 'warmupCache', 'apiWarmupCache', 'ping', 'getCustomerReviews', 'exportToExcel', 'getPublicBranchInfo', 'apiGetPublicBranchInfo'];
     if (isGuestUser && readOnlyAllowedActions.indexOf(action) === -1) {
       return ContentService.createTextOutput(JSON.stringify({
         success: false,
@@ -169,7 +169,23 @@ function handleApiRequest(action, params) {
       case 'getInitialData':
       case 'apiGetInitialData':
       case 'apiGetDashboardData':
-        result = apiGetInitialData(user);
+        var initLiteMode = Boolean(params.liteMode || (params.payload && params.payload.liteMode));
+        result = apiGetInitialData(user, null, initLiteMode ? { liteMode: true } : null);
+        break;
+
+      case 'getLibraryData':
+      case 'apiGetLibraryData':
+        result = (typeof apiGetLibraryData === 'function') ? apiGetLibraryData(user) : { success: false, message: 'Endpoint Library belum tersedia.', library: [] };
+        break;
+
+      case 'warmupCache':
+      case 'apiWarmupCache':
+        result = apiWarmupCache(user);
+        break;
+
+      case 'setupWarmupTrigger':
+      case 'apiSetupWarmupTrigger':
+        result = apiSetupWarmupTrigger(user);
         break;
 
       case 'saveConfig':
@@ -294,7 +310,8 @@ function handleApiRequest(action, params) {
       case 'apiLogin':
         var uLog = params.username || (params.payload && params.payload.username) || (params.user && params.user.username);
         var pLog = params.password || (params.payload && params.payload.password);
-        result = apiLogin(uLog, pLog);
+        var incInitLog = Boolean(params.includeInitialData || (params.payload && params.payload.includeInitialData));
+        result = apiLogin(uLog, pLog, incInitLog);
         break;
 
       case 'registerUser':
@@ -502,7 +519,7 @@ function handleApiRequest(action, params) {
 function invalidateCacheByAction_(action) {
   if (typeof invalidateCacheDomains_ !== 'function') return;
   var a = String(action || '').trim();
-  if (!a || a === 'getInitialData' || a === 'apiGetInitialData' || a === 'apiGetDashboardData' || a === 'apiLogin' || a === 'login' || a === 'apiGetNotifikasi' || a === 'getNotifikasi' || a === 'apiGetPublicBranchInfo' || a === 'getPublicBranchInfo' || a === 'apiScanReceiptWithAI' || a === 'scanReceiptWithAI') {
+  if (!a || a === 'getInitialData' || a === 'apiGetInitialData' || a === 'apiGetDashboardData' || a === 'getLibraryData' || a === 'apiGetLibraryData' || a === 'warmupCache' || a === 'apiWarmupCache' || a === 'apiLogin' || a === 'login' || a === 'apiGetNotifikasi' || a === 'getNotifikasi' || a === 'apiGetPublicBranchInfo' || a === 'getPublicBranchInfo' || a === 'apiScanReceiptWithAI' || a === 'scanReceiptWithAI') {
     return;
   }
   if (/Config|Cabang|BranchTarget|User|Password|Placement|Rotation|CleanProduction|CleanAllTransaction/i.test(a)) {
@@ -840,8 +857,113 @@ function getCachedSheetValues_(sheetName, domain, ttlSec) {
   var sheet = getSheet(sheetName);
   var rawVals = sheet ? sheet.getDataRange().getValues() : [];
   var normalized = normalizeSheetValuesForCache_(rawVals);
-  putChunkedCache_(cacheKey, normalized, ttlSec || 90);
+  putChunkedCache_(cacheKey, normalized, ttlSec || 900);
   return normalized;
+}
+
+/**
+ * Perbarui CacheService in-place tanpa memutus cache lama selama pembacaan Sheet berlangsung.
+ */
+function refreshCachedSheetValues_(sheetName, domain, ttlSec) {
+  var epoch = getCacheEpoch_(domain || 'OPS');
+  var cacheKey = 'SV_' + (domain || 'OPS') + '_' + epoch + '_' + sheetName;
+  var sheet = getSheet(sheetName);
+  var rawVals = sheet ? sheet.getDataRange().getValues() : [];
+  var normalized = normalizeSheetValuesForCache_(rawVals);
+  putChunkedCache_(cacheKey, normalized, ttlSec || 900);
+  return normalized;
+}
+
+/**
+ * Hangatkan seluruh sheet panas ke CacheService agar tidak pernah terkena pembacaan dingin 13 detik.
+ */
+function warmupPanoramaCache_(forceRefresh) {
+  var started = new Date().getTime();
+  var specs = [
+    { sheet: TAB.CABANG, domain: 'MASTER', ttl: 3600 },
+    { sheet: TAB.USER, domain: 'MASTER', ttl: 3600 },
+    { sheet: TAB.CONFIG, domain: 'MASTER', ttl: 3600 },
+    { sheet: TAB.SALES, domain: 'SALES', ttl: 900 },
+    { sheet: TAB.TUGAS, domain: 'SALES', ttl: 900 },
+    { sheet: TAB.INSIDEN, domain: 'OTHER_OPS', ttl: 900 },
+    { sheet: TAB.EFISIENSI, domain: 'OTHER_OPS', ttl: 900 },
+    { sheet: TAB.JADWAL, domain: 'OTHER_OPS', ttl: 900 },
+    { sheet: TAB.KENDALA, domain: 'OTHER_OPS', ttl: 900 },
+    { sheet: TAB.PERUBAHAN_JADWAL, domain: 'OTHER_OPS', ttl: 900 },
+    { sheet: TAB.REVIEWS, domain: 'OTHER_OPS', ttl: 900 },
+    { sheet: TAB.LIBRARY, domain: 'OTHER_OPS', ttl: 900 },
+    { sheet: 'DataNotifikasi', domain: 'NOTIF', ttl: 300 }
+  ];
+  var warmed = 0;
+  for (var i = 0; i < specs.length; i++) {
+    try {
+      var sp = specs[i];
+      if (!sp.sheet) continue;
+      if (forceRefresh) refreshCachedSheetValues_(sp.sheet, sp.domain, sp.ttl);
+      else getCachedSheetValues_(sp.sheet, sp.domain, sp.ttl);
+      warmed++;
+    } catch (eWarm) {}
+  }
+  try {
+    CacheService.getScriptCache().put('PAN_LAST_WARMED_AT', String(new Date().getTime()), 3600);
+  } catch (eTime) {}
+  return {
+    success: true,
+    warmedSheets: warmed,
+    durationMs: new Date().getTime() - started
+  };
+}
+
+/**
+ * Fungsi khusus Time-Driven Trigger (tiap 10 menit pada jam operasional 06:00-23:59 WIB)
+ */
+function warmupPanoramaCacheCron_() {
+  try {
+    var hourWib = Number(Utilities.formatDate(new Date(), 'Asia/Jakarta', 'H')) || 12;
+    if (hourWib < 6) return; // Istirahat dini hari untuk menghemat kuota eksekusi
+    var lastRaw = CacheService.getScriptCache().get('PAN_LAST_WARMED_AT');
+    var needRefresh = !lastRaw || (new Date().getTime() - Number(lastRaw) >= 540000);
+    warmupPanoramaCache_(needRefresh);
+  } catch (eCron) {
+    Logger.log('warmupPanoramaCacheCron_ notice: ' + eCron.message);
+  }
+}
+
+function apiWarmupCache(userSession) {
+  return warmupPanoramaCache_(false);
+}
+
+/**
+ * Pasang / Perbarui Jadwal Pemanas Server Otomatis (Jalankan 1x oleh COO dari Editor atau Pengaturan)
+ */
+function setupCacheWarmupTrigger() {
+  try {
+    var triggers = ScriptApp.getProjectTriggers();
+    for (var i = 0; i < triggers.length; i++) {
+      if (triggers[i].getHandlerFunction() === 'warmupPanoramaCacheCron_') {
+        ScriptApp.deleteTrigger(triggers[i]);
+      }
+    }
+    ScriptApp.newTrigger('warmupPanoramaCacheCron_')
+      .timeBased()
+      .everyMinutes(10)
+      .create();
+    var warmRes = warmupPanoramaCache_(true);
+    return {
+      success: true,
+      message: 'Robot pemanas cache otomatis tiap 10 menit aktif (' + warmRes.warmedSheets + ' tabel dihangatkan dalam ' + warmRes.durationMs + ' ms).'
+    };
+  } catch (err) {
+    return { success: false, message: 'Gagal memasang pemicu otomatis: ' + err.message };
+  }
+}
+
+function apiSetupWarmupTrigger(userSession) {
+  var roleInfo = getUserRoleInfo(userSession);
+  if (!roleInfo.isMaster) {
+    return { success: false, message: 'Hanya Master COO yang diizinkan memasang jadwal pemanas server.' };
+  }
+  return setupCacheWarmupTrigger();
 }
 
 /**
@@ -984,15 +1106,15 @@ function getUserRoleInfo(user) {
 /**
  * Alias Baku untuk google.script.run Client Bridge
  */
-function getInitialData(userSession, fallbackUser) {
-  return apiGetInitialData(userSession, fallbackUser);
+function getInitialData(userSession, fallbackUser, options) {
+  return apiGetInitialData(userSession, fallbackUser, options);
 }
 
 /**
  * Endpoint Pengembalian String JSON Murni (Bypass Limitasi Serialisasi Objek IPC google.script.run)
  */
-function apiGetInitialDataString(userSession, fallbackUser) {
-  var res = apiGetInitialData(userSession, fallbackUser);
+function apiGetInitialDataString(userSession, fallbackUser, options) {
+  var res = apiGetInitialData(userSession, fallbackUser, options);
   return JSON.stringify(res);
 }
 
@@ -1042,7 +1164,7 @@ function normalizeDateStr(val) {
  * API: Ambil Seluruh Data Operasional Sesuai Hak Akses (COO vs Area Manager)
  * Menggunakan isolasi per modul (try-catch independen) & serialisasi primitif kebal error
  */
-function apiGetInitialData(userSession, fallbackUser) {
+function apiGetInitialData(userSession, fallbackUser, options) {
   try {
     if (!userSession || !userSession.role) {
       if (fallbackUser && fallbackUser.role) {
@@ -1053,10 +1175,13 @@ function apiGetInitialData(userSession, fallbackUser) {
         userSession = { role: 'COO', username: 'admin', namaLengkap: 'Master Administrator', areaId: 'ALL' };
       }
     }
+    var opts = (options && typeof options === 'object') ? options : {};
+    var liteMode = Boolean(opts.liteMode);
 
     var roleStr = String(userSession.role || '').trim().toUpperCase();
     var areaStr = String(userSession.areaId || '').trim().toUpperCase();
     var cabangStr = String(userSession.cabangId || '').trim();
+    var cabangStrUpper = cabangStr.toUpperCase();
     var unameStr = String(userSession.username || '').trim().toLowerCase();
 
     var isGuest = (roleStr === 'TAMU' || roleStr === 'GUEST' || roleStr === 'AUDITOR' || roleStr === 'VIEWER');
@@ -1072,7 +1197,7 @@ function apiGetInitialData(userSession, fallbackUser) {
     var listCabang = [];
     var dCabang = [];
     try {
-      dCabang = getCachedSheetValues_(TAB.CABANG, 'MASTER', 900);
+      dCabang = getCachedSheetValues_(TAB.CABANG, 'MASTER', 3600);
 
       // SAFE READ-ONLY: Cepat, tanpa operasi setValue di dalam loop pembacaan data awal
       var seenCabangIds = {};
@@ -1136,7 +1261,7 @@ function apiGetInitialData(userSession, fallbackUser) {
     var salesMap = {}; // Untuk deduplikasi otomatis jika ada tanggal & cabang ganda di spreadsheet
     var dSales = [];
     try {
-      dSales = getCachedSheetValues_(TAB.SALES, 'SALES', 90);
+      dSales = getCachedSheetValues_(TAB.SALES, 'SALES', 900);
       for (var j = 1; j < dSales.length; j++) {
         var rs = dSales[j];
         var sId = String(rs[COL_SALES.ID] || '').trim();
@@ -1187,7 +1312,7 @@ function apiGetInitialData(userSession, fallbackUser) {
     var listInsiden = [];
     var dInsiden = [];
     try {
-      dInsiden = getCachedSheetValues_(TAB.INSIDEN, 'OTHER_OPS', 180);
+      dInsiden = getCachedSheetValues_(TAB.INSIDEN, 'OTHER_OPS', 900);
       for (var k = 1; k < dInsiden.length; k++) {
         var ri = dInsiden[k];
         var iAreaId = String(ri[COL_INSIDEN.AREA_ID] || '').trim();
@@ -1222,7 +1347,7 @@ function apiGetInitialData(userSession, fallbackUser) {
     var listEfisiensi = [];
     var dEff = [];
     try {
-      dEff = getCachedSheetValues_(TAB.EFISIENSI, 'OTHER_OPS', 180);
+      dEff = getCachedSheetValues_(TAB.EFISIENSI, 'OTHER_OPS', 900);
 
       // Peta akumulasi omzet bulanan per cabang untuk normalisasi HPP Opsi A
       var branchMonthlySalesMap = {};
@@ -1279,7 +1404,7 @@ function apiGetInitialData(userSession, fallbackUser) {
     var listTugas = [];
     var dTugas = [];
     try {
-      dTugas = getCachedSheetValues_(TAB.TUGAS, 'SALES', 90);
+      dTugas = getCachedSheetValues_(TAB.TUGAS, 'SALES', 900);
       for (var tIdx = 1; tIdx < dTugas.length; tIdx++) {
         var rt = dTugas[tIdx];
         var tId = String(rt[COL_TUGAS.ID] || '').trim();
@@ -1311,7 +1436,8 @@ function apiGetInitialData(userSession, fallbackUser) {
     // 6. Data Jadwal Kerja (Cache Domain OTHER_OPS)
     var listJadwal = [];
     try {
-      var dJadwal = getCachedSheetValues_(TAB.JADWAL, 'OTHER_OPS', 180);
+      var dJadwal = getCachedSheetValues_(TAB.JADWAL, 'OTHER_OPS', 900);
+      var mySpvNameLow = String(userSession.namaLengkap || '').trim().toLowerCase();
       for (var jIdx = 1; jIdx < dJadwal.length; jIdx++) {
         var rj = dJadwal[jIdx];
         var jId = String(rj[COL_JADWAL.ID] || '').trim();
@@ -1319,12 +1445,23 @@ function apiGetInitialData(userSession, fallbackUser) {
         var jLevel = String(rj[COL_JADWAL.LEVEL] || '').trim().toUpperCase();
         var jAreaId = String(rj[COL_JADWAL.AREA_ID] || '').trim();
         var jAreaUpper = jAreaId.toUpperCase();
+        var jCabUpper = String(rj[COL_JADWAL.CABANG_ID] || '').trim().toUpperCase();
+        var jPengajuLow = String(rj[COL_JADWAL.PENGAJU] || '').trim().toLowerCase();
         var jStatus = String(rj[COL_JADWAL.STATUS] || '').trim().toUpperCase();
         var jTipe = String(rj[COL_JADWAL.TIPE] || '').trim().toUpperCase();
 
         var shouldInclude = false;
         if (isCOO || isGuest) {
           shouldInclude = (jLevel === 'MA_TO_COO' || jStatus === 'MENUNGGU_COO' || jTipe === 'VISIT_AREA' || jAreaUpper === 'ALL');
+        } else if (isSPV) {
+          // Paket Kilat SPV: hanya muat jadwal gerainya sendiri (lewati jadwal VISIT_AREA / toko lain)
+          if (jLevel !== 'MA_TO_COO' && jTipe !== 'VISIT_AREA') {
+            if (cabangStrUpper && jCabUpper === cabangStrUpper) {
+              shouldInclude = true;
+            } else if ((jAreaUpper === targetAreaUpper || jAreaUpper === 'ALL') && mySpvNameLow && jPengajuLow && (jPengajuLow.indexOf(mySpvNameLow) !== -1 || mySpvNameLow.indexOf(jPengajuLow) !== -1)) {
+              shouldInclude = true;
+            }
+          }
         } else {
           shouldInclude = (jAreaUpper === targetAreaUpper || jAreaUpper === 'ALL');
         }
@@ -1388,7 +1525,7 @@ function apiGetInitialData(userSession, fallbackUser) {
     // 6b. Data Laporan Sakit & Dispensasi Darurat (Cache Domain OTHER_OPS)
     var listKendala = [];
     try {
-      var dKendala = getCachedSheetValues_(TAB.KENDALA, 'OTHER_OPS', 180);
+      var dKendala = getCachedSheetValues_(TAB.KENDALA, 'OTHER_OPS', 900);
       for (var kIdx = 1; kIdx < dKendala.length; kIdx++) {
         var rk = dKendala[kIdx];
         var kId = String(rk[COL_KENDALA.ID] || '').trim();
@@ -1484,7 +1621,7 @@ function apiGetInitialData(userSession, fallbackUser) {
     // 6c. Data Permohonan Perubahan Jadwal (Cache Domain OTHER_OPS)
     var listPerubahanJadwal = [];
     try {
-      var dPerubahan = getCachedSheetValues_(TAB.PERUBAHAN_JADWAL, 'OTHER_OPS', 180);
+      var dPerubahan = getCachedSheetValues_(TAB.PERUBAHAN_JADWAL, 'OTHER_OPS', 900);
       if (dPerubahan && dPerubahan.length > 0) {
         for (var pjIdx = 1; pjIdx < dPerubahan.length; pjIdx++) {
           var rp = dPerubahan[pjIdx];
@@ -1560,7 +1697,7 @@ function apiGetInitialData(userSession, fallbackUser) {
       onesignalRestKey: ''
     };
     try {
-      var dConfig = getCachedSheetValues_(TAB.CONFIG, 'MASTER', 900);
+      var dConfig = getCachedSheetValues_(TAB.CONFIG, 'MASTER', 3600);
       if (dConfig && dConfig.length > 0) {
         for (var n = 1; n < dConfig.length; n++) {
           var k = String(dConfig[n][0] || '').trim();
@@ -1630,7 +1767,7 @@ function apiGetInitialData(userSession, fallbackUser) {
     var curUnameLower = String(userSession.username || '').toLowerCase().trim();
 
     try {
-      var dUser = getCachedSheetValues_(TAB.USER, 'MASTER', 900);
+      var dUser = getCachedSheetValues_(TAB.USER, 'MASTER', 3600);
       for (var u = 1; u < dUser.length; u++) {
         var ru = dUser[u];
         var uId = String(ru[COL_USER.ID] || '').trim();
@@ -1645,29 +1782,33 @@ function apiGetInitialData(userSession, fallbackUser) {
         var rNama = String(ru[COL_USER.NAMA] || '').trim();
         var rStatus = String(ru[COL_USER.STATUS] || 'ACTIVE').trim();
         var rStatusUpper = rStatus.toUpperCase();
+        var isPendingUser = (rStatusUpper === 'PENDING' || rStatusUpper === 'MENUNGGU');
 
-        var userItem = {
-          id: uId,
-          userId: uId,
-          username: uName,
-          nama: rNama,
-          namaLengkap: rNama,
-          role: rRole,
-          areaId: rArea,
-          cabangId: (ru.length > COL_USER.CABANG_ID) ? String(ru[COL_USER.CABANG_ID] || '').trim() : '',
-          wa: String(ru[COL_USER.WA] || '').trim(),
-          noWa: String(ru[COL_USER.WA] || '').trim(),
-          status: rStatus
-        };
-        listUsers.push(userItem);
+        // Paket Kilat SPV: jangan kirim 160+ user se-Indonesia ke HP SPV (cukup dirinya sendiri + Area Manager wilayahnya)
+        var isSameUser = (uName.toLowerCase() === curUnameLower);
+        var isOwnAreaMgr = ((rRoleUpper === 'MANAGER' || rRoleUpper === 'AREA_MANAGER') && rAreaUpper === areaStr && !isPendingUser);
+        if (!isSPV || isSameUser || isOwnAreaMgr) {
+          listUsers.push({
+            id: uId,
+            userId: uId,
+            username: uName,
+            nama: rNama,
+            namaLengkap: rNama,
+            role: rRole,
+            areaId: rArea,
+            cabangId: (ru.length > COL_USER.CABANG_ID) ? String(ru[COL_USER.CABANG_ID] || '').trim() : '',
+            wa: String(ru[COL_USER.WA] || '').trim(),
+            noWa: String(ru[COL_USER.WA] || '').trim(),
+            status: rStatus
+          });
+        }
 
         // Ambil nama lengkap sesi saat ini dari MasterUser
-        if (uName.toLowerCase() === curUnameLower && rNama) {
+        if (isSameUser && rNama) {
           resolvedNama = rNama;
         }
 
         // Peta resmi Area Manager binaan (abaikan UNASSIGNED atau status PENDING)
-        var isPendingUser = (rStatusUpper === 'PENDING' || rStatusUpper === 'MENUNGGU');
         if ((rRoleUpper === 'MANAGER' || rRoleUpper === 'AREA_MANAGER') && rAreaUpper && rAreaUpper !== 'ALL' && rAreaUpper !== 'UNASSIGNED' && !isPendingUser) {
           userAreaMgrMap[rAreaUpper] = rNama || uName;
         }
@@ -1704,32 +1845,39 @@ function apiGetInitialData(userSession, fallbackUser) {
       Logger.log('Leaderboard calculation notice: ' + eLb.message);
     }
 
-    // 10. Data SOP & Library Perusahaan (Cache Domain OTHER_OPS)
+    // 10. Data SOP & Library Perusahaan (Dapat ditunda via liteMode agar muat awal dashboard kilat)
     var listLibrary = [];
+    var libraryDeferred = false;
     try {
-      var dLib = getCachedSheetValues_(TAB.LIBRARY, 'OTHER_OPS', 180);
-      for (var p = 1; p < dLib.length; p++) {
-        var rl = dLib[p];
-        var libId = String(rl[COL_LIBRARY.ID] || '').trim();
-        if (!libId) continue;
-        var docStatus = String(rl[COL_LIBRARY.STATUS] || 'AKTIF').toUpperCase();
-        var docUploader = String(rl[COL_LIBRARY.UPLOADER] || '');
-        var isOwnDoc = (userSession.namaLengkap && docUploader.indexOf(userSession.namaLengkap) !== -1) ||
-                       (userSession.areaId && docUploader.indexOf(userSession.areaId) !== -1);
-        if (isCOO || docStatus === 'AKTIF' || isOwnDoc) {
-          listLibrary.push({
-            id: libId,
-            judul: String(rl[COL_LIBRARY.JUDUL] || '').trim(),
-            kategori: String(rl[COL_LIBRARY.KATEGORI] || '').trim(),
-            brand: String(rl[COL_LIBRARY.BRAND] || '').trim(),
-            versi: String(rl[COL_LIBRARY.VERSI] || '').trim(),
-            tanggal: sanitizeGasVal(rl[COL_LIBRARY.TANGGAL]),
-            fileUrl: String(rl[COL_LIBRARY.FILE_URL] || '').trim(),
-            audience: String(rl[COL_LIBRARY.AUDIENCE] || '').trim(),
-            deskripsi: String(rl[COL_LIBRARY.DESKRIPSI] || '').trim(),
-            status: docStatus,
-            uploader: docUploader
-          });
+      if (liteMode) {
+        libraryDeferred = true;
+      } else if (typeof buildLibraryListForUser_ === 'function') {
+        listLibrary = buildLibraryListForUser_(userSession);
+      } else {
+        var dLib = getCachedSheetValues_(TAB.LIBRARY, 'OTHER_OPS', 900);
+        for (var p = 1; p < dLib.length; p++) {
+          var rl = dLib[p];
+          var libId = String(rl[COL_LIBRARY.ID] || '').trim();
+          if (!libId) continue;
+          var docStatus = String(rl[COL_LIBRARY.STATUS] || 'AKTIF').toUpperCase();
+          var docUploader = String(rl[COL_LIBRARY.UPLOADER] || '');
+          var isOwnDoc = (userSession.namaLengkap && docUploader.indexOf(userSession.namaLengkap) !== -1) ||
+                         (userSession.areaId && docUploader.indexOf(userSession.areaId) !== -1);
+          if (isCOO || docStatus === 'AKTIF' || isOwnDoc) {
+            listLibrary.push({
+              id: libId,
+              judul: String(rl[COL_LIBRARY.JUDUL] || '').trim(),
+              kategori: String(rl[COL_LIBRARY.KATEGORI] || '').trim(),
+              brand: String(rl[COL_LIBRARY.BRAND] || '').trim(),
+              versi: String(rl[COL_LIBRARY.VERSI] || '').trim(),
+              tanggal: sanitizeGasVal(rl[COL_LIBRARY.TANGGAL]),
+              fileUrl: String(rl[COL_LIBRARY.FILE_URL] || '').trim(),
+              audience: String(rl[COL_LIBRARY.AUDIENCE] || '').trim(),
+              deskripsi: String(rl[COL_LIBRARY.DESKRIPSI] || '').trim(),
+              status: docStatus,
+              uploader: docUploader
+            });
+          }
         }
       }
     } catch (eLib) {
@@ -1741,7 +1889,7 @@ function apiGetInitialData(userSession, fallbackUser) {
     var dRev = [];
     var hasUnresolvedPositiveRev = false;
     try {
-      dRev = getCachedSheetValues_(TAB.REVIEWS, 'OTHER_OPS', 180);
+      dRev = getCachedSheetValues_(TAB.REVIEWS, 'OTHER_OPS', 900);
       for (var q = 1; q < dRev.length; q++) {
         var rv = dRev[q];
         var revId = String(rv[COL_REVIEWS.ID] || '').trim();
@@ -1824,6 +1972,7 @@ function apiGetInitialData(userSession, fallbackUser) {
         perubahanJadwal: listPerubahanJadwal,
         leaderboard: leaderboard,
         library: listLibrary,
+        libraryDeferred: libraryDeferred,
         reviews: listReviews,
         operationalConfig: operationalConfig,
         notifications: (typeof apiGetNotifikasi === 'function') ? (apiGetNotifikasi(userSession).notifications || []) : []

@@ -1270,6 +1270,12 @@
             <span id="salesSyncQueueText">0 Menunggu Kirim</span>
           </button>
 
+          <div id="bgSyncStatusPill" class="bg-sync-status-pill" style="display: none;" aria-live="polite"
+            title="Sedang memperbarui data terbaru dari server di latar belakang">
+            <span class="bg-sync-spinner" aria-hidden="true"></span>
+            <span id="bgSyncStatusText">Menyegarkan...</span>
+          </div>
+
           <button type="button" class="btn-icon-circle theme-toggle-btn" title="Ganti Mode Terang / Gelap"
             aria-label="Ganti mode terang atau gelap" onclick="togglePanoramaTheme()">
             <svg class="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -1285,7 +1291,7 @@
           </button>
 
           <!-- Quick Action Buttons: Refresh Data -->
-          <button class="btn-icon-circle" title="Segarkan Data" onclick="fetchOperationalData(true)">
+          <button id="btnHeaderRefreshData" class="btn-icon-circle" title="Segarkan Data" onclick="fetchOperationalData(true)">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
@@ -3573,6 +3579,12 @@
                         <span style="font-size:10px; color:var(--text-muted); margin-top:2px; display:block;">Diambil
                           dari menu <em>Terapkan > Kelola Penerapan > Salin URL Web</em> di Google Apps Script
                           Anda.</span>
+                      </div>
+                      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
+                        <button type="button" id="btnManualWarmupCache" class="btn btn-outline"
+                          style="font-size:11px; padding:6px 12px;" onclick="triggerManualServerWarmup()">⚡ Hangatkan Cache Sekarang</button>
+                        <button type="button" id="btnSetupAutoWarmup" class="btn btn-primary"
+                          style="font-size:11px; padding:6px 12px;" onclick="triggerSetupAutoWarmup()">🤖 Aktifkan Pemanas Otomatis (10 Menit)</button>
                       </div>
                     </div>
 

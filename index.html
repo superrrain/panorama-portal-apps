@@ -882,6 +882,40 @@
     background-color: #10B981;
   }
 
+  .bg-sync-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    background-color: rgba(20, 74, 50, 0.08);
+    border: 1px solid rgba(20, 74, 50, 0.22);
+    color: var(--forest-800);
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .bg-sync-spinner {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    border: 2px solid rgba(20, 74, 50, 0.22);
+    border-top-color: var(--forest-700);
+    animation: panoramaSpin 0.85s linear infinite;
+    flex-shrink: 0;
+  }
+
+  #btnHeaderRefreshData.is-syncing svg {
+    animation: panoramaSpin 0.9s linear infinite;
+    color: var(--forest-700);
+  }
+
+  @keyframes panoramaSpin {
+    to { transform: rotate(360deg); }
+  }
+
   .btn-primary {
     background-color: var(--forest-800);
     color: #FFFFFF;
@@ -5565,6 +5599,15 @@
       overflow: hidden;
       text-overflow: ellipsis;
       flex-shrink: 0;
+    }
+
+    .bg-sync-status-pill {
+      padding: 4px 7px;
+      gap: 0;
+    }
+
+    #bgSyncStatusText {
+      display: none;
     }
 
     .profile-capsule-btn {
@@ -16551,6 +16594,21 @@
     color: #A7F3D0 !important;
   }
 
+  :is(html[data-theme="dark"], html.theme-dark) .bg-sync-status-pill {
+    background-color: rgba(52, 211, 153, 0.12) !important;
+    border-color: rgba(52, 211, 153, 0.32) !important;
+    color: #A7F3D0 !important;
+  }
+
+  :is(html[data-theme="dark"], html.theme-dark) .bg-sync-spinner {
+    border-color: rgba(52, 211, 153, 0.25) !important;
+    border-top-color: #34D399 !important;
+  }
+
+  :is(html[data-theme="dark"], html.theme-dark) #btnHeaderRefreshData.is-syncing svg {
+    color: #34D399 !important;
+  }
+
   /* Desktop Sidebar */
   :is(html[data-theme="dark"], html.theme-dark) .sidebar {
     background: #111815 !important;
@@ -19830,6 +19888,12 @@
             <span id="salesSyncQueueText">0 Menunggu Kirim</span>
           </button>
 
+          <div id="bgSyncStatusPill" class="bg-sync-status-pill" style="display: none;" aria-live="polite"
+            title="Sedang memperbarui data terbaru dari server di latar belakang">
+            <span class="bg-sync-spinner" aria-hidden="true"></span>
+            <span id="bgSyncStatusText">Menyegarkan...</span>
+          </div>
+
           <button type="button" class="btn-icon-circle theme-toggle-btn" title="Ganti Mode Terang / Gelap"
             aria-label="Ganti mode terang atau gelap" onclick="togglePanoramaTheme()">
             <svg class="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -19845,7 +19909,7 @@
           </button>
 
           <!-- Quick Action Buttons: Refresh Data -->
-          <button class="btn-icon-circle" title="Segarkan Data" onclick="fetchOperationalData(true)">
+          <button id="btnHeaderRefreshData" class="btn-icon-circle" title="Segarkan Data" onclick="fetchOperationalData(true)">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
@@ -22133,6 +22197,12 @@
                         <span style="font-size:10px; color:var(--text-muted); margin-top:2px; display:block;">Diambil
                           dari menu <em>Terapkan > Kelola Penerapan > Salin URL Web</em> di Google Apps Script
                           Anda.</span>
+                      </div>
+                      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;">
+                        <button type="button" id="btnManualWarmupCache" class="btn btn-outline"
+                          style="font-size:11px; padding:6px 12px;" onclick="triggerManualServerWarmup()">⚡ Hangatkan Cache Sekarang</button>
+                        <button type="button" id="btnSetupAutoWarmup" class="btn btn-primary"
+                          style="font-size:11px; padding:6px 12px;" onclick="triggerSetupAutoWarmup()">🤖 Aktifkan Pemanas Otomatis (10 Menit)</button>
                       </div>
                     </div>
 
@@ -25722,10 +25792,128 @@ const PANORAMA_GAS_URL = 'https:' + '/' + '/script.google.com/macros/s/AKfycbxBW
 // Daftar Endpoint Read-Only (Aman untuk HTTP GET fallback & watchdog cepat)
 const PANORAMA_READ_ONLY_ACTIONS = [
   'getInitialData', 'apiGetInitialData', 'apiGetDashboardData',
+  'getLibraryData', 'apiGetLibraryData', 'warmupCache', 'apiWarmupCache',
   'getNotifikasi', 'apiGetNotifikasi', 'getPublicBranchInfo',
   'apiGetPublicBranchInfo', 'ping'
 ];
 const PANORAMA_OFFLINE_QUEUE_KEY = 'PANORAMA_OFFLINE_SYNC_QUEUE';
+
+function setBackgroundSyncUI(isSyncing, labelText) {
+  try {
+    const pill = document.getElementById('bgSyncStatusPill');
+    const txt = document.getElementById('bgSyncStatusText');
+    const btn = document.getElementById('btnHeaderRefreshData');
+    if (pill) {
+      pill.style.display = isSyncing ? 'inline-flex' : 'none';
+    }
+    if (txt && labelText) {
+      txt.textContent = labelText;
+    }
+    if (btn && btn.classList) {
+      btn.classList.toggle('is-syncing', Boolean(isSyncing));
+    }
+  } catch (eSyncUi) {}
+}
+
+function getScopedDataCacheKey(user) {
+  const u = user || (window.PANORAMA_STATE && window.PANORAMA_STATE.user) || {};
+  const uname = String(u.username || '').trim().toLowerCase();
+  return uname ? ('PANORAMA_DATA_CACHE_' + uname) : 'PANORAMA_DATA_CACHE';
+}
+
+function saveScopedDataCache(user, dataObj) {
+  try {
+    if (!dataObj || !Array.isArray(dataObj.cabang)) return;
+    const u = user || (dataObj && dataObj.user) || (window.PANORAMA_STATE && window.PANORAMA_STATE.user) || {};
+    const uname = String(u.username || '').trim().toLowerCase();
+    const roleUpper = String(u.role || '').trim().toUpperCase();
+    const areaUpper = String(u.areaId || '').trim().toUpperCase();
+    const cabangStr = String(u.cabangId || '').trim().toUpperCase();
+    const envelope = {
+      _cachedAt: Date.now(),
+      _cacheUser: uname,
+      _cacheRole: roleUpper,
+      _cacheArea: areaUpper,
+      _cacheCabang: cabangStr,
+      payload: dataObj
+    };
+    if (uname) {
+      safeSetStorage(getScopedDataCacheKey(u), envelope);
+    }
+    safeSetStorage('PANORAMA_DATA_CACHE', dataObj);
+  } catch (eSaveCache) {}
+}
+
+function loadScopedDataCache(user) {
+  const u = user || (window.PANORAMA_STATE && window.PANORAMA_STATE.user);
+  if (!u || !u.username) return null;
+  const uname = String(u.username || '').trim().toLowerCase();
+  const uRole = String(u.role || '').trim().toUpperCase();
+  const uArea = String(u.areaId || '').trim().toUpperCase();
+  const uCab = String(u.cabangId || '').trim().toUpperCase();
+  const maxAgeMs = 7 * 24 * 60 * 60 * 1000;
+
+  const isSnapshotCompatible = function(payload, meta) {
+    if (!payload || !Array.isArray(payload.cabang) || payload.cabang.length === 0) return false;
+    const pUser = (meta && meta._cacheUser) || (payload.user && String(payload.user.username || '').trim().toLowerCase()) || '';
+    if (pUser && pUser !== uname) return false;
+    const pRole = (meta && meta._cacheRole) || (payload.user && String(payload.user.role || '').trim().toUpperCase()) || '';
+    if (uRole && pRole && pRole !== uRole) return false;
+    const pArea = (meta && meta._cacheArea) || (payload.user && String(payload.user.areaId || '').trim().toUpperCase()) || '';
+    if (uArea && pArea && pArea !== uArea) return false;
+    if (uRole === 'SPV' || uRole === 'CAPTAIN') {
+      const pCab = (meta && meta._cacheCabang) || (payload.user && String(payload.user.cabangId || '').trim().toUpperCase()) || '';
+      if (uCab && pCab && pCab !== uCab) return false;
+    }
+    if (meta && meta._cachedAt && (Date.now() - Number(meta._cachedAt) > maxAgeMs)) return false;
+    return true;
+  };
+
+  const scoped = safeGetJsonStorage(getScopedDataCacheKey(u), null);
+  if (scoped && scoped.payload && isSnapshotCompatible(scoped.payload, scoped)) {
+    return scoped.payload;
+  }
+  if (scoped && Array.isArray(scoped.cabang) && isSnapshotCompatible(scoped, null)) {
+    return scoped;
+  }
+  const legacy = safeGetJsonStorage('PANORAMA_DATA_CACHE', null);
+  if (legacy && isSnapshotCompatible(legacy, null)) {
+    return legacy;
+  }
+  return null;
+}
+
+function hydrateCachedSnapshotIfAvailable(user) {
+  try {
+    const targetUser = user || (window.PANORAMA_STATE && window.PANORAMA_STATE.user);
+    const snap = loadScopedDataCache(targetUser);
+    if (!snap) return false;
+
+    if (snap.operationalConfig) {
+      window.PANORAMA_STATE.operationalConfig = Object.assign({}, window.PANORAMA_STATE.operationalConfig || {}, snap.operationalConfig);
+      if (typeof applyOperationalConfigToDOM === 'function') applyOperationalConfigToDOM();
+    }
+    if (snap.users && Array.isArray(snap.users) && snap.users.length > 0) {
+      window.PANORAMA_STATE.masterUsers = snap.users;
+    }
+    window.PANORAMA_STATE.data = ensureDataStructure(snap);
+    if (typeof mergePendingSalesIntoData === 'function') {
+      mergePendingSalesIntoData(window.PANORAMA_STATE.data);
+    }
+    if (typeof recalculateLeaderboardLive === 'function') {
+      try { recalculateLeaderboardLive(); } catch (eLbHyd) {}
+    }
+    if (typeof renderActiveView === 'function') {
+      renderActiveView();
+    }
+    if (typeof updateSalesSyncQueueUI === 'function') {
+      updateSalesSyncQueueUI(false);
+    }
+    return true;
+  } catch (eHyd) {
+    return false;
+  }
+}
 
 /**
  * Shared Button Guard: Mengunci tombol Submit selama request ke server berjalan (anti klik ganda)
@@ -26032,6 +26220,13 @@ function callPanoramaApi(action, payload, onSuccess, onFailure, options) {
 
         try {
           if (targetFn === 'apiGetInitialData' || targetFn === 'getInitialData') {
+            const rpcOpts = (payload && payload.liteMode) ? { liteMode: true } : null;
+            google.script.run
+              .withSuccessHandler(handleRpcSuccess)
+              .withFailureHandler(handleRpcFailure)[targetFn](window.PANORAMA_STATE.user, null, rpcOpts);
+            return;
+          }
+          if (targetFn === 'apiGetLibraryData' || targetFn === 'getLibraryData' || targetFn === 'apiWarmupCache' || targetFn === 'apiSetupWarmupTrigger') {
             google.script.run
               .withSuccessHandler(handleRpcSuccess)
               .withFailureHandler(handleRpcFailure)[targetFn](window.PANORAMA_STATE.user);
@@ -27165,7 +27360,10 @@ function handleFormLogin() {
     submitBtn.innerHTML = '<span>Memverifikasi Akses...</span>';
   }
 
-  showGlobalLoader(true, 12000, 'Memverifikasi Kredensial Akun...');
+  const hasLocalSnap = Boolean(loadScopedDataCache({ username: username }));
+  const requestInitialOnLogin = !hasLocalSnap;
+  const watchdogMs = requestInitialOnLogin ? 20000 : 10000;
+  showGlobalLoader(true, requestInitialOnLogin ? 22000 : 12000, requestInitialOnLogin ? 'Memverifikasi Akun & Menyiapkan Data...' : 'Memverifikasi Kredensial Akun...');
 
   let loginFinished = false;
   const loginWatchdog = setTimeout(function() {
@@ -27177,20 +27375,17 @@ function handleFormLogin() {
         showToast('Server merespons lambat atau koneksi terputus. Silakan coba kembali.', 'warning');
       }
     }
-  }, 10000);
+  }, watchdogMs);
 
-  callPanoramaApi('apiLogin', { username: username, password: password }, function(res) {
+  callPanoramaApi('apiLogin', { username: username, password: password, includeInitialData: requestInitialOnLogin }, function(res) {
     if (loginFinished) return;
     loginFinished = true;
     clearTimeout(loginWatchdog);
     showGlobalLoader(false);
     restoreSubmitBtn();
     if (res && res.success && res.user) {
-      authenticateUserSuccess(res.user);
+      authenticateUserSuccess(res.user, { preloadedData: res.initialData || null });
       showToast('Selamat datang kembali, ' + (res.user.namaLengkap || res.user.username), 'success');
-      if (typeof fetchOperationalData === 'function') {
-        fetchOperationalData(true);
-      }
     } else {
       showToast(res && res.message ? res.message : 'Kata sandi tidak cocok. Silakan periksa kembali.', 'danger');
     }
@@ -27468,13 +27663,20 @@ function updateLocalUserPassword(ident, newPass) {
  * Logout Session - Keluar dari Portal dan Buka Entrance Login Screen
  */
 function logoutSession(isExpired) {
-  if (typeof document !== 'undefined' && document.documentElement) {
+  if (typeof document !== 'undefined' && document.documentElement && document.documentElement.classList) {
     document.documentElement.classList.remove('panorama-logged-in');
   }
   safeRemoveStorage('PANORAMA_SESSION');
   safeRemoveStorage('PANORAMA_LAST_ACTIVE');
+  safeRemoveStorage('PANORAMA_DATA_CACHE');
+  safeRemoveStorage('PANORAMA_MASTER_USERS');
   window.PANORAMA_STATE.user = null;
+  window.PANORAMA_STATE.data = null;
   window._PANORAMA_FILTERS_INITIALIZED = false;
+  window._PANORAMA_LIBRARY_LOADED = false;
+  window._PANORAMA_LIBRARY_IN_FLIGHT = false;
+  window._PANORAMA_LAST_FETCH_AT = 0;
+  setBackgroundSyncUI(false);
   if (window.PANORAMA_STATE.openSalesAccordions) {
     window.PANORAMA_STATE.openSalesAccordions.clear();
   }
@@ -27492,9 +27694,10 @@ function logoutSession(isExpired) {
 /**
  * Handler Berhasil Login & Gatekeeper Penempatan Akun (v4.4.3)
  */
-function authenticateUserSuccess(user) {
+function authenticateUserSuccess(user, options) {
   window.PANORAMA_STATE.user = user;
-  if (typeof document !== 'undefined' && document.documentElement) {
+  window._PANORAMA_LIBRARY_LOADED = false;
+  if (typeof document !== 'undefined' && document.documentElement && document.documentElement.classList) {
     document.documentElement.classList.add('panorama-logged-in');
   }
   const overlay = document.getElementById('loginEntranceOverlay');
@@ -27536,9 +27739,24 @@ function authenticateUserSuccess(user) {
     console.warn('Profile UI update notice:', eProf);
   }
 
-  // Ambil Data Operasional dari Server atau In-Memory Engine
+  // 1-Trip Preloaded Login Data (tanpa tembak server 2x) atau Instan Snapshot (0,1 detik) + Background Sync
+  if (options && options.preloadedData && Array.isArray(options.preloadedData.cabang)) {
+    try {
+      applyFetchedData(options.preloadedData, false);
+      return;
+    } catch (ePre) {
+      console.warn('Preloaded initial data notice:', ePre);
+    }
+  }
+
+  const hasInstantSnapshot = hydrateCachedSnapshotIfAvailable(user);
+  if (hasInstantSnapshot) {
+    setBackgroundSyncUI(true, 'Menyegarkan data...');
+  }
+
+  // Ambil Data Operasional terbaru dari Server di latar belakang
   try {
-    fetchOperationalData();
+    fetchOperationalData(false, { silentBackground: hasInstantSnapshot });
   } catch (eFetch) {
     console.warn('Operational data fetch notice:', eFetch);
   }
@@ -27935,7 +28153,7 @@ function sortItemsByNewestDesc(arr, primaryDateField, secondaryDateField, idFiel
 /**
  * Ambil Data Operasional (In-Memory Client Cache & Anti-Freeze Engine)
  */
-function fetchOperationalData(forceRefresh) {
+function fetchOperationalData(forceRefresh, options) {
   const u = window.PANORAMA_STATE.user;
   if (!u || !u.role || !u.username) {
     console.warn('fetchOperationalData dibatalkan: Pengguna belum terotentikasi.');
@@ -27952,6 +28170,16 @@ function fetchOperationalData(forceRefresh) {
   const nextJitter = roleInfoPoll.isSPV ? 25000 : 15000;
   window._PANORAMA_NEXT_BG_SYNC_AT = nowTs + nextBase + Math.floor(Math.random() * nextJitter);
 
+  // Instant Stale-While-Revalidate: jika memori kosong, muat potret cache akun dulu sebelum menunggu server
+  if (!window.PANORAMA_STATE.data || !Array.isArray(window.PANORAMA_STATE.data.cabang) || window.PANORAMA_STATE.data.cabang.length === 0) {
+    hydrateCachedSnapshotIfAvailable(u);
+  }
+  const hasVisibleSnapshot = Boolean(window.PANORAMA_STATE.data && Array.isArray(window.PANORAMA_STATE.data.cabang) && window.PANORAMA_STATE.data.cabang.length > 0);
+  const liteMode = (window.PANORAMA_STATE.activeTab !== 'library');
+  const shouldBlockLoader = Boolean(forceRefresh && !hasVisibleSnapshot && !(options && options.silentBackground));
+
+  setBackgroundSyncUI(true, forceRefresh ? 'Menyegarkan data...' : 'Memperbarui...');
+
   const cleanUser = {
     role: String(u.role || 'MASTER').trim().toUpperCase(),
     username: String(u.username || '').trim(),
@@ -27966,7 +28194,7 @@ function fetchOperationalData(forceRefresh) {
       renderActiveView();
     }
 
-    if (forceRefresh) showGlobalLoader(true, 15000);
+    if (shouldBlockLoader) showGlobalLoader(true, 15000);
     let responseReceived = false;
 
     // Dual-Sync Watchdog: jika dalam 6 detik google.script.run belum merespons,
@@ -27975,7 +28203,7 @@ function fetchOperationalData(forceRefresh) {
       if (!responseReceived) {
         responseReceived = true;
         console.warn('GAS RPC lambat (6s), beralih ke sinkronisasi REST API Cloud...');
-        fallbackFetchCloudData(forceRefresh);
+        fallbackFetchCloudData(forceRefresh, { liteMode: liteMode });
       }
     }, 6000);
 
@@ -27990,7 +28218,7 @@ function fetchOperationalData(forceRefresh) {
             applyFetchedData(res.data, forceRefresh);
           } else {
             console.warn('Respons GAS RPC tidak sukses, mencoba fallback HTTP API:', res ? res.message : '');
-            fallbackFetchCloudData(forceRefresh);
+            fallbackFetchCloudData(forceRefresh, { liteMode: liteMode });
           }
         })
         .withFailureHandler(function(err) {
@@ -27999,26 +28227,28 @@ function fetchOperationalData(forceRefresh) {
           clearTimeout(watchdogTimer);
           showGlobalLoader(false);
           console.warn('google.script.run gagal, mencoba fallback HTTP API:', err);
-          fallbackFetchCloudData(forceRefresh);
+          fallbackFetchCloudData(forceRefresh, { liteMode: liteMode });
         })
-        .apiGetInitialData(cleanUser);
+        .apiGetInitialData(cleanUser, null, liteMode ? { liteMode: true } : null);
     } catch (eGasCall) {
       if (responseReceived) return;
       responseReceived = true;
       clearTimeout(watchdogTimer);
       showGlobalLoader(false);
       console.warn('Gagal memanggil API GAS langsung:', eGasCall);
-      fallbackFetchCloudData(forceRefresh);
+      fallbackFetchCloudData(forceRefresh, { liteMode: liteMode });
     }
   } else {
     // Jalur Vercel / PWA / Standalone Browser
-    if (forceRefresh) showGlobalLoader(true, 15000);
-    fallbackFetchCloudData(forceRefresh);
+    if (shouldBlockLoader) showGlobalLoader(true, 15000);
+    fallbackFetchCloudData(forceRefresh, { liteMode: liteMode });
   }
 }
 
 function applyFetchedData(fetchedData, showSuccessToast) {
   window._PANORAMA_FETCH_IN_FLIGHT = false;
+  window._PANORAMA_LAST_FETCH_AT = Date.now();
+  setBackgroundSyncUI(false);
   setTimeout(populateGlobalAreaDropdowns, 50); setTimeout(refreshCategoryColorMap, 60);
   if (!fetchedData) return;
   if (fetchedData.operationalConfig) {
@@ -28063,13 +28293,18 @@ function applyFetchedData(fetchedData, showSuccessToast) {
       }
     }
   }
+  const existingLib = (window.PANORAMA_STATE.data && Array.isArray(window.PANORAMA_STATE.data.library)) ? window.PANORAMA_STATE.data.library : [];
+  const isLibDeferred = Boolean(fetchedData.libraryDeferred);
+  if (isLibDeferred && existingLib.length > 0 && (!Array.isArray(fetchedData.library) || fetchedData.library.length === 0)) {
+    fetchedData.library = existingLib;
+  } else if (!isLibDeferred && Array.isArray(fetchedData.library)) {
+    window._PANORAMA_LIBRARY_LOADED = true;
+  }
   window.PANORAMA_STATE.data = ensureDataStructure(fetchedData);
   if (typeof mergePendingSalesIntoData === 'function') {
     mergePendingSalesIntoData(window.PANORAMA_STATE.data);
   }
-  try {
-    safeSetStorage('PANORAMA_DATA_CACHE', window.PANORAMA_STATE.data);
-  } catch (eCache) {}
+  saveScopedDataCache(window.PANORAMA_STATE.user, window.PANORAMA_STATE.data);
   if (typeof updateSalesSyncQueueUI === 'function') {
     updateSalesSyncQueueUI(false);
   }
@@ -28081,6 +28316,9 @@ function applyFetchedData(fetchedData, showSuccessToast) {
     }
   }
   renderActiveView();
+  if (isLibDeferred && window.PANORAMA_STATE.activeTab === 'library' && typeof ensureLibraryDataLoaded === 'function') {
+    ensureLibraryDataLoaded(true);
+  }
   if (showSuccessToast) {
     showToast('Data Google Spreadsheet berhasil disinkronisasi.', 'success');
   }
@@ -28089,9 +28327,11 @@ function applyFetchedData(fetchedData, showSuccessToast) {
   }
 }
 
-function fallbackFetchCloudData(forceRefresh) {
-  callPanoramaHttpRest('apiGetInitialData', { user: window.PANORAMA_STATE.user || {} }, function(res) {
+function fallbackFetchCloudData(forceRefresh, fetchOpts) {
+  const liteMode = Boolean(fetchOpts && fetchOpts.liteMode);
+  callPanoramaHttpRest('apiGetInitialData', { user: window.PANORAMA_STATE.user || {}, liteMode: liteMode }, function(res) {
     window._PANORAMA_FETCH_IN_FLIGHT = false;
+    setBackgroundSyncUI(false);
     showGlobalLoader(false);
     if (res && res.success && res.data) {
       applyFetchedData(res.data, forceRefresh);
@@ -28100,20 +28340,81 @@ function fallbackFetchCloudData(forceRefresh) {
     }
   }, function(err) {
     window._PANORAMA_FETCH_IN_FLIGHT = false;
+    setBackgroundSyncUI(false);
     showGlobalLoader(false);
     console.warn('Fallback HTTP API belum merespons:', err);
     renderStandaloneFallback(forceRefresh);
   }, { isReadOnly: true });
 }
 
+function ensureLibraryDataLoaded(forceReload) {
+  const u = window.PANORAMA_STATE && window.PANORAMA_STATE.user;
+  if (!u || !u.username) return;
+  if (window._PANORAMA_LIBRARY_IN_FLIGHT) return;
+  if (!forceReload && window._PANORAMA_LIBRARY_LOADED) return;
+
+  window._PANORAMA_LIBRARY_IN_FLIGHT = true;
+  setBackgroundSyncUI(true, 'Memuat SOP...');
+  callPanoramaApi('apiGetLibraryData', { user: u }, function(res) {
+    window._PANORAMA_LIBRARY_IN_FLIGHT = false;
+    setBackgroundSyncUI(false);
+    if (res && res.success && Array.isArray(res.library)) {
+      window._PANORAMA_LIBRARY_LOADED = true;
+      if (!window.PANORAMA_STATE.data) window.PANORAMA_STATE.data = ensureDataStructure({});
+      window.PANORAMA_STATE.data.library = res.library;
+      saveScopedDataCache(u, window.PANORAMA_STATE.data);
+      if (window.PANORAMA_STATE.activeTab === 'library' && typeof renderLibraryView === 'function') {
+        renderLibraryView();
+      }
+    }
+  }, function() {
+    window._PANORAMA_LIBRARY_IN_FLIGHT = false;
+    setBackgroundSyncUI(false);
+  }, { isReadOnly: true });
+}
+
+function triggerManualServerWarmup() {
+  setSubmitButtonBusy('btnManualWarmupCache', true, 'Menghangatkan...');
+  callPanoramaApi('apiWarmupCache', { user: window.PANORAMA_STATE.user || {} }, function(res) {
+    setSubmitButtonBusy('btnManualWarmupCache', false);
+    if (res && res.success) {
+      showToast('Server & cache berhasil dihangatkan (' + (res.warmedSheets || 0) + ' tabel dalam ' + (res.durationMs || 0) + ' ms).', 'success');
+    } else {
+      showToast('Gagal menghangatkan server: ' + ((res && res.message) || 'Tidak diketahui'), 'warning');
+    }
+  }, function(err) {
+    setSubmitButtonBusy('btnManualWarmupCache', false);
+    showToast('Gagal menghubungi server: ' + ((err && err.message) || 'Koneksi terputus'), 'danger');
+  }, { isReadOnly: true });
+}
+
+function triggerSetupAutoWarmup() {
+  setSubmitButtonBusy('btnSetupAutoWarmup', true, 'Mengaktifkan...');
+  callPanoramaApi('apiSetupWarmupTrigger', { user: window.PANORAMA_STATE.user || {} }, function(res) {
+    setSubmitButtonBusy('btnSetupAutoWarmup', false);
+    if (res && res.success) {
+      showToast(res.message || 'Robot pemanas otomatis tiap 10 menit aktif!', 'success');
+    } else {
+      showToast('Catatan Aktivasi: ' + ((res && res.message) || 'Jalankan fungsi setupCacheWarmupTrigger() 1x dari editor Google Apps Script untuk memberi izin jadwal.'), 'warning');
+    }
+  }, function(err) {
+    setSubmitButtonBusy('btnSetupAutoWarmup', false);
+    showToast('Gagal mengaktifkan jadwal: ' + ((err && err.message) || 'Silakan coba lagi'), 'danger');
+  });
+}
+
 /**
  * Fallback Data Standalone / Offline (Bebas Data Dummy Transaksi & Caching Resilient)
  */
 function renderStandaloneFallback(forceRefresh) {
-  const cachedData = safeGetJsonStorage('PANORAMA_DATA_CACHE', null);
+  setBackgroundSyncUI(false);
+  const cachedData = loadScopedDataCache(window.PANORAMA_STATE.user);
   if (cachedData && cachedData.cabang && cachedData.cabang.length > 0) {
     console.log('Menggunakan data operasional dari cache lokal...');
     window.PANORAMA_STATE.data = ensureDataStructure(cachedData);
+    if (typeof mergePendingSalesIntoData === 'function') {
+      mergePendingSalesIntoData(window.PANORAMA_STATE.data);
+    }
     if (typeof recalculateLeaderboardLive === 'function') {
       try { recalculateLeaderboardLive(); } catch (eLb) {}
     }
@@ -28325,9 +28626,15 @@ function switchTab(tabId) {
   // Render konten tab
   renderActiveView();
 
-  // Jika berpindah ke tab operasional: sinkronkan data terbaru dari server secara senyap (Background Refresh)
+  // Muat tertunda (Lazy-load) untuk tab SOP & Library saat pertama dibuka
+  if (tabId === 'library' && !window._PANORAMA_LIBRARY_LOADED && typeof ensureLibraryDataLoaded === 'function') {
+    ensureLibraryDataLoaded(false);
+    return;
+  }
+
+  // Jika berpindah ke tab operasional: sinkronkan data terbaru bila belum disegarkan dalam 20 detik terakhir
   if (tabId === 'jadwal' || tabId === 'insiden' || tabId === 'tugas' || tabId === 'dashboard' || tabId === 'sales' || tabId === 'efisiensi') {
-    if (typeof fetchOperationalData === 'function') {
+    if (typeof fetchOperationalData === 'function' && (Date.now() - (window._PANORAMA_LAST_FETCH_AT || 0)) >= 20000) {
       fetchOperationalData(false);
     }
   }
@@ -29459,6 +29766,11 @@ function renderDashboardJadwalAlert() {
         '</div>' +
       '</div>';
   } else {
+    const roleAlertInfo = (typeof getUserRoleInfo === 'function') ? getUserRoleInfo(u) : {};
+    if (roleAlertInfo.isSPV) {
+      container.style.display = 'none';
+      return;
+    }
     const myAreaId = u.areaId || 'AREA-01';
     const myAreaSubmitted = submittedAreaIds.has(myAreaId);
     if (myAreaSubmitted) {

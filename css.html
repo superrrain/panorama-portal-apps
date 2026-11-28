@@ -694,6 +694,40 @@
     background-color: #10B981;
   }
 
+  .bg-sync-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    background-color: rgba(20, 74, 50, 0.08);
+    border: 1px solid rgba(20, 74, 50, 0.22);
+    color: var(--forest-800);
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .bg-sync-spinner {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    border: 2px solid rgba(20, 74, 50, 0.22);
+    border-top-color: var(--forest-700);
+    animation: panoramaSpin 0.85s linear infinite;
+    flex-shrink: 0;
+  }
+
+  #btnHeaderRefreshData.is-syncing svg {
+    animation: panoramaSpin 0.9s linear infinite;
+    color: var(--forest-700);
+  }
+
+  @keyframes panoramaSpin {
+    to { transform: rotate(360deg); }
+  }
+
   .btn-primary {
     background-color: var(--forest-800);
     color: #FFFFFF;
@@ -5377,6 +5411,15 @@
       overflow: hidden;
       text-overflow: ellipsis;
       flex-shrink: 0;
+    }
+
+    .bg-sync-status-pill {
+      padding: 4px 7px;
+      gap: 0;
+    }
+
+    #bgSyncStatusText {
+      display: none;
     }
 
     .profile-capsule-btn {
@@ -16361,6 +16404,21 @@
     background-color: rgba(16, 185, 129, 0.18) !important;
     border-color: rgba(52, 211, 153, 0.45) !important;
     color: #A7F3D0 !important;
+  }
+
+  :is(html[data-theme="dark"], html.theme-dark) .bg-sync-status-pill {
+    background-color: rgba(52, 211, 153, 0.12) !important;
+    border-color: rgba(52, 211, 153, 0.32) !important;
+    color: #A7F3D0 !important;
+  }
+
+  :is(html[data-theme="dark"], html.theme-dark) .bg-sync-spinner {
+    border-color: rgba(52, 211, 153, 0.25) !important;
+    border-top-color: #34D399 !important;
+  }
+
+  :is(html[data-theme="dark"], html.theme-dark) #btnHeaderRefreshData.is-syncing svg {
+    color: #34D399 !important;
   }
 
   /* Desktop Sidebar */

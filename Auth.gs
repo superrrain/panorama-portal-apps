@@ -12,7 +12,7 @@
  */
 
 // Global Aliases untuk Dukungan Pemanggilan google.script.run
-function login(username, password) { return apiLogin(username, password); }
+function login(username, password, includeInitialData) { return apiLogin(username, password, includeInitialData); }
 function registerUser(payload) { return apiRegisterUser(payload); }
 function resetPassword(payload) { return apiResetPassword(payload); }
 function assignUserPlacement(payload, user) { return apiAssignUserPlacement(payload, user); }
@@ -26,9 +26,12 @@ function masterUpdateUser(payload) { return apiMasterUpdateUser(payload); }
 /**
  * API: Autentikasi Pengguna (Login)
  */
-function apiLogin(username, password) {
+function apiLogin(username, password, includeInitialData) {
   try {
     if (typeof username === 'object' && username !== null) {
+      if (includeInitialData === undefined && username.includeInitialData !== undefined) {
+        includeInitialData = username.includeInitialData;
+      }
       password = username.password || password;
       username = username.username || username.user;
     }
@@ -46,7 +49,7 @@ function apiLogin(username, password) {
 
     try {
       if (typeof getCachedSheetValues_ === 'function') {
-        data = getCachedSheetValues_(TAB.USER, 'MASTER', 900);
+        data = getCachedSheetValues_(TAB.USER, 'MASTER', 3600);
         sheet = (data && data.length > 0) ? true : null;
       } else {
         sheet = getSheet(TAB.USER);
@@ -79,20 +82,38 @@ function apiLogin(username, password) {
           if (status === 'BLOCKED' || status === 'INACTIVE' || status === 'NONAKTIF') {
             return { success: false, message: 'Akun Anda berstatus nonaktif. Silakan hubungi Administrator.' };
           }
-          return {
-            success: true,
-            user: {
-              userId: row[COL_USER.ID] || (isRowMaster ? 'USR-000' : 'USR-' + i),
-              username: row[COL_USER.USERNAME] || cleanUsername,
-              namaLengkap: row[COL_USER.NAMA] || (isRowGuest ? 'Akun Tamu Eksekutif' : (isRowMaster ? 'Risman Rai N S.T' : 'Pengguna')),
-              role: isRowGuest ? 'TAMU' : (isRowMaster ? 'COO' : roleVal),
-              areaId: (isRowMaster || isRowGuest) ? 'ALL' : String(row[COL_USER.AREA_ID] || 'UNASSIGNED').trim(),
-              cabangId: (isRowMaster || isRowGuest) ? 'ALL' : String(row[COL_USER.CABANG_ID] || '').trim(),
-              noWa: String(row[COL_USER.WA] || ''),
-              status: status,
-              isPendingPlacement: false
-            }
+          var authenticatedUser = {
+            userId: row[COL_USER.ID] || (isRowMaster ? 'USR-000' : 'USR-' + i),
+            username: row[COL_USER.USERNAME] || cleanUsername,
+            namaLengkap: row[COL_USER.NAMA] || (isRowGuest ? 'Akun Tamu Eksekutif' : (isRowMaster ? 'Risman Rai N S.T' : 'Pengguna')),
+            role: isRowGuest ? 'TAMU' : (isRowMaster ? 'COO' : roleVal),
+            areaId: (isRowMaster || isRowGuest) ? 'ALL' : String(row[COL_USER.AREA_ID] || 'UNASSIGNED').trim(),
+            cabangId: (isRowMaster || isRowGuest) ? 'ALL' : String(row[COL_USER.CABANG_ID] || '').trim(),
+            noWa: String(row[COL_USER.WA] || ''),
+            status: status,
+            isPendingPlacement: false
           };
+          var loginResponse = {
+            success: true,
+            user: authenticatedUser
+          };
+
+          // Opsional 1-trip bundle: langsung sertakan data awal dashboard jika diminta browser saat login baru
+          if (includeInitialData && typeof apiGetInitialData === 'function') {
+            var areaUpperCheck = String(authenticatedUser.areaId || '').toUpperCase();
+            var cabUpperCheck = String(authenticatedUser.cabangId || '').toUpperCase();
+            var isPendingUser = (status === 'PENDING' || areaUpperCheck === 'UNASSIGNED' || (authenticatedUser.role === 'SPV' && (!cabUpperCheck || cabUpperCheck === 'UNASSIGNED')));
+            if (!isPendingUser) {
+              try {
+                var initRes = apiGetInitialData(authenticatedUser, null, { liteMode: true });
+                if (initRes && initRes.success && initRes.data) {
+                  loginResponse.initialData = initRes.data;
+                }
+              } catch (eBundleInit) {}
+            }
+          }
+
+          return loginResponse;
         } else {
           // Username cocok tetapi kata sandi di spreadsheet tidak cocok: Tolak seketika!
           return { success: false, message: 'Kata sandi tidak cocok. Silakan periksa kembali.' };

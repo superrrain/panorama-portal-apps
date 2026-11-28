@@ -5,7 +5,7 @@ function getCooUsernames_() {
   var list = ['coo_master', 'admin', 'coo'];
   try {
     var data = (typeof getCachedSheetValues_ === 'function')
-      ? getCachedSheetValues_('MasterUser', 'MASTER', 900)
+      ? getCachedSheetValues_('MasterUser', 'MASTER', 3600)
       : (function() {
           var ss = (typeof getSpreadsheetInstance === 'function') ? getSpreadsheetInstance() : SpreadsheetApp.getActiveSpreadsheet();
           var sh = ss ? ss.getSheetByName('MasterUser') : null;
@@ -29,7 +29,7 @@ function getActiveUsernames_() {
   var list = ['coo_master', 'admin', 'coo'];
   try {
     var data = (typeof getCachedSheetValues_ === 'function')
-      ? getCachedSheetValues_('MasterUser', 'MASTER', 900)
+      ? getCachedSheetValues_('MasterUser', 'MASTER', 3600)
       : (function() {
           var ss = (typeof getSpreadsheetInstance === 'function') ? getSpreadsheetInstance() : SpreadsheetApp.getActiveSpreadsheet();
           var sh = (typeof getSheet === 'function') ? getSheet('MasterUser') : (ss ? ss.getSheetByName('MasterUser') : null);
@@ -493,7 +493,7 @@ function apiGetNotifikasi(userSession) {
     userSession = userSession || {};
     var data = [];
     if (typeof getCachedSheetValues_ === 'function') {
-      data = getCachedSheetValues_('DataNotifikasi', 'NOTIF', 60);
+      data = getCachedSheetValues_('DataNotifikasi', 'NOTIF', 300);
     } else {
       var sheet = getOrCreateNotifikasiSheet_();
       if (!sheet) return { success: true, notifications: [], unreadCount: 0 };
